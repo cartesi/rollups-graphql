@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/commons"
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/contracts"
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/convenience"
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/convenience/model"
-	"github.com/calindra/cartesi-rollups-hl-graphql/postgres/raw"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/contracts"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
+	"github.com/calindra/cartesi-rollups-graphql/postgres/raw"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/suite"
 )
@@ -97,7 +97,7 @@ func (s *SynchronizerOutputExecutedSuite) TestUpdateOutputs() {
 	ctx := context.Background()
 
 	_, err := s.dbNodeV2.ExecContext(ctx, `
-		UPDATE output 
+		UPDATE output
 		SET transaction_hash = NULL,
 			updated_at = '2024-11-06 15:30:00'
 	`)
@@ -129,7 +129,7 @@ func (s *SynchronizerOutputExecutedSuite) TestUpdateOutputs() {
 	s.Require().Equal(0, executedCount)
 
 	_, err = s.dbNodeV2.ExecContext(ctx, `
-		UPDATE output 
+		UPDATE output
 		SET
 			transaction_hash = '\x0011223344',
 			updated_at = NOW()

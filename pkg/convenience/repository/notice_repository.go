@@ -8,8 +8,8 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/commons"
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/convenience/model"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 )
@@ -78,7 +78,7 @@ func (c *NoticeRepository) Create(
 func (c *NoticeRepository) Update(
 	ctx context.Context, data *model.ConvenienceNotice,
 ) (*model.ConvenienceNotice, error) {
-	sqlUpdate := `UPDATE notices SET 
+	sqlUpdate := `UPDATE notices SET
 		payload = $1
 		WHERE input_index = $2 and output_index = $3`
 	exec := DBExecutor{&c.Db}
@@ -99,7 +99,7 @@ func (c *NoticeRepository) Update(
 func (c *NoticeRepository) SetProof(
 	ctx context.Context, notice *model.ConvenienceNotice,
 ) error {
-	updateVoucher := `UPDATE notices SET 
+	updateVoucher := `UPDATE notices SET
 		output_hashes_siblings = $1,
 		proof_output_index = $2
 		WHERE app_contract = $3 and output_index = $4`

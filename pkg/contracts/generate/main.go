@@ -26,13 +26,13 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/commons"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 )
 
 const (
-	openzeppelin        = "https://registry.npmjs.org/@openzeppelin/contracts/-/contracts-5.0.2.tgz"
-	rollupsContractsUrl = "https://registry.npmjs.org/@cartesi/rollups/-/rollups-2.0.0-rc.10.tgz"
+	openzeppelin        = "https://registry.npmjs.org/@openzeppelin/contracts/-/contracts-5.1.0.tgz"
+	rollupsContractsUrl = "https://registry.npmjs.org/@cartesi/rollups/-/rollups-2.0.0-rc.13.tgz"
 	baseContractsPath   = "package/export/artifacts/contracts/"
 	bindingPkg          = "contracts"
 )

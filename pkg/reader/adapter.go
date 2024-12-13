@@ -3,7 +3,7 @@ package reader
 import (
 	"context"
 
-	graphql "github.com/calindra/cartesi-rollups-hl-graphql/pkg/reader/model"
+	graphql "github.com/calindra/cartesi-rollups-graphql/pkg/reader/model"
 )
 
 type Adapter interface {

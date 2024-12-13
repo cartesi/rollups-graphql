@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/commons"
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/convenience/model"
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/devnet"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/devnet"
 	"github.com/ethereum/go-ethereum/common"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"

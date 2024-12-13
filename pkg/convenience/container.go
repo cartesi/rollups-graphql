@@ -5,11 +5,11 @@ import (
 	"log/slog"
 	"net/url"
 
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/convenience/decoder"
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/convenience/repository"
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/convenience/services"
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/convenience/synchronizer"
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/graphile"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/decoder"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/repository"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/services"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/synchronizer"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/graphile"
 	"github.com/jmoiron/sqlx"
 )
 

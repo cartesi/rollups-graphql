@@ -8,8 +8,8 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/commons"
-	cModel "github.com/calindra/cartesi-rollups-hl-graphql/pkg/convenience/model"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
+	cModel "github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 )
@@ -214,10 +214,10 @@ func (r *ReportRepository) FindByInputAndOutputIndex(
 
 func (r *ReportRepository) FindReportByAppContractAndIndex(ctx context.Context, index int, appContract common.Address) (*cModel.Report, error) {
 
-	query := `SELECT 
-		input_index, 
-		output_index, 
-		payload, 
+	query := `SELECT
+		input_index,
+		output_index,
+		payload,
 		app_contract FROM convenience_reports WHERE input_index = $1 AND app_contract = $2`
 
 	res, err := r.Db.QueryxContext(
@@ -423,7 +423,7 @@ func (c *ReportRepository) BatchFindAllByInputIndexAndAppContract(
 	filters []*BatchFilterItem,
 ) ([]*commons.PageResult[cModel.Report], []error) {
 	slog.Debug("BatchFindAllByInputIndexAndAppContract", "len", len(filters))
-	query := `SELECT 
+	query := `SELECT
 				input_index, output_index, payload, app_contract FROM convenience_reports
 		WHERE
 	`
