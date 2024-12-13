@@ -26,4 +26,4 @@ check-gen: gen
 
 .PHONY: run
 run:
-	go run github.com/calindra/cartesi-rollups-hl-graphql
+	go run github.com/calindra/cartesi-rollups-graphql

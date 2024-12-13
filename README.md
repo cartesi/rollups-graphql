@@ -1,7 +1,7 @@
 # Cartesi's HL GraphQL
 
-![CI](https://github.com/Calindra/cartesi-rollups-hl-graphql/actions/workflows/ci.yaml/badge.svg)
-[![Go Report Card](https://goreportcard.com/badge/github.com/Calindra/cartesi-rollups-hl-graphql)](https://goreportcard.com/report/github.com/Calindra/cartesi-rollups-hl-graphql)
+![CI](https://github.com/Calindra/cartesi-rollups-graphql/actions/workflows/ci.yaml/badge.svg)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Calindra/cartesi-rollups-graphql)](https://goreportcard.com/report/github.com/Calindra/cartesi-rollups-graphql)
 
 [Technical Vision Forum Discussion](https://governance.cartesi.io/t/convenience-layer-for-voucher-management-on-cartesi/401)
 
@@ -36,12 +36,12 @@ New configuration
 ```sh
 export POSTGRES_GRAPHQL_DB_URL="postgres://postgres:password@localhost:5432/hlgraphql?sslmode=disable"
 export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
-./cartesi-rollups-hl-graphql
+./cartesi-rollups-graphql
 ```
 
 Old configuration
 
-When running cartesi-rollups-hl-graphql, set flag db-implementation with the value postgres
+When running cartesi-rollups-graphql, set flag db-implementation with the value postgres
 
 ```sh
 export POSTGRES_HOST=localhost
@@ -50,13 +50,13 @@ export POSTGRES_DB=hlgraphql
 export POSTGRES_USER=postgres
 export POSTGRES_PASSWORD=password
 export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
-./cartesi-rollups-hl-graphql --raw-enabled --graphile-disable-sync --db-implementation=postgres
+./cartesi-rollups-graphql --raw-enabled --graphile-disable-sync --db-implementation=postgres
 ```
 
 ## Contributors
 
-<a href="https://github.com/Calindra/cartesi-rollups-hl-graphql/graphs/contributors">
-  <img src="https://contributors-img.firebaseapp.com/image?repo=calindra/cartesi-rollups-hl-graphql" />
+<a href="https://github.com/Calindra/cartesi-rollups-graphql/graphs/contributors">
+  <img src="https://contributors-img.firebaseapp.com/image?repo=calindra/cartesi-rollups-graphql" />
 </a>
 
 Made with [contributors-img](https://contributors-img.firebaseapp.com).
