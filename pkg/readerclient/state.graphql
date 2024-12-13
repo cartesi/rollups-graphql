@@ -1,0 +1,48 @@
+# Get the whole node state.
+query State {
+  inputs {
+    edges {
+      node {
+        index
+        status
+        msgSender
+        timestamp
+        blockNumber
+        payload
+        notices {
+          edges {
+            node {
+              index
+              payload
+              proof {
+                outputIndex
+                outputHashesSiblings
+              }
+            }
+          }
+        }
+        vouchers {
+          edges {
+            node {
+              index
+              payload
+              destination
+              proof {
+                outputIndex
+                outputHashesSiblings
+              }
+            }
+          }
+        }
+        reports {
+          edges {
+            node {
+              index
+              payload
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+TODO
+
+.DS_Store
+/cartesi-rollups-hl-graphql
+/cartesi-rollups-hl-graphql.exe
+*.sqlite3
+sqlite3
+.idea/
+.direnv/

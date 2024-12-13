@@ -1,0 +1,29 @@
+linters:
+  enable:
+    - errcheck
+    - exhaustive
+    - goconst
+    - godox
+    - gofmt
+    - mnd
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - misspell
+    - staticcheck
+    - unused
+linters-settings:
+  lll:
+    line-length: 228
+    tab-width: 8
+  staticcheck:
+    checks:
+      - all
+      - SA1019
+issues:
+  exclude-rules:
+  - path: ".*"
+    linters:
+      - staticcheck
+    text: "SA1019"  

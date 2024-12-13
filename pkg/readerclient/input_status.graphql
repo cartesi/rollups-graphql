@@ -1,0 +1,6 @@
+# Get the input status.
+query InputStatus($id: String!) {
+  input(id: $id) {
+    status
+  }
+}
