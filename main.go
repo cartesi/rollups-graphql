@@ -93,19 +93,12 @@ func init() {
 	// contracts-*
 	cmd.Flags().StringVar(&opts.ApplicationAddress, "contracts-application-address",
 		opts.ApplicationAddress, "Application contract address")
-	cmd.Flags().StringVar(&opts.InputBoxAddress, "contracts-input-box-address",
-		opts.InputBoxAddress, "InputBox contract address")
-	cmd.Flags().Uint64Var(&opts.InputBoxBlock, "contracts-input-box-block",
-		opts.InputBoxBlock, "InputBox deployment block number")
 
 	// enable-*
 	cmd.Flags().BoolVarP(&debug, "enable-debug", "d", false, "If set, enable debug output")
 	cmd.Flags().BoolVar(&color, "enable-color", true, "If set, enables logs color")
-	cmd.Flags().BoolVar(&opts.EnableEcho, "enable-echo", opts.EnableEcho,
-		"If set, cartesi-rollups-graphql starts a built-in echo application")
 
 	cmd.Flags().DurationVar(&opts.TimeoutWorker, "timeout-worker", opts.TimeoutWorker, "Timeout for workers. Example: cartesi-rollups-graphql --timeout-worker 30s")
-	cmd.Flags().DurationVar(&opts.TimeoutInspect, "sm-deadline-inspect-state", opts.TimeoutInspect, "Timeout for inspect requests. Example: cartesi-rollups-graphql --sm-deadline-inspect-state 30s")
 
 	// disable-*
 
@@ -114,41 +107,17 @@ func init() {
 		"HTTP address used by cartesi-rollups-graphql to serve its APIs")
 	cmd.Flags().IntVar(&opts.HttpPort, "http-port", opts.HttpPort,
 		"HTTP port used by cartesi-rollups-graphql to serve its external APIs")
-	cmd.Flags().IntVar(&opts.HttpRollupsPort, "http-rollups-port", opts.HttpRollupsPort,
-		"HTTP port used by cartesi-rollups-graphql to serve its internal APIs")
-
-	// rpc-url
-	cmd.Flags().StringVar(&opts.RpcUrl, "rpc-url", opts.RpcUrl,
-		"If set, cartesi-rollups-graphql connects to this url instead of setting up Anvil")
 
 	// database file
 	cmd.Flags().StringVar(&opts.SqliteFile, "sqlite-file", opts.SqliteFile,
 		"The sqlite file to load the state")
-
-	cmd.Flags().Uint64Var(&opts.FromBlock, "from-block", opts.FromBlock,
-		"The beginning of the queried range for events")
 
 	cmd.Flags().Uint64VarP(&tempFromBlockL1, "from-l1-block", "", 0, "The beginning of the queried range for events")
 
 	cmd.Flags().StringVar(&opts.DbImplementation, "db-implementation", opts.DbImplementation,
 		"DB to use. PostgreSQL or SQLite")
 
-	cmd.Flags().StringVar(&opts.NodeVersion, "node-version", opts.NodeVersion,
-		"Node version to emulate")
-
-	cmd.Flags().BoolVar(&opts.LoadTestMode, "load-test-mode", opts.LoadTestMode,
-		"If set, enables load test mode")
-
-	cmd.Flags().BoolVar(&opts.GraphileDisableSync, "graphile-disable-sync", opts.GraphileDisableSync,
-		"If set, disable graphile synchronization")
-
-	cmd.Flags().StringVar(&opts.GraphileUrl, "graphile-url", opts.GraphileUrl, "URL used to connect to Graphile")
-
-	cmd.Flags().StringVar(&opts.DbRawUrl, "db-raw-url", opts.DbRawUrl, "The raw database url")
 	cmd.Flags().BoolVar(&opts.RawEnabled, "raw-enabled", opts.RawEnabled, "If set, enables raw database")
-
-	cmd.Flags().IntVar(&opts.EpochBlocks, "epoch-blocks", opts.EpochBlocks,
-		"Number of blocks in each epoch")
 }
 
 func deprecatedWarningCmd(cmd *cobra.Command, flag string, replacement string) {
@@ -162,28 +131,15 @@ func deprecatedFlags(cmd *cobra.Command) {
 	err := v.BindPFlags(cmd.Flags())
 	cobra.CheckErr(err)
 
-	deprecatedWarningCmd(cmd, "graphile-disable-sync", "")
-	checkAndSetFlag(cmd, "db-raw-url", func(val string) { opts.DbRawUrl = val }, "POSTGRES_NODE_DB_URL")
-
 	checkAndSetFlag(cmd, "contracts-application-address", func(val string) { opts.ApplicationAddress = val }, "APPLICATION_ADDRESS")
-	checkAndSetFlag(cmd, "contracts-input-box-address", func(val string) { opts.InputBoxAddress = val }, "INPUT_BOX_ADDRESS")
-	checkAndSetFlag(cmd, "contracts-input-box-block", func(val string) { opts.InputBoxBlock = cast.ToUint64(val) }, "INPUT_BOX_BLOCK")
 	checkAndSetFlag(cmd, "enable-debug", func(val string) { debug = cast.ToBool(val) }, "GRAPHQL_DEBUG")
 	checkAndSetFlag(cmd, "enable-color", func(val string) { color = cast.ToBool(val) }, "COLOR")
-	checkAndSetFlag(cmd, "enable-echo", func(val string) { opts.EnableEcho = cast.ToBool(val) }, "ENABLE_ECHO")
 	checkAndSetFlag(cmd, "timeout-worker", func(val string) { opts.TimeoutWorker, _ = time.ParseDuration(val) }, "TIMEOUT_WORKER")
-	checkAndSetFlag(cmd, "sm-deadline-inspect-state", func(val string) { opts.TimeoutInspect, _ = time.ParseDuration(val) }, "SM_DEADLINE_INSPECT_STATE")
 	checkAndSetFlag(cmd, "http-address", func(val string) { opts.HttpAddress = val }, "HTTP_ADDRESS")
 	checkAndSetFlag(cmd, "http-port", func(val string) { opts.HttpPort = cast.ToInt(val) }, "HTTP_PORT")
-	checkAndSetFlag(cmd, "http-rollups-port", func(val string) { opts.HttpRollupsPort = cast.ToInt(val) }, "HTTP_ROLLUPS_PORT")
-	checkAndSetFlag(cmd, "rpc-url", func(val string) { opts.RpcUrl = val }, "RPC_URL")
 	checkAndSetFlag(cmd, "sqlite-file", func(val string) { opts.SqliteFile = val }, "SQLITE_FILE")
-	checkAndSetFlag(cmd, "from-block", func(val string) { opts.FromBlock = cast.ToUint64(val) }, "FROM_BLOCK")
 	checkAndSetFlag(cmd, "from-l1-block", func(val string) { tempFromBlockL1 = cast.ToUint64(val) }, "FROM_BLOCK_L1")
 	checkAndSetFlag(cmd, "db-implementation", func(val string) { opts.DbImplementation = val }, "DB_IMPLEMENTATION")
-	checkAndSetFlag(cmd, "node-version", func(val string) { opts.NodeVersion = val }, "NODE_VERSION")
-	checkAndSetFlag(cmd, "load-test-mode", func(val string) { opts.LoadTestMode = cast.ToBool(val) }, "LOAD_TEST_MODE")
-	checkAndSetFlag(cmd, "epoch-blocks", func(val string) { opts.EpochBlocks = cast.ToInt(val) }, "EPOCH_BLOCKS")
 	checkAndSetFlag(cmd, "raw-enabled", func(val string) { opts.RawEnabled = cast.ToBool(val) }, "RAW_ENABLED")
 }
 
@@ -222,12 +178,6 @@ func run(cmd *cobra.Command, args []string) {
 	if !cmd.Flags().Changed("sequencer") && cmd.Flags().Changed("rpc-url") && !cmd.Flags().Changed("contracts-input-box-block") {
 		exitf("must set --contracts-input-box-block when setting --rpc-url")
 	}
-	if opts.EnableEcho && len(args) > 0 {
-		exitf("can't use built-in echo with custom application")
-	}
-	if cmd.Flags().Changed("from-l1-block") {
-		opts.FromBlockL1 = &tempFromBlockL1
-	}
 	deprecatedFlags(cmd)
 
 	// handle signals with notify context
@@ -251,10 +201,6 @@ func run(cmd *cobra.Command, args []string) {
 				msg,
 				"HTTP_PORT",
 				fmt.Sprint(opts.HttpPort), -1)
-			msg = strings.Replace(
-				msg,
-				"ROLLUPS_PORT",
-				fmt.Sprint(opts.HttpRollupsPort), -1)
 			fmt.Println(msg)
 			slog.Info("cartesi-rollups-graphql: ready", "after", time.Since(startTime))
 		case <-ctx.Done():
