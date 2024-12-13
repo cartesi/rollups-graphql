@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/contracts"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/contracts"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 )

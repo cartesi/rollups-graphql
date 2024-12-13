@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/contracts"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/contracts"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/convenience/model"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -37,7 +37,7 @@ func (c *SynchronizerRepository) CreateTables() error {
 		ini_report_cursor_after text,
 		end_report_cursor_after text
 		);
-		
+
 		CREATE INDEX IF NOT EXISTS idx_last_fetched_id ON synchronizer_fetch(id DESC);
 		`, idType)
 

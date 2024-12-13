@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/commons"
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/convenience/model"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 )
@@ -452,7 +452,7 @@ func (c *InputRepository) GetNonce(
 	appContract common.Address,
 	msgSender common.Address,
 ) (uint64, error) {
-	query := `SELECT count(*) FROM convenience_inputs 
+	query := `SELECT count(*) FROM convenience_inputs
 	WHERE app_contract = $1 and msg_sender = $2`
 	stmt, err := c.Db.Preparex(query)
 	if err != nil {

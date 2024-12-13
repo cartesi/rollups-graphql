@@ -13,7 +13,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/reader/model"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/reader/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )

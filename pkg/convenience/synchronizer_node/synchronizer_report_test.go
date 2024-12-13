@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/commons"
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/convenience"
-	"github.com/calindra/cartesi-rollups-hl-graphql/postgres/raw"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience"
+	"github.com/calindra/cartesi-rollups-graphql/postgres/raw"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/suite"
 )

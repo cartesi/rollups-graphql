@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/commons"
-	configtest "github.com/calindra/cartesi-rollups-hl-graphql/pkg/convenience/config_test"
-	"github.com/calindra/cartesi-rollups-hl-graphql/postgres/raw"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
+	configtest "github.com/calindra/cartesi-rollups-graphql/pkg/convenience/config_test"
+	"github.com/calindra/cartesi-rollups-graphql/postgres/raw"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"

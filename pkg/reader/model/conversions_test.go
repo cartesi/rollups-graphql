@@ -4,8 +4,8 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/commons"
-	cModel "github.com/calindra/cartesi-rollups-hl-graphql/pkg/convenience/model"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
+	cModel "github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
 	"github.com/stretchr/testify/suite"
 )
 

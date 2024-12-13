@@ -10,7 +10,7 @@ import (
 	"log/slog"
 	"strconv"
 
-	cModel "github.com/calindra/cartesi-rollups-hl-graphql/pkg/convenience/model"
+	cModel "github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
 )
 
 //

@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/convenience/model"
-	"github.com/calindra/cartesi-rollups-hl-graphql/pkg/convenience/repository"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/repository"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
