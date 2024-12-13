@@ -12,11 +12,12 @@ import (
 	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
 	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/repository"
 	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/services"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/devnet"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/suite"
 )
+
+const ApplicationAddress = "0x75135d8ADb7180640d29d822D9AD59E83E8695b2"
 
 var Token = common.HexToAddress("0xc6e7DF5E7b4f2A278906862b61205850344D4e7d")
 
@@ -198,7 +199,7 @@ func (s *OutputDecoderSuite) TestParseBytesToInput() {
 	blob := GenerateInputBlob()
 	decodedInput, err := s.decoder.ParseBytesToInput(common.Hex2Bytes(blob[2:]))
 	s.Require().NoError(err)
-	s.Equal(common.HexToAddress(devnet.ApplicationAddress), decodedInput.AppContract)
+	s.Equal(common.HexToAddress(ApplicationAddress), decodedInput.AppContract)
 }
 
 func GenerateInputBlob() string {
@@ -210,7 +211,7 @@ func GenerateInputBlob() string {
 	}
 
 	chainId := big.NewInt(1000000000000000000)
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	blockNumber := big.NewInt(1000000000000000000)
 	blockTimestamp := big.NewInt(1720701841)
 	payload := common.Hex2Bytes("11223344556677889900")

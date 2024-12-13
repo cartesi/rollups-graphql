@@ -12,12 +12,13 @@ import (
 	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
 	cModel "github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
 	cRepos "github.com/calindra/cartesi-rollups-graphql/pkg/convenience/repository"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/devnet"
 	"github.com/ethereum/go-ethereum/common"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/stretchr/testify/suite"
 )
+
+const ApplicationAddress = "0x75135d8ADb7180640d29d822D9AD59E83E8695b2"
 
 //
 // Test suite
@@ -72,7 +73,7 @@ func TestAdapterSuite(t *testing.T) {
 func (s *LoaderSuite) TestGetReports() {
 	ctx := context.Background()
 	s.createTestData(ctx)
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	loaders := NewLoaders(
 		s.reportRepository,
 		s.voucherRepository,
@@ -134,7 +135,7 @@ func (s *LoaderSuite) TestGetReports() {
 func (s *LoaderSuite) TestGetVouchers() {
 	ctx := context.Background()
 	s.createTestData(ctx)
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	loaders := NewLoaders(
 		s.reportRepository,
 		s.voucherRepository,
@@ -196,7 +197,7 @@ func (s *LoaderSuite) TestGetVouchers() {
 func (s *LoaderSuite) TestGetNotices() {
 	ctx := context.Background()
 	s.createTestData(ctx)
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	loaders := NewLoaders(
 		s.reportRepository,
 		s.voucherRepository,
@@ -256,7 +257,7 @@ func (s *LoaderSuite) TestGetNotices() {
 }
 
 func (s *LoaderSuite) createTestData(ctx context.Context) {
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	for i := 0; i < 3; i++ {
 		_, err := s.inputRepository.Create(ctx, cModel.AdvanceInput{
 			ID:             strconv.Itoa(i),

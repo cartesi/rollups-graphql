@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/calindra/cartesi-rollups-graphql/pkg/bootstrap"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/devnet"
 	"github.com/carlmjohnson/versioninfo"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -29,7 +28,6 @@ import (
 
 var (
 	MAX_FILE_SIZE uint64 = 1_440_000 // 1,44 MB
-	APP_ADDRESS          = common.HexToAddress(devnet.ApplicationAddress)
 )
 
 var startupMessage = `

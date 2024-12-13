@@ -7,7 +7,6 @@ import (
 
 	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
 	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/devnet"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/ncruces/go-sqlite3/driver"
@@ -139,7 +138,7 @@ func (s *NoticeRepositorySuite) TestNoticePagination() {
 }
 
 func (s *NoticeRepositorySuite) TestGenerateBatchNoticeKey() {
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	var inputIndex uint64 = 0
 
 	expectedKey := appContract.Hex() + "|0"
@@ -151,7 +150,7 @@ func (s *NoticeRepositorySuite) TestGenerateBatchNoticeKey() {
 
 func (s *NoticeRepositorySuite) TestBatchFindAll() {
 	ctx := context.Background()
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	for i := 0; i < 3; i++ {
 		for j := 0; j < 4; j++ {
 			_, err := s.repository.Create(

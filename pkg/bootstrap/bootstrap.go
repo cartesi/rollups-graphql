@@ -18,7 +18,6 @@ import (
 	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience"
 	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/synchronizer"
 	synchronizernode "github.com/calindra/cartesi-rollups-graphql/pkg/convenience/synchronizer_node"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/devnet"
 	"github.com/calindra/cartesi-rollups-graphql/pkg/health"
 	"github.com/calindra/cartesi-rollups-graphql/pkg/reader"
 	"github.com/calindra/cartesi-rollups-graphql/pkg/supervisor"
@@ -92,9 +91,9 @@ func NewBootstrapOpts() BootstrapOpts {
 		HttpAddress:         "127.0.0.1",
 		HttpPort:            DefaultHttpPort,
 		HttpRollupsPort:     DefaultRollupsPort,
-		InputBoxAddress:     devnet.InputBoxAddress,
+		InputBoxAddress:     "",
 		InputBoxBlock:       0,
-		ApplicationAddress:  devnet.ApplicationAddress,
+		ApplicationAddress:  "",
 		RpcUrl:              "",
 		EspressoUrl:         "https://query.decaf.testnet.espresso.network",
 		EnableEcho:          false,

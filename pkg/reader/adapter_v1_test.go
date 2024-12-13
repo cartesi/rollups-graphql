@@ -12,13 +12,14 @@ import (
 	cModel "github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
 	cRepos "github.com/calindra/cartesi-rollups-graphql/pkg/convenience/repository"
 	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/services"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/devnet"
 	"github.com/calindra/cartesi-rollups-graphql/pkg/reader/model"
 	"github.com/ethereum/go-ethereum/common"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/stretchr/testify/suite"
 )
+
+const ApplicationAddress = "0x75135d8ADb7180640d29d822D9AD59E83E8695b2"
 
 //
 // Test suite
@@ -128,7 +129,7 @@ func (s *AdapterSuite) TestGetInputs() {
 
 func (s *AdapterSuite) TestGetInputsFilteredByAppContract() {
 	ctx := context.Background()
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	s.createTestData(ctx)
 
 	// without address
@@ -152,7 +153,7 @@ func (s *AdapterSuite) TestGetInputsFilteredByAppContract() {
 
 func (s *AdapterSuite) TestGetVouchersFilteredByAppContract() {
 	ctx := context.Background()
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	s.createTestData(ctx)
 
 	// without address
@@ -176,7 +177,7 @@ func (s *AdapterSuite) TestGetVouchersFilteredByAppContract() {
 
 func (s *AdapterSuite) TestGetVoucherFilteredByAppContract() {
 	ctx := context.Background()
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	s.createTestData(ctx)
 
 	// without address
@@ -200,7 +201,7 @@ func (s *AdapterSuite) TestGetVoucherFilteredByAppContract() {
 
 func (s *AdapterSuite) TestGetNoticesFilteredByAppContract() {
 	ctx := context.Background()
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	s.createTestData(ctx)
 
 	// without address
@@ -224,7 +225,7 @@ func (s *AdapterSuite) TestGetNoticesFilteredByAppContract() {
 
 func (s *AdapterSuite) TestGetNoticeFilteredByAppContract() {
 	ctx := context.Background()
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	s.createTestData(ctx)
 
 	// without address
@@ -248,7 +249,7 @@ func (s *AdapterSuite) TestGetNoticeFilteredByAppContract() {
 
 func (s *AdapterSuite) TestGetInputFilteredByAppContract() {
 	ctx := context.Background()
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	s.createTestData(ctx)
 
 	// without address
@@ -272,7 +273,7 @@ func (s *AdapterSuite) TestGetInputFilteredByAppContract() {
 
 func (s *AdapterSuite) TestGetInputByIndexFilteredAppContract() {
 	ctx := context.Background()
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	s.createTestData(ctx)
 
 	// without address
@@ -296,7 +297,7 @@ func (s *AdapterSuite) TestGetInputByIndexFilteredAppContract() {
 
 func (s *AdapterSuite) TestGetReportsFilteredByAppContract() {
 	ctx := context.Background()
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	s.createTestData(ctx)
 
 	// without address
@@ -320,7 +321,7 @@ func (s *AdapterSuite) TestGetReportsFilteredByAppContract() {
 
 func (s *AdapterSuite) TestGetReportFilteredByAppContract() {
 	ctx := context.Background()
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	s.createTestData(ctx)
 
 	// without address
@@ -343,7 +344,7 @@ func (s *AdapterSuite) TestGetReportFilteredByAppContract() {
 }
 
 func (s *AdapterSuite) createTestData(ctx context.Context) {
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	for i := 0; i < 3; i++ {
 		_, err := s.inputRepository.Create(ctx, cModel.AdvanceInput{
 			ID:             strconv.Itoa(i),
