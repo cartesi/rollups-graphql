@@ -142,8 +142,6 @@ func init() {
 	cmd.Flags().BoolVar(&opts.GraphileDisableSync, "graphile-disable-sync", opts.GraphileDisableSync,
 		"If set, disable graphile synchronization")
 
-	cmd.Flags().StringVar(&opts.GraphileUrl, "graphile-url", opts.GraphileUrl, "URL used to connect to Graphile")
-
 	cmd.Flags().StringVar(&opts.DbRawUrl, "db-raw-url", opts.DbRawUrl, "The raw database url")
 	cmd.Flags().BoolVar(&opts.RawEnabled, "raw-enabled", opts.RawEnabled, "If set, enables raw database")
 
@@ -219,9 +217,9 @@ func run(cmd *cobra.Command, args []string) {
 	// check args
 	checkEthAddress(cmd, "address-input-box")
 	checkEthAddress(cmd, "address-application")
-	if !cmd.Flags().Changed("sequencer") && cmd.Flags().Changed("rpc-url") && !cmd.Flags().Changed("contracts-input-box-block") {
-		exitf("must set --contracts-input-box-block when setting --rpc-url")
-	}
+	// if !cmd.Flags().Changed("sequencer") && cmd.Flags().Changed("rpc-url") && !cmd.Flags().Changed("contracts-input-box-block") {
+	// 	exitf("must set --contracts-input-box-block when setting --rpc-url")
+	// }
 	if opts.EnableEcho && len(args) > 0 {
 		exitf("can't use built-in echo with custom application")
 	}
