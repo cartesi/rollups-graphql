@@ -42,7 +42,6 @@
         "Graphile",
         "gsrpc",
         "hexutil",
-        "hlgraphql",
         "idempotency",
         "initdb",
         "inputbox",

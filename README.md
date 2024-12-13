@@ -34,7 +34,7 @@ make up-db-raw
 New configuration
 
 ```sh
-export POSTGRES_GRAPHQL_DB_URL="postgres://postgres:password@localhost:5432/hlgraphql?sslmode=disable"
+export POSTGRES_GRAPHQL_DB_URL="postgres://postgres:password@localhost:5432/rlgraphql?sslmode=disable"
 export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
 ./cartesi-rollups-graphql
 ```
@@ -46,7 +46,7 @@ When running cartesi-rollups-graphql, set flag db-implementation with the value 
 ```sh
 export POSTGRES_HOST=localhost
 export POSTGRES_PORT=5432
-export POSTGRES_DB=hlgraphql
+export POSTGRES_DB=rlgraphql
 export POSTGRES_USER=postgres
 export POSTGRES_PASSWORD=password
 export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
