@@ -36,14 +36,14 @@ jobs:
             fi
           done
 
-      - name: Creating database hlgraphql
-        run: psql "postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable" -c "CREATE DATABASE hlgraphql WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';"
+      - name: Creating database rlgraphql
+        run: psql "postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable" -c "CREATE DATABASE rlgraphql WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';"
 
       - name: Using Postgres DB
         run: |
           export POSTGRES_HOST=localhost
           export POSTGRES_PORT=5432
-          export POSTGRES_DB=hlgraphql
+          export POSTGRES_DB=rlgraphql
           export POSTGRES_USER=postgres
           export POSTGRES_PASSWORD=password
           export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"

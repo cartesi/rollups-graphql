@@ -1,7 +1,7 @@
 // Copyright (c) Gabriel de Quadros Ligneul
 // SPDX-License-Identifier: Apache-2.0 (see LICENSE)
 
-// This package contains the main function that executes the hlgraphql command.
+// This package contains the main function that executes the cartesi-rollups-graphql command.
 package main
 
 import (
@@ -40,8 +40,8 @@ Press Ctrl+C to stop the node
 var tempFromBlockL1 uint64
 
 var cmd = &cobra.Command{
-	Use:     "hlgraphql [flags] [-- application [args]...]",
-	Short:   "hlgraphql is a development node for Cartesi Rollups",
+	Use:     "cartesi-rollups-graphql [flags] [-- application [args]...]",
+	Short:   "cartesi-rollups-graphql is a development node for Cartesi Rollups",
 	Run:     run,
 	Version: versioninfo.Short(),
 }
@@ -102,24 +102,24 @@ func init() {
 	cmd.Flags().BoolVarP(&debug, "enable-debug", "d", false, "If set, enable debug output")
 	cmd.Flags().BoolVar(&color, "enable-color", true, "If set, enables logs color")
 	cmd.Flags().BoolVar(&opts.EnableEcho, "enable-echo", opts.EnableEcho,
-		"If set, hlgraphql starts a built-in echo application")
+		"If set, cartesi-rollups-graphql starts a built-in echo application")
 
-	cmd.Flags().DurationVar(&opts.TimeoutWorker, "timeout-worker", opts.TimeoutWorker, "Timeout for workers. Example: hlgraphql --timeout-worker 30s")
-	cmd.Flags().DurationVar(&opts.TimeoutInspect, "sm-deadline-inspect-state", opts.TimeoutInspect, "Timeout for inspect requests. Example: hlgraphql --sm-deadline-inspect-state 30s")
+	cmd.Flags().DurationVar(&opts.TimeoutWorker, "timeout-worker", opts.TimeoutWorker, "Timeout for workers. Example: cartesi-rollups-graphql --timeout-worker 30s")
+	cmd.Flags().DurationVar(&opts.TimeoutInspect, "sm-deadline-inspect-state", opts.TimeoutInspect, "Timeout for inspect requests. Example: cartesi-rollups-graphql --sm-deadline-inspect-state 30s")
 
 	// disable-*
 
 	// http-*
 	cmd.Flags().StringVar(&opts.HttpAddress, "http-address", opts.HttpAddress,
-		"HTTP address used by hlgraphql to serve its APIs")
+		"HTTP address used by cartesi-rollups-graphql to serve its APIs")
 	cmd.Flags().IntVar(&opts.HttpPort, "http-port", opts.HttpPort,
-		"HTTP port used by hlgraphql to serve its external APIs")
+		"HTTP port used by cartesi-rollups-graphql to serve its external APIs")
 	cmd.Flags().IntVar(&opts.HttpRollupsPort, "http-rollups-port", opts.HttpRollupsPort,
-		"HTTP port used by hlgraphql to serve its internal APIs")
+		"HTTP port used by cartesi-rollups-graphql to serve its internal APIs")
 
 	// rpc-url
 	cmd.Flags().StringVar(&opts.RpcUrl, "rpc-url", opts.RpcUrl,
-		"If set, hlgraphql connects to this url instead of setting up Anvil")
+		"If set, cartesi-rollups-graphql connects to this url instead of setting up Anvil")
 
 	// database file
 	cmd.Flags().StringVar(&opts.SqliteFile, "sqlite-file", opts.SqliteFile,
@@ -238,7 +238,7 @@ func run(cmd *cobra.Command, args []string) {
 
 	var inspectMessage string
 
-	// start hlgraphql
+	// start cartesi-rollups-graphql
 	ready := make(chan struct{}, 1)
 	go func() {
 		select {
@@ -256,7 +256,7 @@ func run(cmd *cobra.Command, args []string) {
 				"ROLLUPS_PORT",
 				fmt.Sprint(opts.HttpRollupsPort), -1)
 			fmt.Println(msg)
-			slog.Info("hlgraphql: ready", "after", time.Since(startTime))
+			slog.Info("cartesi-rollups-graphql: ready", "after", time.Since(startTime))
 		case <-ctx.Done():
 		}
 	}()
