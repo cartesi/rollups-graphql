@@ -22,19 +22,6 @@ services:
       - "5432:5432"
     networks:
       - mynetwork
-  postgraphile:
-    build:
-      context: postgraphile
-      dockerfile: Dockerfile
-    restart: on-failure:3
-    depends_on:
-      db:
-        condition: service_healthy
-        restart: true
-    ports:
-      - "5001:5001"
-    networks:
-      - mynetwork
   app:
     build: .
     restart: on-failure:3
