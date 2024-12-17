@@ -13,12 +13,14 @@ import (
 	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience"
 	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
 	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/repository"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/devnet"
 	"github.com/calindra/cartesi-rollups-graphql/postgres/raw"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/suite"
 )
+
+// Account that sends the transactions.
+const SenderAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 
 type SynchronizerUpdateNodeSuite struct {
 	suite.Suite
@@ -145,7 +147,7 @@ func (s *SynchronizerUpdateNodeSuite) countAcceptedInput(ctx context.Context) in
 
 func (s *SynchronizerUpdateNodeSuite) fillRefData(ctx context.Context) {
 	appContract := common.HexToAddress(DEFAULT_TEST_APP_CONTRACT)
-	msgSender := common.HexToAddress(devnet.SenderAddress)
+	msgSender := common.HexToAddress(SenderAddress)
 	txCtx, err := s.synchronizerUpdate.startTransaction(ctx)
 	s.Require().NoError(err)
 	for i := 0; i < TOTAL_INPUT_TEST; i++ {

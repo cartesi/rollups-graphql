@@ -8,7 +8,6 @@ import (
 
 	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
 	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/devnet"
 	"github.com/ethereum/go-ethereum/common"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
@@ -58,7 +57,7 @@ func (s *VoucherRepositorySuite) TestCreateVoucher() {
 
 func (s *VoucherRepositorySuite) TestFindVoucher() {
 	ctx := context.Background()
-	appAddress := common.HexToAddress(devnet.ApplicationAddress)
+	appAddress := common.HexToAddress(ApplicationAddress)
 	voucherSaved, err := s.voucherRepository.CreateVoucher(ctx, &model.ConvenienceVoucher{
 		Destination: common.HexToAddress("0x26A61aF89053c847B4bd5084E2caFe7211874a29"),
 		Payload:     "0x0011",
@@ -221,7 +220,7 @@ func (s *VoucherRepositorySuite) TestWrongAddress() {
 
 func (s *VoucherRepositorySuite) TestBatchFindAllVouchers() {
 	ctx := context.Background()
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	for i := 0; i < 3; i++ {
 		for j := 0; j < 4; j++ {
 			_, err := s.voucherRepository.CreateVoucher(
