@@ -138,7 +138,7 @@ func NewSupervisorGraphQL(opts BootstrapOpts) supervisor.SupervisorWorker {
 			inputAbiDecoder,
 		)
 
-		rawSequencer := synchronizernode.NewSynchronizerCreateWorker(
+		synchronizerWorker := synchronizernode.NewSynchronizerCreateWorker(
 			container.GetInputRepository(),
 			container.GetRawInputRepository(),
 			dbRawUrl,
@@ -152,7 +152,7 @@ func NewSupervisorGraphQL(opts BootstrapOpts) supervisor.SupervisorWorker {
 			synchronizerInputCreate,
 			synchronizerOutputExecuted,
 		)
-		w.Workers = append(w.Workers, rawSequencer)
+		w.Workers = append(w.Workers, synchronizerWorker)
 	}
 
 	cleanSync := synchronizer.NewCleanSynchronizer(container.GetSyncRepository(), nil)
