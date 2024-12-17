@@ -32,4 +32,4 @@ EXPOSE 8080
 HEALTHCHECK CMD curl --fail http://localhost:8080/health || exit 1
 
 # Comando para rodar a aplicação
-CMD ["./cartesi-rollups-graphql", "--http-address=0.0.0.0", "--enable-debug", "--node-version", "v2", "--db-implementation", "postgres", "--rpc-url", "0.0.0.0" ]
+CMD ["./cartesi-rollups-graphql", "--http-address=0.0.0.0", "--enable-debug", "--db-implementation", "postgres"]

@@ -8,7 +8,6 @@ package bootstrap
 import (
 	"fmt"
 	"log/slog"
-	"net/url"
 	"os"
 	"path"
 	"strconv"
@@ -39,81 +38,24 @@ type BootstrapOpts struct {
 	AutoCount          bool
 	HttpAddress        string
 	HttpPort           int
-	HttpRollupsPort    int
-	InputBoxAddress    string
-	InputBoxBlock      uint64
 	ApplicationAddress string
-	// If RpcUrl is set, connect to it instead of anvil.
-	RpcUrl      string
-	EspressoUrl string
-	// If set, start echo dapp.
-	EnableEcho bool
-	// If set, disables advances.
-	DisableAdvance bool
-	// If set, disables inspects.
-	DisableInspect bool
-	// If set, start application.
-	ApplicationArgs     []string
-	SqliteFile          string
-	FromBlock           uint64
-	FromBlockL1         *uint64
-	DbImplementation    string
-	NodeVersion         string
-	LoadTestMode        bool
-	Namespace           uint64
-	TimeoutInspect      time.Duration
-	TimeoutWorker       time.Duration
-	GraphileUrl         string
-	GraphileDisableSync bool
-	DbRawUrl            string
-	RawEnabled          bool
-	EpochBlocks         int
+	SqliteFile         string
+	DbImplementation   string
+	TimeoutWorker      time.Duration
+	RawEnabled         bool
 }
 
 // Create the options struct with default values.
 func NewBootstrapOpts() BootstrapOpts {
-	var (
-		defaultTimeout time.Duration = 10 * time.Second
-		graphileUrl                  = os.Getenv("GRAPHILE_URL")
-	)
-	const defaultGraphileUrl = "http://localhost:5001/graphql"
-
-	if graphileUrl == "" {
-		graphileUrl = defaultGraphileUrl
-	}
-
-	// Check if the URL is valid
-	if _, err := url.Parse(graphileUrl); err != nil {
-		graphileUrl = defaultGraphileUrl
-	}
-
 	return BootstrapOpts{
-		HttpAddress:         "127.0.0.1",
-		HttpPort:            DefaultHttpPort,
-		HttpRollupsPort:     DefaultRollupsPort,
-		InputBoxAddress:     "0x593E5BCf894D6829Dd26D0810DA7F064406aebB6",
-		InputBoxBlock:       0,
-		ApplicationAddress:  "0x75135d8ADb7180640d29d822D9AD59E83E8695b2",
-		RpcUrl:              "",
-		EspressoUrl:         "https://query.decaf.testnet.espresso.network",
-		EnableEcho:          false,
-		DisableAdvance:      false,
-		DisableInspect:      false,
-		ApplicationArgs:     nil,
-		SqliteFile:          "",
-		FromBlock:           0,
-		FromBlockL1:         nil,
-		DbImplementation:    "postgres",
-		NodeVersion:         "v1",
-		LoadTestMode:        false,
-		Namespace:           DefaultNamespace,
-		TimeoutInspect:      defaultTimeout,
-		TimeoutWorker:       supervisor.DefaultSupervisorTimeout,
-		GraphileUrl:         graphileUrl,
-		GraphileDisableSync: false,
-		AutoCount:           false,
-		DbRawUrl:            "postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable",
-		RawEnabled:          true,
+		HttpAddress:        "127.0.0.1",
+		HttpPort:           DefaultHttpPort,
+		ApplicationAddress: "0x75135d8ADb7180640d29d822D9AD59E83E8695b2",
+		SqliteFile:         "",
+		DbImplementation:   "postgres",
+		TimeoutWorker:      supervisor.DefaultSupervisorTimeout,
+		AutoCount:          false,
+		RawEnabled:         true,
 	}
 }
 
@@ -130,7 +72,6 @@ func NewSupervisorGraphQL(opts BootstrapOpts) supervisor.SupervisorWorker {
 	e.Use(middleware.Recover())
 	e.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
 		ErrorMessage: "Request timed out",
-		Timeout:      opts.TimeoutInspect,
 	}))
 	health.Register(e)
 	reader.Register(e, convenienceService, adapter)
@@ -140,9 +81,12 @@ func NewSupervisorGraphQL(opts BootstrapOpts) supervisor.SupervisorWorker {
 	})
 
 	if opts.RawEnabled {
-		dbRawUrl := opts.DbRawUrl
+		dbRawUrl, ok := os.LookupEnv("POSTGRES_NODE_DB_URL")
+		if !ok {
+			panic("POSTGRES_RAW_DB_URL environment variable not set")
+		}
 		dbNodeV2 := sqlx.MustConnect("postgres", dbRawUrl)
-		rawRepository := synchronizernode.NewRawRepository(opts.DbRawUrl, dbNodeV2)
+		rawRepository := synchronizernode.NewRawRepository(dbRawUrl, dbNodeV2)
 		synchronizerUpdate := synchronizernode.NewSynchronizerUpdate(
 			container.GetRawInputRepository(),
 			rawRepository,
@@ -197,7 +141,7 @@ func NewSupervisorGraphQL(opts BootstrapOpts) supervisor.SupervisorWorker {
 		rawSequencer := synchronizernode.NewSynchronizerCreateWorker(
 			container.GetInputRepository(),
 			container.GetRawInputRepository(),
-			opts.DbRawUrl,
+			dbRawUrl,
 			rawRepository,
 			&synchronizerUpdate,
 			container.GetOutputDecoder(),
