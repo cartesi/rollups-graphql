@@ -17,7 +17,6 @@ import (
 	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience"
 	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/synchronizer"
 	synchronizernode "github.com/calindra/cartesi-rollups-graphql/pkg/convenience/synchronizer_node"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/devnet"
 	"github.com/calindra/cartesi-rollups-graphql/pkg/health"
 	"github.com/calindra/cartesi-rollups-graphql/pkg/reader"
 	"github.com/calindra/cartesi-rollups-graphql/pkg/supervisor"
@@ -51,7 +50,7 @@ func NewBootstrapOpts() BootstrapOpts {
 	return BootstrapOpts{
 		HttpAddress:        "127.0.0.1",
 		HttpPort:           DefaultHttpPort,
-		ApplicationAddress: devnet.ApplicationAddress,
+		ApplicationAddress: "0x75135d8ADb7180640d29d822D9AD59E83E8695b2",
 		SqliteFile:         "",
 		DbImplementation:   "postgres",
 		TimeoutWorker:      supervisor.DefaultSupervisorTimeout,

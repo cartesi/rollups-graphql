@@ -9,12 +9,13 @@ import (
 	"time"
 
 	convenience "github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/devnet"
 
 	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 )
+
+const ApplicationAddress = "0x75135d8ADb7180640d29d822D9AD59E83E8695b2"
 
 type InputRepositorySuite struct {
 	suite.Suite
@@ -300,7 +301,7 @@ func (s *InputRepositorySuite) TestCreateInputAndCheckAppContract() {
 
 func (s *InputRepositorySuite) TestBatchFindInput() {
 	ctx := context.Background()
-	appContract := common.HexToAddress(devnet.ApplicationAddress)
+	appContract := common.HexToAddress(ApplicationAddress)
 	for i := 0; i < 5; i++ {
 		input, err := s.inputRepository.Create(ctx, convenience.AdvanceInput{
 			ID:             strconv.Itoa(i),
