@@ -173,9 +173,6 @@ func run(cmd *cobra.Command, args []string) {
 	// check args
 	checkEthAddress(cmd, "address-input-box")
 	checkEthAddress(cmd, "address-application")
-	if !cmd.Flags().Changed("sequencer") && cmd.Flags().Changed("rpc-url") && !cmd.Flags().Changed("contracts-input-box-block") {
-		exitf("must set --contracts-input-box-block when setting --rpc-url")
-	}
 	deprecatedFlags(cmd)
 
 	// handle signals with notify context
