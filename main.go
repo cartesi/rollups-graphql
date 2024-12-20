@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/calindra/cartesi-rollups-graphql/pkg/bootstrap"
+	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
 	"github.com/carlmjohnson/versioninfo"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -28,6 +29,7 @@ import (
 
 var (
 	MAX_FILE_SIZE uint64 = 1_440_000 // 1,44 MB
+	ConfigManager        = viper.New()
 )
 
 var startupMessage = `
@@ -125,10 +127,6 @@ func deprecatedWarningCmd(cmd *cobra.Command, flag string, replacement string) {
 }
 
 func deprecatedFlags(cmd *cobra.Command) {
-	v := viper.New()
-	err := v.BindPFlags(cmd.Flags())
-	cobra.CheckErr(err)
-
 	checkAndSetFlag(cmd, "contracts-application-address", func(val string) { opts.ApplicationAddress = val }, "APPLICATION_ADDRESS")
 	checkAndSetFlag(cmd, "enable-debug", func(val string) { debug = cast.ToBool(val) }, "GRAPHQL_DEBUG")
 	checkAndSetFlag(cmd, "enable-color", func(val string) { color = cast.ToBool(val) }, "COLOR")
@@ -154,6 +152,7 @@ func checkAndSetFlag(cmd *cobra.Command, flagName string, setOptEnv func(string)
 }
 
 func run(cmd *cobra.Command, args []string) {
+	LoadFlags(cmd)
 	LoadEnv()
 	ctx := cmd.Context()
 	startTime := time.Now()
@@ -169,11 +168,13 @@ func run(cmd *cobra.Command, args []string) {
 	handler := tint.NewHandler(os.Stdout, logOpts)
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
+	sw := commons.NewSlogWriter(logger, slog.LevelDebug)
 
 	// check args
 	checkEthAddress(cmd, "address-input-box")
 	checkEthAddress(cmd, "address-application")
 	deprecatedFlags(cmd)
+	ConfigManager.DebugTo(sw)
 
 	// handle signals with notify context
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
@@ -210,6 +211,12 @@ var envBuilded string
 
 // LoadEnv from embedded .env file
 func LoadEnv() {
+	slog.Debug("env: loading")
+	ConfigManager.AutomaticEnv()
+	ConfigManager.SetConfigType("env")
+	err := ConfigManager.ReadConfig(strings.NewReader(envBuilded))
+	cobra.CheckErr(err)
+
 	currentEnv := map[string]bool{}
 	rawEnv := os.Environ()
 	for _, rawEnvLine := range rawEnv {
@@ -231,6 +238,11 @@ func LoadEnv() {
 	}
 
 	slog.Debug("env: loaded")
+}
+
+func LoadFlags(cmd *cobra.Command) {
+	err := ConfigManager.BindPFlags(cmd.Flags())
+	cobra.CheckErr(err)
 }
 
 func main() {
