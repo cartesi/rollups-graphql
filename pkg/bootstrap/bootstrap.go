@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"os"
 	"path"
-	"strconv"
 	"time"
 
 	"github.com/calindra/cartesi-rollups-graphql/pkg/contracts"
@@ -25,12 +24,17 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/lib/pq"
+	"github.com/spf13/cast"
 )
 
 const (
-	DefaultHttpPort    = 8080
-	DefaultRollupsPort = 5004
-	DefaultNamespace   = 10008
+	DefaultHttpPort           = 8080
+	DefaultRollupsPort        = 5004
+	DefaultNamespace          = 10008
+	DefaultMaxOpenConnections = 25
+	DefaultMaxIdleConnections = 10
+	DefaultConnMaxLifetime    = 30 * time.Minute
+	DefaultConnMaxIdleTime    = 5 * time.Minute
 )
 
 // Options to nonodo.
@@ -193,12 +197,20 @@ func CreateDBInstance(opts BootstrapOpts) *sqlx.DB {
 	return db
 }
 
-// nolint
+// configureConnectionPool sets the connection pool settings for the database connection.
+// The following environment variables are used to configure the connection pool:
+// - DB_MAX_OPEN_CONNS: Maximum number of open connections to the database
+// - DB_MAX_IDLE_CONNS: Maximum number of idle connections in the pool
+// - DB_CONN_MAX_LIFETIME: Maximum amount of time a connection may be reused
+// - DB_CONN_MAX_IDLE_TIME: Maximum amount of time a connection may be idle
 func configureConnectionPool(db *sqlx.DB) {
-	maxOpenConns := getEnvInt("DB_MAX_OPEN_CONNS", 25)
-	maxIdleConns := getEnvInt("DB_MAX_IDLE_CONNS", 10)
-	connMaxLifetime := getEnvInt("DB_CONN_MAX_LIFETIME", 1800) // 30 min
-	connMaxIdleTime := getEnvInt("DB_CONN_MAX_IDLE_TIME", 300) // 5 min
+	defaultConnMaxLifetime := int(DefaultConnMaxLifetime.Seconds())
+	defaultConnMaxIdleTime := int(DefaultConnMaxIdleTime.Seconds())
+
+	maxOpenConns := getEnvInt("DB_MAX_OPEN_CONNS", DefaultMaxOpenConnections)
+	maxIdleConns := getEnvInt("DB_MAX_IDLE_CONNS", DefaultMaxIdleConnections)
+	connMaxLifetime := getEnvInt("DB_CONN_MAX_LIFETIME", defaultConnMaxLifetime)
+	connMaxIdleTime := getEnvInt("DB_CONN_MAX_IDLE_TIME", defaultConnMaxIdleTime)
 	db.SetMaxOpenConns(maxOpenConns)
 	db.SetMaxIdleConns(maxIdleConns)
 	db.SetConnMaxLifetime(time.Duration(connMaxLifetime) * time.Second)
@@ -210,7 +222,7 @@ func getEnvInt(envName string, defaultValue int) int {
 	if !exists {
 		return defaultValue
 	}
-	intValue, err := strconv.Atoi(value)
+	intValue, err := cast.ToIntE(value)
 	if err != nil {
 		slog.Error("configuration error", "envName", envName, "value", value)
 		panic(err)
