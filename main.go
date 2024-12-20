@@ -19,17 +19,15 @@ import (
 	"github.com/carlmjohnson/versioninfo"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/joho/godotenv"
 	"github.com/lmittmann/tint"
 	"github.com/mattn/go-isatty"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var (
 	MAX_FILE_SIZE uint64 = 1_440_000 // 1,44 MB
-	ConfigManager        = viper.New()
+	ConfigManager        = commons.NewConfigManager()
 )
 
 var startupMessage = `
@@ -152,8 +150,8 @@ func checkAndSetFlag(cmd *cobra.Command, flagName string, setOptEnv func(string)
 }
 
 func run(cmd *cobra.Command, args []string) {
-	LoadFlags(cmd)
-	LoadEnv()
+	ConfigManager.LoadFlags(cmd)
+	ConfigManager.LoadEnv(envBuilded)
 	ctx := cmd.Context()
 	startTime := time.Now()
 
@@ -168,13 +166,12 @@ func run(cmd *cobra.Command, args []string) {
 	handler := tint.NewHandler(os.Stdout, logOpts)
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
-	sw := commons.NewSlogWriter(logger, slog.LevelDebug)
 
 	// check args
 	checkEthAddress(cmd, "address-input-box")
 	checkEthAddress(cmd, "address-application")
 	deprecatedFlags(cmd)
-	ConfigManager.DebugTo(sw)
+	ConfigManager.DebugToSlog(logger, slog.LevelDebug)
 
 	// handle signals with notify context
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
@@ -208,42 +205,6 @@ func run(cmd *cobra.Command, args []string) {
 
 //go:embed .env
 var envBuilded string
-
-// LoadEnv from embedded .env file
-func LoadEnv() {
-	slog.Debug("env: loading")
-	ConfigManager.AutomaticEnv()
-	ConfigManager.SetConfigType("env")
-	err := ConfigManager.ReadConfig(strings.NewReader(envBuilded))
-	cobra.CheckErr(err)
-
-	currentEnv := map[string]bool{}
-	rawEnv := os.Environ()
-	for _, rawEnvLine := range rawEnv {
-		key := strings.Split(rawEnvLine, "=")[0]
-		currentEnv[key] = true
-	}
-
-	parse, err := godotenv.Unmarshal(envBuilded)
-	cobra.CheckErr(err)
-
-	for k, v := range parse {
-		if !currentEnv[k] {
-			slog.Debug("env: setting env", "key", k, "value", v)
-			err := os.Setenv(k, v)
-			cobra.CheckErr(err)
-		} else {
-			slog.Debug("env: skipping env", "key", k)
-		}
-	}
-
-	slog.Debug("env: loaded")
-}
-
-func LoadFlags(cmd *cobra.Command) {
-	err := ConfigManager.BindPFlags(cmd.Flags())
-	cobra.CheckErr(err)
-}
 
 func main() {
 	cmd.AddCommand(CompletionCmd)
