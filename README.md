@@ -31,27 +31,22 @@ Start a Postgres instance locally using docker compose.
 make up-db-raw
 ```
 
-New configuration
-
 ```sh
 export POSTGRES_GRAPHQL_DB_URL="postgres://postgres:password@localhost:5432/rlgraphql?sslmode=disable"
 export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
 ./cartesi-rollups-graphql
 ```
 
-Old configuration
+## Environment Variables
 
-When running cartesi-rollups-graphql, set flag db-implementation with the value postgres
+The following environment variables are used for PostgreSQL configuration:
 
-```sh
-export POSTGRES_HOST=localhost
-export POSTGRES_PORT=5432
-export POSTGRES_DB=rlgraphql
-export POSTGRES_USER=postgres
-export POSTGRES_PASSWORD=password
-export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
-./cartesi-rollups-graphql --raw-enabled --graphile-disable-sync --db-implementation=postgres
-```
+- `POSTGRES_GRAPHQL_DB_URL`: URL for the PostgreSQL database used by GraphQL.
+- `POSTGRES_NODE_DB_URL`: URL for the PostgreSQL database used by the node.
+- `DB_MAX_OPEN_CONNS`: Maximum number of open connections to the database (default: 25).
+- `DB_MAX_IDLE_CONNS`: Maximum number of idle connections in the pool (default: 10).
+- `DB_CONN_MAX_LIFETIME`: Maximum amount of time a connection may be reused (default: 1800 seconds).
+- `DB_CONN_MAX_IDLE_TIME`: Maximum amount of time a connection may be idle (default: 300 seconds).
 
 ## Contributors
 

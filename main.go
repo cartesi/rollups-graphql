@@ -23,7 +23,6 @@ import (
 	"github.com/mattn/go-isatty"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -125,10 +124,6 @@ func deprecatedWarningCmd(cmd *cobra.Command, flag string, replacement string) {
 }
 
 func deprecatedFlags(cmd *cobra.Command) {
-	v := viper.New()
-	err := v.BindPFlags(cmd.Flags())
-	cobra.CheckErr(err)
-
 	checkAndSetFlag(cmd, "contracts-application-address", func(val string) { opts.ApplicationAddress = val }, "APPLICATION_ADDRESS")
 	checkAndSetFlag(cmd, "enable-debug", func(val string) { debug = cast.ToBool(val) }, "GRAPHQL_DEBUG")
 	checkAndSetFlag(cmd, "enable-color", func(val string) { color = cast.ToBool(val) }, "COLOR")

@@ -59,3 +59,14 @@ Clear database raw:
 ```bash
 make clean-db-raw
 ```
+
+## Database Configuration
+
+The following environment variables are used for PostgreSQL configuration:
+
+- `POSTGRES_GRAPHQL_DB_URL`: URL for the PostgreSQL database used by GraphQL.
+- `POSTGRES_NODE_DB_URL`: URL for the PostgreSQL database used by the node.
+- `DB_MAX_OPEN_CONNS`: Maximum number of open connections to the database (default: 25).
+- `DB_MAX_IDLE_CONNS`: Maximum number of idle connections in the pool (default: 10).
+- `DB_CONN_MAX_LIFETIME`: Maximum amount of time a connection may be reused (default: 1800 seconds).
+- `DB_CONN_MAX_IDLE_TIME`: Maximum amount of time a connection may be idle (default: 300 seconds).
