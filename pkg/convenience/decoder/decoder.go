@@ -45,11 +45,22 @@ func (o *OutputDecoder) HandleOutput(
 	// 0x237a816f for Vouchers
 	if payload[2:10] == model.VOUCHER_SELECTOR {
 		_, err := o.convenienceService.CreateVoucher(ctx, &model.ConvenienceVoucher{
-			Destination: destination,
-			Payload:     adapter.RemoveSelector(payload),
-			Executed:    false,
-			InputIndex:  inputIndex,
-			OutputIndex: outputIndex,
+			Destination:     destination,
+			Payload:         adapter.RemoveSelector(payload),
+			Executed:        false,
+			InputIndex:      inputIndex,
+			OutputIndex:     outputIndex,
+			IsDelegatedCall: false,
+		})
+		return err
+	} else if payload[2:10] == model.DELEGATED_CALL_VOUCHER_SELECTOR {
+		_, err := o.convenienceService.CreateVoucher(ctx, &model.ConvenienceVoucher{
+			Destination:     destination,
+			Payload:         adapter.RemoveSelector(payload),
+			Executed:        false,
+			InputIndex:      inputIndex,
+			OutputIndex:     outputIndex,
+			IsDelegatedCall: true,
 		})
 		return err
 	} else {
