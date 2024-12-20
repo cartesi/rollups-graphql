@@ -34,6 +34,7 @@ type voucherRow struct {
 	AppContract          string `db:"app_contract"`
 	TransactionHash      string `db:"transaction_hash"`
 	ProofOutputIndex     uint64 `db:"proof_output_index"`
+	IsDelegatedCall      bool   `db:"is_delegated_call"`
 }
 
 func (c *VoucherRepository) CreateTables() error {
@@ -48,6 +49,7 @@ func (c *VoucherRepository) CreateTables() error {
 		app_contract           text,
 		transaction_hash       text DEFAULT '' NOT NULL,
 		proof_output_index     integer DEFAULT 0,
+		is_delegated_call	   BOOLEAN,
 		PRIMARY KEY (input_index, output_index, app_contract)
 	);
 
@@ -81,8 +83,9 @@ func (c *VoucherRepository) CreateVoucher(
 		value,
 		output_hashes_siblings,
 		app_contract,
-		proof_output_index
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+		proof_output_index,
+		is_delegated_call,
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
 	exec := DBExecutor{&c.Db}
 
@@ -266,6 +269,7 @@ func (c *VoucherRepository) FindAllVouchersByBlockNumber(
 			v.value,
 			v.output_hashes_siblings,
 			v.app_contract
+			v.is_delegated_call
 		FROM vouchers v
 			INNER JOIN convenience_inputs i
 				ON i.app_contract = v.app_contract AND i.input_index = v.input_index
@@ -446,6 +450,7 @@ func convertToConvenienceVoucher(row voucherRow) model.ConvenienceVoucher {
 		OutputHashesSiblings: row.OutputHashesSiblings,
 		TransactionHash:      row.TransactionHash,
 		ProofOutputIndex:     row.ProofOutputIndex,
+		IsDelegatedCall:      row.IsDelegatedCall,
 	}
 	return voucher
 }
