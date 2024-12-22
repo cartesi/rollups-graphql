@@ -84,7 +84,7 @@ func (c *VoucherRepository) CreateVoucher(
 		output_hashes_siblings,
 		app_contract,
 		proof_output_index,
-		is_delegated_call,
+		is_delegated_call
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
 	exec := DBExecutor{&c.Db}
