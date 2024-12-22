@@ -101,6 +101,7 @@ func (c *VoucherRepository) CreateVoucher(
 		voucher.OutputHashesSiblings,
 		voucher.AppContract.Hex(),
 		voucher.ProofOutputIndex,
+		voucher.IsDelegatedCall,
 	)
 	if err != nil {
 		slog.Error("Error creating vouchers", "Error", err)
