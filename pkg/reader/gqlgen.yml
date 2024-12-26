@@ -25,6 +25,9 @@ models:
   Voucher:
     model:
       - github.com/calindra/cartesi-rollups-graphql/pkg/reader/model.Voucher
+  DelegateCallVoucher:
+    model:
+      - github.com/calindra/cartesi-rollups-graphql/pkg/reader/model.DelegateCallVoucher
   Proof:
     model:
       - github.com/calindra/cartesi-rollups-graphql/pkg/reader/model.Proof
@@ -43,9 +46,15 @@ models:
   VoucherConnection:
     model:
       - github.com/calindra/cartesi-rollups-graphql/pkg/reader/model.VoucherConnection
+  DelegateCallVoucherConnection:
+    model:
+      - github.com/calindra/cartesi-rollups-graphql/pkg/reader/model.DelegateCallVoucherConnection
   VoucherEdge:
     model:
       - github.com/calindra/cartesi-rollups-graphql/pkg/reader/model.VoucherEdge
+  DelegateCallVoucherEdge:
+    model:
+      - github.com/calindra/cartesi-rollups-graphql/pkg/reader/model.DelegateCallVoucherEdge
   NoticeConnection:
     model:
       - github.com/calindra/cartesi-rollups-graphql/pkg/reader/model.NoticeConnection

@@ -13,6 +13,11 @@ import (
 	"github.com/calindra/cartesi-rollups-graphql/pkg/reader/model"
 )
 
+// Input is the resolver for the input field.
+func (r *delegateCallVoucherResolver) Input(ctx context.Context, obj *model.DelegateCallVoucher) (*model.Input, error) {
+	panic(fmt.Errorf("not implemented: Input - input"))
+}
+
 // Vouchers is the resolver for the vouchers field.
 func (r *inputResolver) Vouchers(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.Connection[*model.Voucher], error) {
 	if first == nil && last == nil && after == nil && before == nil {
@@ -22,7 +27,7 @@ func (r *inputResolver) Vouchers(ctx context.Context, obj *model.Input, first *i
 }
 
 // DelegateCallVouchers is the resolver for the delegateCallVouchers field.
-func (r *inputResolver) DelegateCallVouchers(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.DelegateCallVoucherConnection, error) {
+func (r *inputResolver) DelegateCallVouchers(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.Connection[*model.DelegateCallVoucher], error) {
 	panic(fmt.Errorf("not implemented: DelegateCallVouchers - delegateCallVouchers"))
 }
 
@@ -90,7 +95,7 @@ func (r *queryResolver) Vouchers(ctx context.Context, first *int, last *int, aft
 }
 
 // DelegateCallVouchers is the resolver for the delegateCallVouchers field.
-func (r *queryResolver) DelegateCallVouchers(ctx context.Context, first *int, last *int, after *string, before *string, filter []*model.ConvenientFilter) (*model.DelegateCallVoucherConnection, error) {
+func (r *queryResolver) DelegateCallVouchers(ctx context.Context, first *int, last *int, after *string, before *string, filter []*model.ConvenientFilter) (*model.Connection[*model.DelegateCallVoucher], error) {
 	panic(fmt.Errorf("not implemented: DelegateCallVouchers - delegateCallVouchers"))
 }
 
@@ -114,6 +119,11 @@ func (r *voucherResolver) Input(ctx context.Context, obj *model.Voucher) (*model
 	return r.adapter.GetInputByIndex(ctx, obj.InputIndex)
 }
 
+// DelegateCallVoucher returns graph.DelegateCallVoucherResolver implementation.
+func (r *Resolver) DelegateCallVoucher() graph.DelegateCallVoucherResolver {
+	return &delegateCallVoucherResolver{r}
+}
+
 // Input returns graph.InputResolver implementation.
 func (r *Resolver) Input() graph.InputResolver { return &inputResolver{r} }
 
@@ -129,6 +139,7 @@ func (r *Resolver) Report() graph.ReportResolver { return &reportResolver{r} }
 // Voucher returns graph.VoucherResolver implementation.
 func (r *Resolver) Voucher() graph.VoucherResolver { return &voucherResolver{r} }
 
+type delegateCallVoucherResolver struct{ *Resolver }
 type inputResolver struct{ *Resolver }
 type noticeResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

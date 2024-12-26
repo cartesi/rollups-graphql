@@ -86,16 +86,16 @@ func ConvertConvenientDelegateCallVoucherV1(cVoucher cModel.ConvenienceVoucher) 
 		outputHashesSiblings = []string{}
 	}
 	return &DelegateCallVoucher{
-		Index: int(cVoucher.OutputIndex),
-		// InputIndex:      int(cVoucher.InputIndex),
-		Destination: cVoucher.Destination.String(),
-		Payload:     cVoucher.Payload,
-		Executed:    &cVoucher.Executed,
-		// TransactionHash: cVoucher.TransactionHash,
-		// Proof: Proof{
-		// 	OutputIndex:          strconv.FormatUint(cVoucher.ProofOutputIndex, 10),
-		// 	OutputHashesSiblings: outputHashesSiblings,
-		// },
+		Index:           int(cVoucher.OutputIndex),
+		InputIndex:      int(cVoucher.InputIndex),
+		Destination:     cVoucher.Destination.String(),
+		Payload:         cVoucher.Payload,
+		Executed:        cVoucher.Executed,
+		TransactionHash: cVoucher.TransactionHash,
+		Proof: Proof{
+			OutputIndex:          strconv.FormatUint(cVoucher.ProofOutputIndex, 10),
+			OutputHashesSiblings: outputHashesSiblings,
+		},
 	}
 }
 

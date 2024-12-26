@@ -31,40 +31,6 @@ type ConvenientFilter struct {
 	Or          []*ConvenientFilter `json:"or,omitempty"`
 }
 
-type DelegateCallVoucher struct {
-	// Voucher index within the context of the input that produced it
-	Index int `json:"index"`
-	// Input whose processing produced the voucher
-	Input *Input `json:"input"`
-	// Transaction destination address in Ethereum hex binary format (20 bytes), starting with '0x'
-	Destination string `json:"destination"`
-	// Transaction payload in Ethereum hex binary format, starting with '0x'
-	Payload string `json:"payload"`
-	// Proof object that allows this voucher to be validated and executed on the base layer blockchain
-	Proof *Proof `json:"proof,omitempty"`
-	// Indicates whether the voucher has been executed on the base layer blockchain
-	Executed *bool `json:"executed,omitempty"`
-	// The hash of executed transaction
-	TransactionHash *string `json:"transactionHash,omitempty"`
-}
-
-// Pagination result
-type DelegateCallVoucherConnection struct {
-	// Total number of entries that match the query
-	TotalCount int `json:"totalCount"`
-	// Pagination entries returned for the current page
-	Edges []*DelegateCallVoucherEdge `json:"edges"`
-	// Pagination metadata
-	PageInfo *PageInfo `json:"pageInfo"`
-}
-
-type DelegateCallVoucherEdge struct {
-	// Node instance
-	Node *DelegateCallVoucher `json:"node"`
-	// Pagination cursor
-	Cursor string `json:"cursor"`
-}
-
 // Filter object to restrict results depending on input properties
 type InputFilter struct {
 	// Filter only inputs with index lower than a given value
