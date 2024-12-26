@@ -107,7 +107,7 @@ func (s *OutputDecoderSuite) XTestCreateVoucherIdempotency() {
 	if err != nil {
 		panic(err)
 	}
-	voucherCount, err := s.voucherRepository.VoucherCount(ctx, false)
+	voucherCount, err := s.voucherRepository.VoucherCount(ctx)
 
 	if err != nil {
 		panic(err)
@@ -121,7 +121,7 @@ func (s *OutputDecoderSuite) XTestCreateVoucherIdempotency() {
 		panic(err)
 	}
 
-	voucherCount, err = s.voucherRepository.VoucherCount(ctx, false)
+	voucherCount, err = s.voucherRepository.VoucherCount(ctx)
 
 	if err != nil {
 		panic(err)

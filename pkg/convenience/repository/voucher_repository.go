@@ -194,7 +194,19 @@ func (c *VoucherRepository) UpdateVoucher(
 	return voucher, nil
 }
 
+func (c *VoucherRepository) DelegateCallVoucherCount(
+	ctx context.Context,
+) (uint64, error) {
+	return c.voucherCount(ctx, true)
+}
+
 func (c *VoucherRepository) VoucherCount(
+	ctx context.Context,
+) (uint64, error) {
+	return c.voucherCount(ctx, false)
+}
+
+func (c *VoucherRepository) voucherCount(
 	ctx context.Context,
 	isDelegatedCall bool,
 ) (uint64, error) {
