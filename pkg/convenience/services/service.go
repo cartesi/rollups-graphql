@@ -140,6 +140,7 @@ func (c *ConvenienceService) FindAllVouchers(
 	after *string,
 	before *string,
 	filter []*model.ConvenienceFilter,
+	isDelegateCall bool,
 ) (*commons.PageResult[model.ConvenienceVoucher], error) {
 	return c.VoucherRepository.FindAllVouchers(
 		ctx,
@@ -148,6 +149,7 @@ func (c *ConvenienceService) FindAllVouchers(
 		after,
 		before,
 		filter,
+		isDelegateCall,
 	)
 }
 

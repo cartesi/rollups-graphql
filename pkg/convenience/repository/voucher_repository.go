@@ -337,9 +337,10 @@ func (c *VoucherRepository) UpdateExecuted(
 func (c *VoucherRepository) Count(
 	ctx context.Context,
 	filter []*model.ConvenienceFilter,
+	isDelegatedCall bool,
 ) (uint64, error) {
 	query := `SELECT count(*) FROM vouchers `
-	where, args, _, err := transformToQuery(filter)
+	where, args, _, err := transformToQuery(filter, isDelegatedCall)
 	if err != nil {
 		return 0, err
 	}
@@ -365,13 +366,14 @@ func (c *VoucherRepository) FindAllVouchers(
 	after *string,
 	before *string,
 	filter []*model.ConvenienceFilter,
+	isDelegateCall bool,
 ) (*commons.PageResult[model.ConvenienceVoucher], error) {
-	total, err := c.Count(ctx, filter)
+	total, err := c.Count(ctx, filter, isDelegateCall)
 	if err != nil {
 		return nil, err
 	}
 	query := `SELECT * FROM vouchers `
-	where, args, argsCount, err := transformToQuery(filter)
+	where, args, argsCount, err := transformToQuery(filter, isDelegateCall)
 	if err != nil {
 		return nil, err
 	}
@@ -463,6 +465,7 @@ func convertToConvenienceVoucher(row voucherRow) model.ConvenienceVoucher {
 
 func transformToQuery(
 	filter []*model.ConvenienceFilter,
+	isDelegatedCall bool,
 ) (string, []interface{}, int, error) {
 	query := ""
 	if len(filter) > 0 {
@@ -470,7 +473,15 @@ func transformToQuery(
 	}
 	args := []interface{}{}
 	where := []string{}
+
 	count := 1
+
+	if isDelegatedCall {
+		where = append(where, fmt.Sprintf("is_delegated_call = $%d", count))
+		args = append(args, isDelegatedCall)
+		count += 1
+	}
+
 	for _, filter := range filter {
 		if *filter.Field == model.EXECUTED {
 			if *filter.Eq == "true" {

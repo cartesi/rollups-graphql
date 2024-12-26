@@ -135,7 +135,39 @@ func (a AdapterV1) GetDelegateCallVoucher(ctx context.Context, outputIndex int) 
 
 // GetDelegateCallVouchers implements Adapter.
 func (a AdapterV1) GetDelegateCallVouchers(ctx context.Context, first *int, last *int, after *string, before *string, inputIndex *int, filter []*graphql.ConvenientFilter) (*graphql.DelegateCallVoucherConnection, error) {
-	panic("unimplemented")
+	filters, err := graphql.ConvertToConvenienceFilter(filter)
+	if err != nil {
+		return nil, err
+	}
+	filters, err = addAppContractFilterAsNeeded(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	if inputIndex != nil {
+		field := cModel.INPUT_INDEX
+		value := fmt.Sprintf("%d", *inputIndex)
+		filters = append(filters, &cModel.ConvenienceFilter{
+			Field: &field,
+			Eq:    &value,
+		})
+	}
+	vouchers, err := a.convenienceService.FindAllVouchers(
+		ctx,
+		first,
+		last,
+		after,
+		before,
+		filters,
+		true,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return graphql.ConvertToDelegateCallVoucherConnectionV1(
+		vouchers.Rows,
+		int(vouchers.Offset),
+		int(vouchers.Total),
+	)
 }
 
 func getAppContractFromContext(ctx context.Context) (*common.Address, error) {
@@ -199,6 +231,7 @@ func (a AdapterV1) GetVouchers(
 		after,
 		before,
 		filters,
+		false,
 	)
 	if err != nil {
 		return nil, err

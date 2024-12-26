@@ -209,6 +209,17 @@ func ConvertToConvenienceFilter(
 	return filters, nil
 }
 
+func ConvertToDelegateCallVoucherConnectionV1(
+	vouchers []cModel.ConvenienceVoucher,
+	offset int, total int,
+) (*DelegateCallVoucherConnection, error) {
+	convNodes := make([]*DelegateCallVoucher, len(vouchers))
+	for i := range vouchers {
+		convNodes[i] = ConvertConvenientDelegateCallVoucherV1(vouchers[i])
+	}
+	return NewConnection(offset, total, convNodes), nil
+}
+
 func ConvertToVoucherConnectionV1(
 	vouchers []cModel.ConvenienceVoucher,
 	offset int, total int,
