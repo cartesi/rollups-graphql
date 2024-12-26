@@ -169,14 +169,13 @@ func (a AdapterV1) GetDelegateCallVouchers(ctx context.Context, first *int, last
 			Eq:    &value,
 		})
 	}
-	vouchers, err := a.convenienceService.FindAllVouchers(
+	vouchers, err := a.convenienceService.FindAllDelegateCalls(
 		ctx,
 		first,
 		last,
 		after,
 		before,
 		filters,
-		true,
 	)
 	if err != nil {
 		return nil, err
@@ -249,7 +248,6 @@ func (a AdapterV1) GetVouchers(
 		after,
 		before,
 		filters,
-		false,
 	)
 	if err != nil {
 		return nil, err

@@ -133,7 +133,44 @@ func (c *ConvenienceService) UpdateExecuted(
 	)
 }
 
+func (c *ConvenienceService) FindAllDelegateCalls(
+	ctx context.Context,
+	first *int,
+	last *int,
+	after *string,
+	before *string,
+	filter []*model.ConvenienceFilter,
+) (*commons.PageResult[model.ConvenienceVoucher], error) {
+	return c.findAllVouchers(
+		ctx,
+		first,
+		last,
+		after,
+		before,
+		filter,
+		true,
+	)
+}
 func (c *ConvenienceService) FindAllVouchers(
+	ctx context.Context,
+	first *int,
+	last *int,
+	after *string,
+	before *string,
+	filter []*model.ConvenienceFilter,
+) (*commons.PageResult[model.ConvenienceVoucher], error) {
+	return c.findAllVouchers(
+		ctx,
+		first,
+		last,
+		after,
+		before,
+		filter,
+		false,
+	)
+}
+
+func (c *ConvenienceService) findAllVouchers(
 	ctx context.Context,
 	first *int,
 	last *int,
@@ -142,15 +179,25 @@ func (c *ConvenienceService) FindAllVouchers(
 	filter []*model.ConvenienceFilter,
 	isDelegateCall bool,
 ) (*commons.PageResult[model.ConvenienceVoucher], error) {
-	return c.VoucherRepository.FindAllVouchers(
-		ctx,
-		first,
-		last,
-		after,
-		before,
-		filter,
-		isDelegateCall,
-	)
+	if isDelegateCall {
+		return c.VoucherRepository.FindAllDelegateCalls(
+			ctx,
+			first,
+			last,
+			after,
+			before,
+			filter,
+		)
+	} else {
+		return c.VoucherRepository.FindAllVouchers(
+			ctx,
+			first,
+			last,
+			after,
+			before,
+			filter,
+		)
+	}
 }
 
 func (c *ConvenienceService) FindAllNotices(

@@ -337,6 +337,20 @@ func (c *VoucherRepository) UpdateExecuted(
 func (c *VoucherRepository) Count(
 	ctx context.Context,
 	filter []*model.ConvenienceFilter,
+) (uint64, error) {
+	return c.count(ctx, filter, false)
+}
+
+func (c *VoucherRepository) CountDelegateCall(
+	ctx context.Context,
+	filter []*model.ConvenienceFilter,
+) (uint64, error) {
+	return c.count(ctx, filter, true)
+}
+
+func (c *VoucherRepository) count(
+	ctx context.Context,
+	filter []*model.ConvenienceFilter,
 	isDelegatedCall bool,
 ) (uint64, error) {
 	query := `SELECT count(*) FROM vouchers `
@@ -366,9 +380,31 @@ func (c *VoucherRepository) FindAllVouchers(
 	after *string,
 	before *string,
 	filter []*model.ConvenienceFilter,
+) (*commons.PageResult[model.ConvenienceVoucher], error) {
+	return c.findAllVouchers(ctx, first, last, after, before, filter, false)
+}
+
+func (c *VoucherRepository) FindAllDelegateCalls(
+	ctx context.Context,
+	first *int,
+	last *int,
+	after *string,
+	before *string,
+	filter []*model.ConvenienceFilter,
+) (*commons.PageResult[model.ConvenienceVoucher], error) {
+	return c.findAllVouchers(ctx, first, last, after, before, filter, true)
+}
+
+func (c *VoucherRepository) findAllVouchers(
+	ctx context.Context,
+	first *int,
+	last *int,
+	after *string,
+	before *string,
+	filter []*model.ConvenienceFilter,
 	isDelegateCall bool,
 ) (*commons.PageResult[model.ConvenienceVoucher], error) {
-	total, err := c.Count(ctx, filter, isDelegateCall)
+	total, err := c.count(ctx, filter, isDelegateCall)
 	if err != nil {
 		return nil, err
 	}
