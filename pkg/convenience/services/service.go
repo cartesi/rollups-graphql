@@ -208,9 +208,10 @@ func (c *ConvenienceService) FindAllByInputIndex(
 func (c *ConvenienceService) FindVoucherByOutputIndexAndAppContract(
 	ctx context.Context, outputIndex uint64,
 	appContract *common.Address,
+	isDelegateCall bool,
 ) (*model.ConvenienceVoucher, error) {
 	return c.VoucherRepository.FindVoucherByOutputIndexAndAppContract(
-		ctx, outputIndex, appContract,
+		ctx, outputIndex, appContract, isDelegateCall,
 	)
 }
 

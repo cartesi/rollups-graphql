@@ -6,6 +6,7 @@ package reader
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/calindra/cartesi-rollups-graphql/pkg/reader/graph"
@@ -18,6 +19,11 @@ func (r *inputResolver) Vouchers(ctx context.Context, obj *model.Input, first *i
 		return r.adapter.GetAllVouchersByInputIndex(ctx, &obj.Index)
 	}
 	return r.adapter.GetVouchers(ctx, first, last, after, before, &obj.Index, nil)
+}
+
+// DelegateCallVouchers is the resolver for the delegateCallVouchers field.
+func (r *inputResolver) DelegateCallVouchers(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.DelegateCallVoucherConnection, error) {
+	panic(fmt.Errorf("not implemented: DelegateCallVouchers - delegateCallVouchers"))
 }
 
 // Notices is the resolver for the notices field.
@@ -58,6 +64,11 @@ func (r *queryResolver) Voucher(ctx context.Context, outputIndex int) (*model.Vo
 	return r.adapter.GetVoucher(ctx, outputIndex)
 }
 
+// DelegateCallVoucher is the resolver for the delegateCallVoucher field.
+func (r *queryResolver) DelegateCallVoucher(ctx context.Context, outputIndex int) (*model.DelegateCallVoucher, error) {
+	return r.adapter.GetDelegateCallVoucher(ctx, outputIndex)
+}
+
 // Notice is the resolver for the notice field.
 func (r *queryResolver) Notice(ctx context.Context, outputIndex int) (*model.Notice, error) {
 	return r.adapter.GetNotice(ctx, outputIndex)
@@ -76,6 +87,11 @@ func (r *queryResolver) Inputs(ctx context.Context, first *int, last *int, after
 // Vouchers is the resolver for the vouchers field.
 func (r *queryResolver) Vouchers(ctx context.Context, first *int, last *int, after *string, before *string, filter []*model.ConvenientFilter) (*model.Connection[*model.Voucher], error) {
 	return r.adapter.GetVouchers(ctx, first, last, after, before, nil, filter)
+}
+
+// DelegateCallVouchers is the resolver for the delegateCallVouchers field.
+func (r *queryResolver) DelegateCallVouchers(ctx context.Context, first *int, last *int, after *string, before *string, filter []*model.ConvenientFilter) (*model.DelegateCallVoucherConnection, error) {
+	panic(fmt.Errorf("not implemented: DelegateCallVouchers - delegateCallVouchers"))
 }
 
 // Notices is the resolver for the notices field.
@@ -118,3 +134,17 @@ type noticeResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type reportResolver struct{ *Resolver }
 type voucherResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *inputResolver) DelegateCallVoucher(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.DelegateCallVoucherConnection, error) {
+	if first == nil && last == nil && after == nil && before == nil {
+		return r.adapter.GetAllDelegateCallVouchersByInputIndex(ctx, &obj.Index)
+	}
+
+	return r.adapter.GetDelegateCallVouchers(ctx, first, last, after, before, &obj.Index, nil)
+}

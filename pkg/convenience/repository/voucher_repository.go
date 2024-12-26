@@ -196,9 +196,10 @@ func (c *VoucherRepository) UpdateVoucher(
 
 func (c *VoucherRepository) VoucherCount(
 	ctx context.Context,
+	isDelegatedCall bool,
 ) (uint64, error) {
 	var count int
-	err := c.Db.GetContext(ctx, &count, "SELECT count(*) FROM vouchers")
+	err := c.Db.GetContext(ctx, &count, "SELECT count(*) FROM vouchers WHERE is_delegated_call = $1", isDelegatedCall)
 	if err != nil {
 		return 0, nil
 	}
@@ -209,21 +210,24 @@ func (c *VoucherRepository) queryByOutputIndexAndAppContract(
 	ctx context.Context,
 	outputIndex uint64,
 	appContract *common.Address,
+	isDelegatedCall bool,
 ) (*sqlx.Rows, error) {
 	if appContract != nil {
 		return c.Db.QueryxContext(ctx, `
 			SELECT * FROM vouchers
-			WHERE output_index = $1 and app_contract = $2
+			WHERE output_index = $1 and app_contract = $2 and is_delegated_call = $3
 			LIMIT 1`,
 			outputIndex,
 			appContract.Hex(),
+			isDelegatedCall,
 		)
 	} else {
 		return c.Db.QueryxContext(ctx, `
 			SELECT * FROM vouchers
-			WHERE output_index = $1
+			WHERE output_index = $1 and is_delegated_call = $2
 			LIMIT 1`,
 			outputIndex,
+			isDelegatedCall,
 		)
 	}
 }
@@ -231,8 +235,9 @@ func (c *VoucherRepository) queryByOutputIndexAndAppContract(
 func (c *VoucherRepository) FindVoucherByOutputIndexAndAppContract(
 	ctx context.Context, outputIndex uint64,
 	appContract *common.Address,
+	isDelegatedCall bool,
 ) (*model.ConvenienceVoucher, error) {
-	rows, err := c.queryByOutputIndexAndAppContract(ctx, outputIndex, appContract)
+	rows, err := c.queryByOutputIndexAndAppContract(ctx, outputIndex, appContract, isDelegatedCall)
 
 	if err != nil {
 		slog.Error("database error", "err", err)
@@ -258,7 +263,7 @@ func (c *VoucherRepository) FindVoucherByOutputIndexAndAppContract(
 }
 
 func (c *VoucherRepository) FindAllVouchersByBlockNumber(
-	ctx context.Context, startBlockGte uint64, endBlockLt uint64,
+	ctx context.Context, startBlockGte uint64, endBlockLt uint64, isDelegateCall bool,
 ) ([]*model.ConvenienceVoucher, error) {
 	stmt, err := c.Db.Preparex(`
 		SELECT
@@ -274,13 +279,13 @@ func (c *VoucherRepository) FindAllVouchersByBlockNumber(
 		FROM vouchers v
 			INNER JOIN convenience_inputs i
 				ON i.app_contract = v.app_contract AND i.input_index = v.input_index
-		WHERE i.block_number >= $1 and i.block_number < $2`)
+		WHERE i.block_number >= $1 and i.block_number < $2 and v.is_delegated_call = $3`)
 	if err != nil {
 		return nil, err
 	}
 	defer stmt.Close()
 	var rows []voucherRow
-	err = stmt.SelectContext(ctx, &rows, startBlockGte, endBlockLt)
+	err = stmt.SelectContext(ctx, &rows, startBlockGte, endBlockLt, isDelegateCall)
 	if err != nil {
 		return nil, err
 	}

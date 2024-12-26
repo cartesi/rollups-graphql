@@ -39,6 +39,7 @@ type Input {
   # report(index: Int!): Report!
   "Get vouchers from this particular input with support for pagination"
   vouchers(first: Int, last: Int, after: String, before: String): VoucherConnection!
+  delegateCallVouchers(first: Int, last: Int, after: String, before: String): DelegateCallVoucherConnection!
   "Get notices from this particular input with support for pagination"
   notices(first: Int, last: Int, after: String, before: String): NoticeConnection!
   "Get reports from this particular input with support for pagination"
@@ -77,12 +78,32 @@ type Voucher {
   transactionHash: String
 }
 
+type DelegateCallVoucher {
+  "Voucher index within the context of the input that produced it"
+  index: Int!
+  "Input whose processing produced the voucher"
+  input: Input!
+  "Transaction destination address in Ethereum hex binary format (20 bytes), starting with '0x'"
+  destination: String!
+  "Transaction payload in Ethereum hex binary format, starting with '0x'"
+  payload: String!
+  "Proof object that allows this voucher to be validated and executed on the base layer blockchain"
+  proof: Proof
+
+  "Indicates whether the voucher has been executed on the base layer blockchain"
+  executed: Boolean
+
+  "The hash of executed transaction"
+  transactionHash: String
+}
+
 "Top level queries"
 type Query {
   "Get input based on its identifier"
   input(id: String!): Input!
   "Get a voucher based on its index"
   voucher(outputIndex: Int!): Voucher!
+  delegateCallVoucher(outputIndex: Int!): DelegateCallVoucher!
   "Get a notice based on its index"
   notice(outputIndex: Int!): Notice!
   "Get a report based on its index"
@@ -91,6 +112,7 @@ type Query {
   inputs(first: Int, last: Int, after: String, before: String, where: InputFilter): InputConnection!
   "Get vouchers with support for pagination"
   vouchers(first: Int, last: Int, after: String, before: String, filter: [ConvenientFilter]): VoucherConnection!
+  delegateCallVouchers(first: Int, last: Int, after: String, before: String, filter: [ConvenientFilter]): DelegateCallVoucherConnection!
   "Get notices with support for pagination"
   notices(first: Int, last: Int, after: String, before: String): NoticeConnection!
   "Get reports with support for pagination"
@@ -121,6 +143,16 @@ type VoucherConnection {
   totalCount: Int!
   "Pagination entries returned for the current page"
   edges: [VoucherEdge!]!
+  "Pagination metadata"
+  pageInfo: PageInfo!
+}
+
+"Pagination result"
+type DelegateCallVoucherConnection {
+  "Total number of entries that match the query"
+  totalCount: Int!
+  "Pagination entries returned for the current page"
+  edges: [DelegateCallVoucherEdge!]!
   "Pagination metadata"
   pageInfo: PageInfo!
 }
@@ -215,6 +247,13 @@ type Report {
 type VoucherEdge {
   "Node instance"
   node: Voucher!
+  "Pagination cursor"
+  cursor: String!
+}
+
+type DelegateCallVoucherEdge {
+  "Node instance"
+  node: DelegateCallVoucher!
   "Pagination cursor"
   cursor: String!
 }

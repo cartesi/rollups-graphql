@@ -79,6 +79,26 @@ func ConvertInput(input cModel.AdvanceInput) (*Input, error) {
 	}, nil
 }
 
+func ConvertConvenientDelegateCallVoucherV1(cVoucher cModel.ConvenienceVoucher) *DelegateCallVoucher {
+	var outputHashesSiblings []string
+	err := json.Unmarshal([]byte(cVoucher.OutputHashesSiblings), &outputHashesSiblings)
+	if err != nil {
+		outputHashesSiblings = []string{}
+	}
+	return &DelegateCallVoucher{
+		Index: int(cVoucher.OutputIndex),
+		// InputIndex:      int(cVoucher.InputIndex),
+		Destination: cVoucher.Destination.String(),
+		Payload:     cVoucher.Payload,
+		Executed:    &cVoucher.Executed,
+		// TransactionHash: cVoucher.TransactionHash,
+		// Proof: Proof{
+		// 	OutputIndex:          strconv.FormatUint(cVoucher.ProofOutputIndex, 10),
+		// 	OutputHashesSiblings: outputHashesSiblings,
+		// },
+	}
+}
+
 func ConvertConvenientVoucherV1(cVoucher cModel.ConvenienceVoucher) *Voucher {
 	var outputHashesSiblings []string
 	err := json.Unmarshal([]byte(cVoucher.OutputHashesSiblings), &outputHashesSiblings)
