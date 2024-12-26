@@ -141,14 +141,13 @@ func (c *ConvenienceService) FindAllDelegateCalls(
 	before *string,
 	filter []*model.ConvenienceFilter,
 ) (*commons.PageResult[model.ConvenienceVoucher], error) {
-	return c.findAllVouchers(
+	return c.VoucherRepository.FindAllDelegateCalls(
 		ctx,
 		first,
 		last,
 		after,
 		before,
 		filter,
-		true,
 	)
 }
 func (c *ConvenienceService) FindAllVouchers(
@@ -159,45 +158,14 @@ func (c *ConvenienceService) FindAllVouchers(
 	before *string,
 	filter []*model.ConvenienceFilter,
 ) (*commons.PageResult[model.ConvenienceVoucher], error) {
-	return c.findAllVouchers(
+	return c.VoucherRepository.FindAllVouchers(
 		ctx,
 		first,
 		last,
 		after,
 		before,
 		filter,
-		false,
 	)
-}
-
-func (c *ConvenienceService) findAllVouchers(
-	ctx context.Context,
-	first *int,
-	last *int,
-	after *string,
-	before *string,
-	filter []*model.ConvenienceFilter,
-	isDelegateCall bool,
-) (*commons.PageResult[model.ConvenienceVoucher], error) {
-	if isDelegateCall {
-		return c.VoucherRepository.FindAllDelegateCalls(
-			ctx,
-			first,
-			last,
-			after,
-			before,
-			filter,
-		)
-	} else {
-		return c.VoucherRepository.FindAllVouchers(
-			ctx,
-			first,
-			last,
-			after,
-			before,
-			filter,
-		)
-	}
 }
 
 func (c *ConvenienceService) FindAllNotices(
