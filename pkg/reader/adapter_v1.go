@@ -113,7 +113,25 @@ func (a AdapterV1) GetVoucher(ctx context.Context, outputIndex int) (*graphql.Vo
 
 // GetAllDelegateCallVouchersByInputIndex implements Adapter.
 func (a AdapterV1) GetAllDelegateCallVouchersByInputIndex(ctx context.Context, inputIndex *int) (*graphql.DelegateCallVoucherConnection, error) {
-	panic("unimplemented")
+	loaders := loaders.For(ctx)
+	if loaders == nil {
+		return a.GetDelegateCallVouchers(ctx, nil, nil, nil, nil, inputIndex, nil)
+	} else {
+		appContract, err := getAppContractFromContext(ctx)
+		if err != nil {
+			return nil, err
+		}
+		key := cRepos.GenerateBatchVoucherKey(appContract, *inputIndex)
+		vouchers, err := loaders.VoucherLoader.Load(ctx, key)
+		if err != nil {
+			return nil, err
+		}
+		return graphql.ConvertToDelegateCallVoucherConnectionV1(
+			vouchers.Rows,
+			int(vouchers.Offset),
+			int(vouchers.Total),
+		)
+	}
 }
 
 // GetDelegateCallVoucher implements Adapter.
