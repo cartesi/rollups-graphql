@@ -286,7 +286,7 @@ func (c *VoucherRepository) FindAllVouchersByBlockNumber(
 			v.output_index,
 			v.value,
 			v.output_hashes_siblings,
-			v.app_contract
+			v.app_contract,
 			v.is_delegated_call
 		FROM vouchers v
 			INNER JOIN convenience_inputs i
