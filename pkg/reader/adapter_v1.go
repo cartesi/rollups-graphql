@@ -101,7 +101,7 @@ func (a AdapterV1) GetVoucher(ctx context.Context, outputIndex int) (*graphql.Vo
 		return nil, err
 	}
 	voucher, err := a.convenienceService.FindVoucherByOutputIndexAndAppContract(
-		ctx, uint64(outputIndex), appContract)
+		ctx, uint64(outputIndex), appContract, false)
 	if err != nil {
 		return nil, err
 	}
@@ -109,6 +109,82 @@ func (a AdapterV1) GetVoucher(ctx context.Context, outputIndex int) (*graphql.Vo
 		return nil, fmt.Errorf("voucher not found")
 	}
 	return graphql.ConvertConvenientVoucherV1(*voucher), nil
+}
+
+// GetAllDelegateCallVouchersByInputIndex implements Adapter.
+func (a AdapterV1) GetAllDelegateCallVouchersByInputIndex(ctx context.Context, inputIndex *int) (*graphql.DelegateCallVoucherConnection, error) {
+	loaders := loaders.For(ctx)
+	if loaders == nil {
+		return a.GetDelegateCallVouchers(ctx, nil, nil, nil, nil, inputIndex, nil)
+	} else {
+		appContract, err := getAppContractFromContext(ctx)
+		if err != nil {
+			return nil, err
+		}
+		key := cRepos.GenerateBatchVoucherKey(appContract, *inputIndex)
+		vouchers, err := loaders.VoucherLoader.Load(ctx, key)
+		if err != nil {
+			return nil, err
+		}
+		return graphql.ConvertToDelegateCallVoucherConnectionV1(
+			vouchers.Rows,
+			int(vouchers.Offset),
+			int(vouchers.Total),
+		)
+	}
+}
+
+// GetDelegateCallVoucher implements Adapter.
+func (a AdapterV1) GetDelegateCallVoucher(ctx context.Context, outputIndex int) (*graphql.DelegateCallVoucher, error) {
+	appContract, err := getAppContractFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	voucher, err := a.convenienceService.FindVoucherByOutputIndexAndAppContract(
+		ctx, uint64(outputIndex), appContract, true)
+	if err != nil {
+		return nil, err
+	}
+	if voucher == nil {
+		return nil, fmt.Errorf("delegated call voucher not found")
+	}
+	return graphql.ConvertConvenientDelegateCallVoucherV1(*voucher), nil
+}
+
+// GetDelegateCallVouchers implements Adapter.
+func (a AdapterV1) GetDelegateCallVouchers(ctx context.Context, first *int, last *int, after *string, before *string, inputIndex *int, filter []*graphql.ConvenientFilter) (*graphql.DelegateCallVoucherConnection, error) {
+	filters, err := graphql.ConvertToConvenienceFilter(filter)
+	if err != nil {
+		return nil, err
+	}
+	filters, err = addAppContractFilterAsNeeded(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	if inputIndex != nil {
+		field := cModel.INPUT_INDEX
+		value := fmt.Sprintf("%d", *inputIndex)
+		filters = append(filters, &cModel.ConvenienceFilter{
+			Field: &field,
+			Eq:    &value,
+		})
+	}
+	vouchers, err := a.convenienceService.FindAllDelegateCalls(
+		ctx,
+		first,
+		last,
+		after,
+		before,
+		filters,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return graphql.ConvertToDelegateCallVoucherConnectionV1(
+		vouchers.Rows,
+		int(vouchers.Offset),
+		int(vouchers.Total),
+	)
 }
 
 func getAppContractFromContext(ctx context.Context) (*common.Address, error) {

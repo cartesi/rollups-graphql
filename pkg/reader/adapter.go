@@ -50,16 +50,31 @@ type Adapter interface {
 		ctx context.Context,
 		outputIndex int) (*graphql.Voucher, error)
 
+	GetDelegateCallVoucher(
+		ctx context.Context,
+		outputIndex int) (*graphql.DelegateCallVoucher, error)
+
 	GetVouchers(
 		ctx context.Context,
 		first *int, last *int, after *string, before *string, inputIndex *int,
 		filter []*graphql.ConvenientFilter,
 	) (*graphql.VoucherConnection, error)
 
+	GetDelegateCallVouchers(
+		ctx context.Context,
+		first *int, last *int, after *string, before *string, inputIndex *int,
+		filter []*graphql.ConvenientFilter,
+	) (*graphql.DelegateCallVoucherConnection, error)
+
 	GetAllVouchersByInputIndex(
 		ctx context.Context,
 		inputIndex *int,
 	) (*graphql.VoucherConnection, error)
+
+	GetAllDelegateCallVouchersByInputIndex(
+		ctx context.Context,
+		inputIndex *int,
+	) (*graphql.DelegateCallVoucherConnection, error)
 
 	GetAllNoticesByInputIndex(
 		ctx context.Context,
