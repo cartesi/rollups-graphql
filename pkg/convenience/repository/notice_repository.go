@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"runtime"
 	"strings"
 
 	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
@@ -332,9 +331,6 @@ func transformToNoticeQuery(
 				return "", nil, 0, fmt.Errorf("operation not implemented")
 			}
 		} else {
-			pc, file, line, _ := runtime.Caller(1)
-			fmt.Printf("Called from %s, line #%d, func: %v\n",
-				file, line, runtime.FuncForPC(pc).Name())
 			return "", nil, 0, fmt.Errorf("unexpected field %s", *filter.Field)
 		}
 	}

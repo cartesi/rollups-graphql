@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -598,9 +597,6 @@ func transformToQuery(
 				return "", nil, 0, fmt.Errorf("operation not implemented")
 			}
 		} else {
-			pc, file, line, _ := runtime.Caller(1)
-			fmt.Printf("Called from %s, line #%d, func: %v\n",
-				file, line, runtime.FuncForPC(pc).Name())
 			return "", nil, 0, fmt.Errorf("unexpected field %s", *filter.Field)
 		}
 	}
