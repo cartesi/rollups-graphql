@@ -556,8 +556,7 @@ func transformToQuery(
 					"unexpected delegated call value %s", *filter.Eq,
 				)
 			}
-		}
-		if *filter.Field == model.EXECUTED {
+		} else if *filter.Field == model.EXECUTED {
 			if *filter.Eq == "true" {
 				where = append(where, fmt.Sprintf("executed = $%d ", count))
 				args = append(args, true)
