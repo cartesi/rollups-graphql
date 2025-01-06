@@ -366,7 +366,8 @@ func (c *VoucherRepository) count(
 	isDelegatedCall bool,
 ) (uint64, error) {
 	query := `SELECT count(*) FROM vouchers `
-	where, args, _, err := transformToQuery(filter, isDelegatedCall)
+	c.appendFilterDelegate(&filter, isDelegatedCall)
+	where, args, _, err := transformToQuery(filter)
 	if err != nil {
 		return 0, err
 	}
@@ -407,6 +408,18 @@ func (c *VoucherRepository) FindAllDelegateCalls(
 	return c.findAllVouchers(ctx, first, last, after, before, filter, true)
 }
 
+func (c *VoucherRepository) appendFilterDelegate(filter *[]*model.ConvenienceFilter, isDelegateCall bool) {
+	var (
+		value = strconv.FormatBool(isDelegateCall)
+		key   = model.DELEGATED_CALL_VOUCHER
+	)
+
+	*filter = append(*filter, &model.ConvenienceFilter{
+		Field: &key,
+		Eq:    &value,
+	})
+}
+
 func (c *VoucherRepository) findAllVouchers(
 	ctx context.Context,
 	first *int,
@@ -421,7 +434,9 @@ func (c *VoucherRepository) findAllVouchers(
 		return nil, err
 	}
 	query := `SELECT * FROM vouchers `
-	where, args, argsCount, err := transformToQuery(filter, isDelegateCall)
+
+	c.appendFilterDelegate(&filter, isDelegateCall)
+	where, args, argsCount, err := transformToQuery(filter)
 	if err != nil {
 		return nil, err
 	}
@@ -513,7 +528,6 @@ func convertToConvenienceVoucher(row voucherRow) model.ConvenienceVoucher {
 
 func transformToQuery(
 	filter []*model.ConvenienceFilter,
-	isDelegatedCall bool,
 ) (string, []interface{}, int, error) {
 	query := ""
 	if len(filter) > 0 {
@@ -523,14 +537,22 @@ func transformToQuery(
 	where := []string{}
 
 	count := 1
-
-	if isDelegatedCall {
-		where = append(where, fmt.Sprintf("is_delegated_call = $%d", count))
-		args = append(args, isDelegatedCall)
-		count += 1
-	}
-
 	for _, filter := range filter {
+		if *filter.Field == model.DELEGATED_CALL_VOUCHER {
+			if *filter.Eq == "true" {
+				where = append(where, fmt.Sprintf("is_delegated_call = $%d ", count))
+				args = append(args, true)
+				count += 1
+			} else if *filter.Eq == FALSE {
+				where = append(where, fmt.Sprintf("is_delegated_call = $%d ", count))
+				args = append(args, false)
+				count += 1
+			} else {
+				return "", nil, 0, fmt.Errorf(
+					"unexpected delegated call value %s", *filter.Eq,
+				)
+			}
+		}
 		if *filter.Field == model.EXECUTED {
 			if *filter.Eq == "true" {
 				where = append(where, fmt.Sprintf("executed = $%d ", count))

@@ -18,6 +18,7 @@ const DELEGATED_CALL_VOUCHER_SELECTOR = "10321e8b"
 const NOTICE_SELECTOR = "c258d6e5"
 const INPUT_INDEX = "InputIndex"
 const APP_CONTRACT = "AppContract"
+const DELEGATED_CALL_VOUCHER = "DelegatedCallVoucher"
 
 // Completion status for inputs.
 type CompletionStatus int
