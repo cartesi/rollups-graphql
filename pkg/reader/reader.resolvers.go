@@ -28,7 +28,11 @@ func (r *inputResolver) Vouchers(ctx context.Context, obj *model.Input, first *i
 
 // DelegateCallVouchers is the resolver for the delegateCallVouchers field.
 func (r *inputResolver) DelegateCallVouchers(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.Connection[*model.DelegateCallVoucher], error) {
-	panic(fmt.Errorf("not implemented: DelegateCallVouchers - delegateCallVouchers"))
+	// panic(fmt.Errorf("not implemented: DelegateCallVouchers - delegateCallVouchers"))
+	if first == nil && last == nil && after == nil && before == nil {
+		return r.adapter.GetAllDelegateCallVouchersByInputIndex(ctx, &obj.Index)
+	}
+	return r.adapter.GetDelegateCallVouchers(ctx, first, last, after, before, &obj.Index, nil)
 }
 
 // Notices is the resolver for the notices field.
