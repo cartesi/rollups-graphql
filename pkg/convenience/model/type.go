@@ -83,6 +83,57 @@ type ConvenienceFilter struct {
 	Or    []*ConvenienceFilter `json:"or,omitempty"`
 }
 
+func (cf ConvenienceFilter) Show() string {
+	output := ""
+	if cf.Field != nil {
+		output += "Field: " + *cf.Field + " "
+	}
+	if cf.Eq != nil {
+		output += "Eq: " + *cf.Eq + " "
+	}
+	if cf.Ne != nil {
+		output += "Ne: " + *cf.Ne + " "
+	}
+	if cf.Gt != nil {
+		output += "Gt: " + *cf.Gt + " "
+	}
+	if cf.Gte != nil {
+		output += "Gte: " + *cf.Gte + " "
+	}
+	if cf.Lt != nil {
+		output += "Lt: " + *cf.Lt + " "
+	}
+	if cf.Lte != nil {
+		output += "Lte: " + *cf.Lte + " "
+	}
+	if cf.In != nil {
+		var ins string
+		for _, in := range cf.In {
+			ins += *in + " "
+		}
+		output += "In: " + ins + " "
+	}
+	if cf.Nin != nil {
+		var nins string
+		for _, nin := range cf.Nin {
+			nins += *nin + " "
+		}
+		output += "Nin: " + nins + " "
+	}
+	if cf.And != nil {
+		for _, and := range cf.And {
+			output += "And: " + and.Show() + " "
+		}
+	}
+	if cf.Or != nil {
+		for _, or := range cf.Or {
+			output += "Or: " + or.Show() + " "
+		}
+	}
+	return output
+}
+
+
 type SynchronizerFetch struct {
 	Id                   int64  `db:"id"`
 	TimestampAfter       uint64 `db:"timestamp_after"`
