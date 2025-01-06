@@ -363,10 +363,10 @@ func (c *VoucherRepository) CountDelegateCall(
 func (c *VoucherRepository) count(
 	ctx context.Context,
 	filter []*model.ConvenienceFilter,
-	isDelegatedCall bool,
+	isDelegateCall bool,
 ) (uint64, error) {
 	query := `SELECT count(*) FROM vouchers `
-	c.appendFilterDelegate(&filter, isDelegatedCall)
+	filter = c.appendFilterDelegate(filter, isDelegateCall)
 	where, args, _, err := transformToQuery(filter)
 	if err != nil {
 		return 0, err
@@ -408,16 +408,19 @@ func (c *VoucherRepository) FindAllDelegateCalls(
 	return c.findAllVouchers(ctx, first, last, after, before, filter, true)
 }
 
-func (c *VoucherRepository) appendFilterDelegate(filter *[]*model.ConvenienceFilter, isDelegateCall bool) {
+func (c *VoucherRepository) appendFilterDelegate(filter []*model.ConvenienceFilter, isDelegateCall bool) []*model.ConvenienceFilter {
 	var (
-		value = strconv.FormatBool(isDelegateCall)
-		key   = model.DELEGATED_CALL_VOUCHER
+		value  = strconv.FormatBool(isDelegateCall)
+		key    = model.DELEGATED_CALL_VOUCHER
+		output []*model.ConvenienceFilter
 	)
 
-	*filter = append(*filter, &model.ConvenienceFilter{
+	output = append(filter, &model.ConvenienceFilter{
 		Field: &key,
 		Eq:    &value,
 	})
+
+	return output
 }
 
 func (c *VoucherRepository) findAllVouchers(
@@ -435,7 +438,7 @@ func (c *VoucherRepository) findAllVouchers(
 	}
 	query := `SELECT * FROM vouchers `
 
-	c.appendFilterDelegate(&filter, isDelegateCall)
+	filter = c.appendFilterDelegate(filter, isDelegateCall)
 	where, args, argsCount, err := transformToQuery(filter)
 	if err != nil {
 		return nil, err
