@@ -6,7 +6,6 @@ package reader
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/calindra/cartesi-rollups-graphql/pkg/reader/graph"
@@ -15,7 +14,7 @@ import (
 
 // Input is the resolver for the input field.
 func (r *delegateCallVoucherResolver) Input(ctx context.Context, obj *model.DelegateCallVoucher) (*model.Input, error) {
-	panic(fmt.Errorf("not implemented: Input - input"))
+	return r.adapter.GetInputByIndex(ctx, obj.InputIndex)
 }
 
 // Vouchers is the resolver for the vouchers field.
