@@ -13,11 +13,12 @@ const STATUS_PROPERTY = "Status"
 const EXECUTED = "Executed"
 const FALSE = "false"
 const DESTINATION = "Destination"
-const VOUCHER_SELECTOR = "237a816f" // deprecated ef615e2f
+const VOUCHER_SELECTOR = "237a816f"
 const DELEGATED_CALL_VOUCHER_SELECTOR = "10321e8b"
 const NOTICE_SELECTOR = "c258d6e5"
 const INPUT_INDEX = "InputIndex"
 const APP_CONTRACT = "AppContract"
+const DELEGATED_CALL_VOUCHER = "DelegatedCallVoucher"
 
 // Completion status for inputs.
 type CompletionStatus int
@@ -54,6 +55,7 @@ type ConvenienceVoucher struct {
 	OutputHashesSiblings string         `db:"output_hashes_siblings"`
 	TransactionHash      string         `db:"transaction_hash"`
 	ProofOutputIndex     uint64         `db:"proof_output_index"`
+	IsDelegatedCall      bool           `db:"is_delegated_call"`
 	// future improvements
 	// Contract        common.Address
 	// Beneficiary     common.Address

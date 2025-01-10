@@ -38,6 +38,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	DelegateCallVoucher() DelegateCallVoucherResolver
 	Input() InputResolver
 	Notice() NoticeResolver
 	Query() QueryResolver
@@ -49,22 +50,44 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	DelegateCallVoucher struct {
+		Destination     func(childComplexity int) int
+		Executed        func(childComplexity int) int
+		Index           func(childComplexity int) int
+		Input           func(childComplexity int) int
+		Payload         func(childComplexity int) int
+		Proof           func(childComplexity int) int
+		TransactionHash func(childComplexity int) int
+	}
+
+	DelegateCallVoucherConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	DelegateCallVoucherEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	Input struct {
-		BlockNumber         func(childComplexity int) int
-		BlockTimestamp      func(childComplexity int) int
-		EspressoBlockNumber func(childComplexity int) int
-		EspressoTimestamp   func(childComplexity int) int
-		ID                  func(childComplexity int) int
-		Index               func(childComplexity int) int
-		InputBoxIndex       func(childComplexity int) int
-		MsgSender           func(childComplexity int) int
-		Notices             func(childComplexity int, first *int, last *int, after *string, before *string) int
-		Payload             func(childComplexity int) int
-		PrevRandao          func(childComplexity int) int
-		Reports             func(childComplexity int, first *int, last *int, after *string, before *string) int
-		Status              func(childComplexity int) int
-		Timestamp           func(childComplexity int) int
-		Vouchers            func(childComplexity int, first *int, last *int, after *string, before *string) int
+		BlockNumber          func(childComplexity int) int
+		BlockTimestamp       func(childComplexity int) int
+		DelegateCallVouchers func(childComplexity int, first *int, last *int, after *string, before *string) int
+		EspressoBlockNumber  func(childComplexity int) int
+		EspressoTimestamp    func(childComplexity int) int
+		ID                   func(childComplexity int) int
+		Index                func(childComplexity int) int
+		InputBoxIndex        func(childComplexity int) int
+		MsgSender            func(childComplexity int) int
+		Notices              func(childComplexity int, first *int, last *int, after *string, before *string) int
+		Payload              func(childComplexity int) int
+		PrevRandao           func(childComplexity int) int
+		Reports              func(childComplexity int, first *int, last *int, after *string, before *string) int
+		Status               func(childComplexity int) int
+		Timestamp            func(childComplexity int) int
+		Vouchers             func(childComplexity int, first *int, last *int, after *string, before *string) int
 	}
 
 	InputConnection struct {
@@ -109,14 +132,16 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Input    func(childComplexity int, id string) int
-		Inputs   func(childComplexity int, first *int, last *int, after *string, before *string, where *model.InputFilter) int
-		Notice   func(childComplexity int, outputIndex int) int
-		Notices  func(childComplexity int, first *int, last *int, after *string, before *string) int
-		Report   func(childComplexity int, reportIndex int) int
-		Reports  func(childComplexity int, first *int, last *int, after *string, before *string) int
-		Voucher  func(childComplexity int, outputIndex int) int
-		Vouchers func(childComplexity int, first *int, last *int, after *string, before *string, filter []*model.ConvenientFilter) int
+		DelegateCallVoucher  func(childComplexity int, outputIndex int) int
+		DelegateCallVouchers func(childComplexity int, first *int, last *int, after *string, before *string, filter []*model.ConvenientFilter) int
+		Input                func(childComplexity int, id string) int
+		Inputs               func(childComplexity int, first *int, last *int, after *string, before *string, where *model.InputFilter) int
+		Notice               func(childComplexity int, outputIndex int) int
+		Notices              func(childComplexity int, first *int, last *int, after *string, before *string) int
+		Report               func(childComplexity int, reportIndex int) int
+		Reports              func(childComplexity int, first *int, last *int, after *string, before *string) int
+		Voucher              func(childComplexity int, outputIndex int) int
+		Vouchers             func(childComplexity int, first *int, last *int, after *string, before *string, filter []*model.ConvenientFilter) int
 	}
 
 	Report struct {
@@ -159,8 +184,12 @@ type ComplexityRoot struct {
 	}
 }
 
+type DelegateCallVoucherResolver interface {
+	Input(ctx context.Context, obj *model.DelegateCallVoucher) (*model.Input, error)
+}
 type InputResolver interface {
 	Vouchers(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.Connection[*model.Voucher], error)
+	DelegateCallVouchers(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.Connection[*model.DelegateCallVoucher], error)
 	Notices(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.Connection[*model.Notice], error)
 	Reports(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.Connection[*model.Report], error)
 }
@@ -170,10 +199,12 @@ type NoticeResolver interface {
 type QueryResolver interface {
 	Input(ctx context.Context, id string) (*model.Input, error)
 	Voucher(ctx context.Context, outputIndex int) (*model.Voucher, error)
+	DelegateCallVoucher(ctx context.Context, outputIndex int) (*model.DelegateCallVoucher, error)
 	Notice(ctx context.Context, outputIndex int) (*model.Notice, error)
 	Report(ctx context.Context, reportIndex int) (*model.Report, error)
 	Inputs(ctx context.Context, first *int, last *int, after *string, before *string, where *model.InputFilter) (*model.Connection[*model.Input], error)
 	Vouchers(ctx context.Context, first *int, last *int, after *string, before *string, filter []*model.ConvenientFilter) (*model.Connection[*model.Voucher], error)
+	DelegateCallVouchers(ctx context.Context, first *int, last *int, after *string, before *string, filter []*model.ConvenientFilter) (*model.Connection[*model.DelegateCallVoucher], error)
 	Notices(ctx context.Context, first *int, last *int, after *string, before *string) (*model.Connection[*model.Notice], error)
 	Reports(ctx context.Context, first *int, last *int, after *string, before *string) (*model.Connection[*model.Report], error)
 }
@@ -203,6 +234,90 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "DelegateCallVoucher.destination":
+		if e.complexity.DelegateCallVoucher.Destination == nil {
+			break
+		}
+
+		return e.complexity.DelegateCallVoucher.Destination(childComplexity), true
+
+	case "DelegateCallVoucher.executed":
+		if e.complexity.DelegateCallVoucher.Executed == nil {
+			break
+		}
+
+		return e.complexity.DelegateCallVoucher.Executed(childComplexity), true
+
+	case "DelegateCallVoucher.index":
+		if e.complexity.DelegateCallVoucher.Index == nil {
+			break
+		}
+
+		return e.complexity.DelegateCallVoucher.Index(childComplexity), true
+
+	case "DelegateCallVoucher.input":
+		if e.complexity.DelegateCallVoucher.Input == nil {
+			break
+		}
+
+		return e.complexity.DelegateCallVoucher.Input(childComplexity), true
+
+	case "DelegateCallVoucher.payload":
+		if e.complexity.DelegateCallVoucher.Payload == nil {
+			break
+		}
+
+		return e.complexity.DelegateCallVoucher.Payload(childComplexity), true
+
+	case "DelegateCallVoucher.proof":
+		if e.complexity.DelegateCallVoucher.Proof == nil {
+			break
+		}
+
+		return e.complexity.DelegateCallVoucher.Proof(childComplexity), true
+
+	case "DelegateCallVoucher.transactionHash":
+		if e.complexity.DelegateCallVoucher.TransactionHash == nil {
+			break
+		}
+
+		return e.complexity.DelegateCallVoucher.TransactionHash(childComplexity), true
+
+	case "DelegateCallVoucherConnection.edges":
+		if e.complexity.DelegateCallVoucherConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.DelegateCallVoucherConnection.Edges(childComplexity), true
+
+	case "DelegateCallVoucherConnection.pageInfo":
+		if e.complexity.DelegateCallVoucherConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.DelegateCallVoucherConnection.PageInfo(childComplexity), true
+
+	case "DelegateCallVoucherConnection.totalCount":
+		if e.complexity.DelegateCallVoucherConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.DelegateCallVoucherConnection.TotalCount(childComplexity), true
+
+	case "DelegateCallVoucherEdge.cursor":
+		if e.complexity.DelegateCallVoucherEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.DelegateCallVoucherEdge.Cursor(childComplexity), true
+
+	case "DelegateCallVoucherEdge.node":
+		if e.complexity.DelegateCallVoucherEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.DelegateCallVoucherEdge.Node(childComplexity), true
+
 	case "Input.blockNumber":
 		if e.complexity.Input.BlockNumber == nil {
 			break
@@ -216,6 +331,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Input.BlockTimestamp(childComplexity), true
+
+	case "Input.delegateCallVouchers":
+		if e.complexity.Input.DelegateCallVouchers == nil {
+			break
+		}
+
+		args, err := ec.field_Input_delegateCallVouchers_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Input.DelegateCallVouchers(childComplexity, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
 
 	case "Input.espressoBlockNumber":
 		if e.complexity.Input.EspressoBlockNumber == nil {
@@ -462,6 +589,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Proof.OutputIndex(childComplexity), true
+
+	case "Query.delegateCallVoucher":
+		if e.complexity.Query.DelegateCallVoucher == nil {
+			break
+		}
+
+		args, err := ec.field_Query_delegateCallVoucher_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.DelegateCallVoucher(childComplexity, args["outputIndex"].(int)), true
+
+	case "Query.delegateCallVouchers":
+		if e.complexity.Query.DelegateCallVouchers == nil {
+			break
+		}
+
+		args, err := ec.field_Query_delegateCallVouchers_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.DelegateCallVouchers(childComplexity, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string), args["filter"].([]*model.ConvenientFilter)), true
 
 	case "Query.input":
 		if e.complexity.Query.Input == nil {
@@ -841,6 +992,7 @@ type Input {
   # report(index: Int!): Report!
   "Get vouchers from this particular input with support for pagination"
   vouchers(first: Int, last: Int, after: String, before: String): VoucherConnection!
+  delegateCallVouchers(first: Int, last: Int, after: String, before: String): DelegateCallVoucherConnection!
   "Get notices from this particular input with support for pagination"
   notices(first: Int, last: Int, after: String, before: String): NoticeConnection!
   "Get reports from this particular input with support for pagination"
@@ -879,12 +1031,32 @@ type Voucher {
   transactionHash: String
 }
 
+type DelegateCallVoucher {
+  "Voucher index within the context of the input that produced it"
+  index: Int!
+  "Input whose processing produced the voucher"
+  input: Input!
+  "Transaction destination address in Ethereum hex binary format (20 bytes), starting with '0x'"
+  destination: String!
+  "Transaction payload in Ethereum hex binary format, starting with '0x'"
+  payload: String!
+  "Proof object that allows this voucher to be validated and executed on the base layer blockchain"
+  proof: Proof
+
+  "Indicates whether the voucher has been executed on the base layer blockchain"
+  executed: Boolean
+
+  "The hash of executed transaction"
+  transactionHash: String
+}
+
 "Top level queries"
 type Query {
   "Get input based on its identifier"
   input(id: String!): Input!
   "Get a voucher based on its index"
   voucher(outputIndex: Int!): Voucher!
+  delegateCallVoucher(outputIndex: Int!): DelegateCallVoucher!
   "Get a notice based on its index"
   notice(outputIndex: Int!): Notice!
   "Get a report based on its index"
@@ -893,6 +1065,7 @@ type Query {
   inputs(first: Int, last: Int, after: String, before: String, where: InputFilter): InputConnection!
   "Get vouchers with support for pagination"
   vouchers(first: Int, last: Int, after: String, before: String, filter: [ConvenientFilter]): VoucherConnection!
+  delegateCallVouchers(first: Int, last: Int, after: String, before: String, filter: [ConvenientFilter]): DelegateCallVoucherConnection!
   "Get notices with support for pagination"
   notices(first: Int, last: Int, after: String, before: String): NoticeConnection!
   "Get reports with support for pagination"
@@ -923,6 +1096,16 @@ type VoucherConnection {
   totalCount: Int!
   "Pagination entries returned for the current page"
   edges: [VoucherEdge!]!
+  "Pagination metadata"
+  pageInfo: PageInfo!
+}
+
+"Pagination result"
+type DelegateCallVoucherConnection {
+  "Total number of entries that match the query"
+  totalCount: Int!
+  "Pagination entries returned for the current page"
+  edges: [DelegateCallVoucherEdge!]!
   "Pagination metadata"
   pageInfo: PageInfo!
 }
@@ -1021,6 +1204,13 @@ type VoucherEdge {
   cursor: String!
 }
 
+type DelegateCallVoucherEdge {
+  "Node instance"
+  node: DelegateCallVoucher!
+  "Pagination cursor"
+  cursor: String!
+}
+
 schema {
   query: Query
 }
@@ -1082,6 +1272,48 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Input_delegateCallVouchers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg3
+	return args, nil
+}
 
 func (ec *executionContext) field_Input_notices_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -1221,6 +1453,72 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_delegateCallVoucher_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["outputIndex"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("outputIndex"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["outputIndex"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_delegateCallVouchers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg3
+	var arg4 []*model.ConvenientFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg4, err = ec.unmarshalOConvenientFilter2ᚕᚖgithubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐConvenientFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg4
 	return args, nil
 }
 
@@ -1507,6 +1805,597 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _DelegateCallVoucher_index(ctx context.Context, field graphql.CollectedField, obj *model.DelegateCallVoucher) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DelegateCallVoucher_index(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Index, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DelegateCallVoucher_index(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DelegateCallVoucher",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DelegateCallVoucher_input(ctx context.Context, field graphql.CollectedField, obj *model.DelegateCallVoucher) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DelegateCallVoucher_input(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.DelegateCallVoucher().Input(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Input)
+	fc.Result = res
+	return ec.marshalNInput2ᚖgithubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐInput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DelegateCallVoucher_input(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DelegateCallVoucher",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Input_id(ctx, field)
+			case "index":
+				return ec.fieldContext_Input_index(ctx, field)
+			case "status":
+				return ec.fieldContext_Input_status(ctx, field)
+			case "msgSender":
+				return ec.fieldContext_Input_msgSender(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_Input_timestamp(ctx, field)
+			case "blockNumber":
+				return ec.fieldContext_Input_blockNumber(ctx, field)
+			case "payload":
+				return ec.fieldContext_Input_payload(ctx, field)
+			case "vouchers":
+				return ec.fieldContext_Input_vouchers(ctx, field)
+			case "delegateCallVouchers":
+				return ec.fieldContext_Input_delegateCallVouchers(ctx, field)
+			case "notices":
+				return ec.fieldContext_Input_notices(ctx, field)
+			case "reports":
+				return ec.fieldContext_Input_reports(ctx, field)
+			case "espressoTimestamp":
+				return ec.fieldContext_Input_espressoTimestamp(ctx, field)
+			case "espressoBlockNumber":
+				return ec.fieldContext_Input_espressoBlockNumber(ctx, field)
+			case "inputBoxIndex":
+				return ec.fieldContext_Input_inputBoxIndex(ctx, field)
+			case "blockTimestamp":
+				return ec.fieldContext_Input_blockTimestamp(ctx, field)
+			case "prevRandao":
+				return ec.fieldContext_Input_prevRandao(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Input", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DelegateCallVoucher_destination(ctx context.Context, field graphql.CollectedField, obj *model.DelegateCallVoucher) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DelegateCallVoucher_destination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Destination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DelegateCallVoucher_destination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DelegateCallVoucher",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DelegateCallVoucher_payload(ctx context.Context, field graphql.CollectedField, obj *model.DelegateCallVoucher) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DelegateCallVoucher_payload(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Payload, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DelegateCallVoucher_payload(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DelegateCallVoucher",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DelegateCallVoucher_proof(ctx context.Context, field graphql.CollectedField, obj *model.DelegateCallVoucher) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DelegateCallVoucher_proof(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Proof, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(model.Proof)
+	fc.Result = res
+	return ec.marshalOProof2githubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐProof(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DelegateCallVoucher_proof(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DelegateCallVoucher",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "outputIndex":
+				return ec.fieldContext_Proof_outputIndex(ctx, field)
+			case "outputHashesSiblings":
+				return ec.fieldContext_Proof_outputHashesSiblings(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Proof", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DelegateCallVoucher_executed(ctx context.Context, field graphql.CollectedField, obj *model.DelegateCallVoucher) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DelegateCallVoucher_executed(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Executed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DelegateCallVoucher_executed(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DelegateCallVoucher",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DelegateCallVoucher_transactionHash(ctx context.Context, field graphql.CollectedField, obj *model.DelegateCallVoucher) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DelegateCallVoucher_transactionHash(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TransactionHash, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DelegateCallVoucher_transactionHash(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DelegateCallVoucher",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DelegateCallVoucherConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.Connection[*model.DelegateCallVoucher]) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DelegateCallVoucherConnection_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DelegateCallVoucherConnection_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DelegateCallVoucherConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DelegateCallVoucherConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.Connection[*model.DelegateCallVoucher]) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DelegateCallVoucherConnection_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Edge[*model.DelegateCallVoucher])
+	fc.Result = res
+	return ec.marshalNDelegateCallVoucherEdge2ᚕᚖgithubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DelegateCallVoucherConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DelegateCallVoucherConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_DelegateCallVoucherEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_DelegateCallVoucherEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DelegateCallVoucherEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DelegateCallVoucherConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.Connection[*model.DelegateCallVoucher]) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DelegateCallVoucherConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DelegateCallVoucherConnection_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DelegateCallVoucherConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "startCursor":
+				return ec.fieldContext_PageInfo_startCursor(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			case "hasPreviousPage":
+				return ec.fieldContext_PageInfo_hasPreviousPage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DelegateCallVoucherEdge_node(ctx context.Context, field graphql.CollectedField, obj *model.Edge[*model.DelegateCallVoucher]) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DelegateCallVoucherEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.DelegateCallVoucher)
+	fc.Result = res
+	return ec.marshalNDelegateCallVoucher2ᚖgithubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐDelegateCallVoucher(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DelegateCallVoucherEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DelegateCallVoucherEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "index":
+				return ec.fieldContext_DelegateCallVoucher_index(ctx, field)
+			case "input":
+				return ec.fieldContext_DelegateCallVoucher_input(ctx, field)
+			case "destination":
+				return ec.fieldContext_DelegateCallVoucher_destination(ctx, field)
+			case "payload":
+				return ec.fieldContext_DelegateCallVoucher_payload(ctx, field)
+			case "proof":
+				return ec.fieldContext_DelegateCallVoucher_proof(ctx, field)
+			case "executed":
+				return ec.fieldContext_DelegateCallVoucher_executed(ctx, field)
+			case "transactionHash":
+				return ec.fieldContext_DelegateCallVoucher_transactionHash(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DelegateCallVoucher", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DelegateCallVoucherEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *model.Edge[*model.DelegateCallVoucher]) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DelegateCallVoucherEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor(), nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DelegateCallVoucherEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DelegateCallVoucherEdge",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _Input_id(ctx context.Context, field graphql.CollectedField, obj *model.Input) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Input_id(ctx, field)
@@ -1873,6 +2762,69 @@ func (ec *executionContext) fieldContext_Input_vouchers(ctx context.Context, fie
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Input_vouchers_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Input_delegateCallVouchers(ctx context.Context, field graphql.CollectedField, obj *model.Input) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Input_delegateCallVouchers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Input().DelegateCallVouchers(rctx, obj, fc.Args["first"].(*int), fc.Args["last"].(*int), fc.Args["after"].(*string), fc.Args["before"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Connection[*model.DelegateCallVoucher])
+	fc.Result = res
+	return ec.marshalNDelegateCallVoucherConnection2ᚖgithubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Input_delegateCallVouchers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Input",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "totalCount":
+				return ec.fieldContext_DelegateCallVoucherConnection_totalCount(ctx, field)
+			case "edges":
+				return ec.fieldContext_DelegateCallVoucherConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_DelegateCallVoucherConnection_pageInfo(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DelegateCallVoucherConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Input_delegateCallVouchers_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -2413,6 +3365,8 @@ func (ec *executionContext) fieldContext_InputEdge_node(ctx context.Context, fie
 				return ec.fieldContext_Input_payload(ctx, field)
 			case "vouchers":
 				return ec.fieldContext_Input_vouchers(ctx, field)
+			case "delegateCallVouchers":
+				return ec.fieldContext_Input_delegateCallVouchers(ctx, field)
 			case "notices":
 				return ec.fieldContext_Input_notices(ctx, field)
 			case "reports":
@@ -2577,6 +3531,8 @@ func (ec *executionContext) fieldContext_Notice_input(ctx context.Context, field
 				return ec.fieldContext_Input_payload(ctx, field)
 			case "vouchers":
 				return ec.fieldContext_Input_vouchers(ctx, field)
+			case "delegateCallVouchers":
+				return ec.fieldContext_Input_delegateCallVouchers(ctx, field)
 			case "notices":
 				return ec.fieldContext_Input_notices(ctx, field)
 			case "reports":
@@ -3248,6 +4204,8 @@ func (ec *executionContext) fieldContext_Query_input(ctx context.Context, field 
 				return ec.fieldContext_Input_payload(ctx, field)
 			case "vouchers":
 				return ec.fieldContext_Input_vouchers(ctx, field)
+			case "delegateCallVouchers":
+				return ec.fieldContext_Input_delegateCallVouchers(ctx, field)
 			case "notices":
 				return ec.fieldContext_Input_notices(ctx, field)
 			case "reports":
@@ -3347,6 +4305,77 @@ func (ec *executionContext) fieldContext_Query_voucher(ctx context.Context, fiel
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_voucher_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_delegateCallVoucher(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_delegateCallVoucher(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().DelegateCallVoucher(rctx, fc.Args["outputIndex"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.DelegateCallVoucher)
+	fc.Result = res
+	return ec.marshalNDelegateCallVoucher2ᚖgithubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐDelegateCallVoucher(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_delegateCallVoucher(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "index":
+				return ec.fieldContext_DelegateCallVoucher_index(ctx, field)
+			case "input":
+				return ec.fieldContext_DelegateCallVoucher_input(ctx, field)
+			case "destination":
+				return ec.fieldContext_DelegateCallVoucher_destination(ctx, field)
+			case "payload":
+				return ec.fieldContext_DelegateCallVoucher_payload(ctx, field)
+			case "proof":
+				return ec.fieldContext_DelegateCallVoucher_proof(ctx, field)
+			case "executed":
+				return ec.fieldContext_DelegateCallVoucher_executed(ctx, field)
+			case "transactionHash":
+				return ec.fieldContext_DelegateCallVoucher_transactionHash(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DelegateCallVoucher", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_delegateCallVoucher_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3601,6 +4630,69 @@ func (ec *executionContext) fieldContext_Query_vouchers(ctx context.Context, fie
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_vouchers_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_delegateCallVouchers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_delegateCallVouchers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().DelegateCallVouchers(rctx, fc.Args["first"].(*int), fc.Args["last"].(*int), fc.Args["after"].(*string), fc.Args["before"].(*string), fc.Args["filter"].([]*model.ConvenientFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Connection[*model.DelegateCallVoucher])
+	fc.Result = res
+	return ec.marshalNDelegateCallVoucherConnection2ᚖgithubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_delegateCallVouchers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "totalCount":
+				return ec.fieldContext_DelegateCallVoucherConnection_totalCount(ctx, field)
+			case "edges":
+				return ec.fieldContext_DelegateCallVoucherConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_DelegateCallVoucherConnection_pageInfo(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DelegateCallVoucherConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_delegateCallVouchers_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3961,6 +5053,8 @@ func (ec *executionContext) fieldContext_Report_input(ctx context.Context, field
 				return ec.fieldContext_Input_payload(ctx, field)
 			case "vouchers":
 				return ec.fieldContext_Input_vouchers(ctx, field)
+			case "delegateCallVouchers":
+				return ec.fieldContext_Input_delegateCallVouchers(ctx, field)
 			case "notices":
 				return ec.fieldContext_Input_notices(ctx, field)
 			case "reports":
@@ -4369,6 +5463,8 @@ func (ec *executionContext) fieldContext_Voucher_input(ctx context.Context, fiel
 				return ec.fieldContext_Input_payload(ctx, field)
 			case "vouchers":
 				return ec.fieldContext_Input_vouchers(ctx, field)
+			case "delegateCallVouchers":
+				return ec.fieldContext_Input_delegateCallVouchers(ctx, field)
 			case "notices":
 				return ec.fieldContext_Input_notices(ctx, field)
 			case "reports":
@@ -6889,6 +7985,190 @@ func (ec *executionContext) unmarshalInputInputFilter(ctx context.Context, obj i
 
 // region    **************************** object.gotpl ****************************
 
+var delegateCallVoucherImplementors = []string{"DelegateCallVoucher"}
+
+func (ec *executionContext) _DelegateCallVoucher(ctx context.Context, sel ast.SelectionSet, obj *model.DelegateCallVoucher) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, delegateCallVoucherImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DelegateCallVoucher")
+		case "index":
+			out.Values[i] = ec._DelegateCallVoucher_index(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "input":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._DelegateCallVoucher_input(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "destination":
+			out.Values[i] = ec._DelegateCallVoucher_destination(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "payload":
+			out.Values[i] = ec._DelegateCallVoucher_payload(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "proof":
+			out.Values[i] = ec._DelegateCallVoucher_proof(ctx, field, obj)
+		case "executed":
+			out.Values[i] = ec._DelegateCallVoucher_executed(ctx, field, obj)
+		case "transactionHash":
+			out.Values[i] = ec._DelegateCallVoucher_transactionHash(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var delegateCallVoucherConnectionImplementors = []string{"DelegateCallVoucherConnection"}
+
+func (ec *executionContext) _DelegateCallVoucherConnection(ctx context.Context, sel ast.SelectionSet, obj *model.Connection[*model.DelegateCallVoucher]) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, delegateCallVoucherConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DelegateCallVoucherConnection")
+		case "totalCount":
+			out.Values[i] = ec._DelegateCallVoucherConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "edges":
+			out.Values[i] = ec._DelegateCallVoucherConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._DelegateCallVoucherConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var delegateCallVoucherEdgeImplementors = []string{"DelegateCallVoucherEdge"}
+
+func (ec *executionContext) _DelegateCallVoucherEdge(ctx context.Context, sel ast.SelectionSet, obj *model.Edge[*model.DelegateCallVoucher]) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, delegateCallVoucherEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DelegateCallVoucherEdge")
+		case "node":
+			out.Values[i] = ec._DelegateCallVoucherEdge_node(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cursor":
+			out.Values[i] = ec._DelegateCallVoucherEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var inputImplementors = []string{"Input"}
 
 func (ec *executionContext) _Input(ctx context.Context, sel ast.SelectionSet, obj *model.Input) graphql.Marshaler {
@@ -6945,6 +8225,42 @@ func (ec *executionContext) _Input(ctx context.Context, sel ast.SelectionSet, ob
 					}
 				}()
 				res = ec._Input_vouchers(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "delegateCallVouchers":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Input_delegateCallVouchers(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -7499,6 +8815,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "delegateCallVoucher":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_delegateCallVoucher(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "notice":
 			field := field
 
@@ -7575,6 +8913,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_vouchers(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "delegateCallVouchers":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_delegateCallVouchers(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -8385,6 +9745,88 @@ func (ec *executionContext) unmarshalNCompletionStatus2githubᚗcomᚋcalindra�
 
 func (ec *executionContext) marshalNCompletionStatus2githubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐCompletionStatus(ctx context.Context, sel ast.SelectionSet, v model.CompletionStatus) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNDelegateCallVoucher2githubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐDelegateCallVoucher(ctx context.Context, sel ast.SelectionSet, v model.DelegateCallVoucher) graphql.Marshaler {
+	return ec._DelegateCallVoucher(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDelegateCallVoucher2ᚖgithubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐDelegateCallVoucher(ctx context.Context, sel ast.SelectionSet, v *model.DelegateCallVoucher) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DelegateCallVoucher(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDelegateCallVoucherConnection2githubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐConnection(ctx context.Context, sel ast.SelectionSet, v model.Connection[*model.DelegateCallVoucher]) graphql.Marshaler {
+	return ec._DelegateCallVoucherConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDelegateCallVoucherConnection2ᚖgithubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐConnection(ctx context.Context, sel ast.SelectionSet, v *model.Connection[*model.DelegateCallVoucher]) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DelegateCallVoucherConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDelegateCallVoucherEdge2ᚕᚖgithubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Edge[*model.DelegateCallVoucher]) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNDelegateCallVoucherEdge2ᚖgithubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNDelegateCallVoucherEdge2ᚖgithubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐEdge(ctx context.Context, sel ast.SelectionSet, v *model.Edge[*model.DelegateCallVoucher]) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DelegateCallVoucherEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNInput2githubᚗcomᚋcalindraᚋcartesiᚑrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐInput(ctx context.Context, sel ast.SelectionSet, v model.Input) graphql.Marshaler {

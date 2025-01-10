@@ -34,6 +34,7 @@ type voucherRow struct {
 	AppContract          string `db:"app_contract"`
 	TransactionHash      string `db:"transaction_hash"`
 	ProofOutputIndex     uint64 `db:"proof_output_index"`
+	IsDelegatedCall      bool   `db:"is_delegated_call"`
 }
 
 func (c *VoucherRepository) CreateTables() error {
@@ -48,6 +49,7 @@ func (c *VoucherRepository) CreateTables() error {
 		app_contract           text,
 		transaction_hash       text DEFAULT '' NOT NULL,
 		proof_output_index     integer DEFAULT 0,
+		is_delegated_call	   BOOLEAN,
 		PRIMARY KEY (input_index, output_index, app_contract)
 	);
 
@@ -81,8 +83,9 @@ func (c *VoucherRepository) CreateVoucher(
 		value,
 		output_hashes_siblings,
 		app_contract,
-		proof_output_index
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+		proof_output_index,
+		is_delegated_call
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
 	exec := DBExecutor{&c.Db}
 
@@ -98,6 +101,7 @@ func (c *VoucherRepository) CreateVoucher(
 		voucher.OutputHashesSiblings,
 		voucher.AppContract.Hex(),
 		voucher.ProofOutputIndex,
+		voucher.IsDelegatedCall,
 	)
 	if err != nil {
 		slog.Error("Error creating vouchers", "Error", err)
@@ -190,11 +194,24 @@ func (c *VoucherRepository) UpdateVoucher(
 	return voucher, nil
 }
 
+func (c *VoucherRepository) DelegateCallVoucherCount(
+	ctx context.Context,
+) (uint64, error) {
+	return c.voucherCount(ctx, true)
+}
+
 func (c *VoucherRepository) VoucherCount(
 	ctx context.Context,
 ) (uint64, error) {
+	return c.voucherCount(ctx, false)
+}
+
+func (c *VoucherRepository) voucherCount(
+	ctx context.Context,
+	isDelegatedCall bool,
+) (uint64, error) {
 	var count int
-	err := c.Db.GetContext(ctx, &count, "SELECT count(*) FROM vouchers")
+	err := c.Db.GetContext(ctx, &count, "SELECT count(*) FROM vouchers WHERE is_delegated_call = $1", isDelegatedCall)
 	if err != nil {
 		return 0, nil
 	}
@@ -205,21 +222,24 @@ func (c *VoucherRepository) queryByOutputIndexAndAppContract(
 	ctx context.Context,
 	outputIndex uint64,
 	appContract *common.Address,
+	isDelegatedCall bool,
 ) (*sqlx.Rows, error) {
 	if appContract != nil {
 		return c.Db.QueryxContext(ctx, `
 			SELECT * FROM vouchers
-			WHERE output_index = $1 and app_contract = $2
+			WHERE output_index = $1 and app_contract = $2 and is_delegated_call = $3
 			LIMIT 1`,
 			outputIndex,
 			appContract.Hex(),
+			isDelegatedCall,
 		)
 	} else {
 		return c.Db.QueryxContext(ctx, `
 			SELECT * FROM vouchers
-			WHERE output_index = $1
+			WHERE output_index = $1 and is_delegated_call = $2
 			LIMIT 1`,
 			outputIndex,
+			isDelegatedCall,
 		)
 	}
 }
@@ -227,8 +247,9 @@ func (c *VoucherRepository) queryByOutputIndexAndAppContract(
 func (c *VoucherRepository) FindVoucherByOutputIndexAndAppContract(
 	ctx context.Context, outputIndex uint64,
 	appContract *common.Address,
+	isDelegatedCall bool,
 ) (*model.ConvenienceVoucher, error) {
-	rows, err := c.queryByOutputIndexAndAppContract(ctx, outputIndex, appContract)
+	rows, err := c.queryByOutputIndexAndAppContract(ctx, outputIndex, appContract, isDelegatedCall)
 
 	if err != nil {
 		slog.Error("database error", "err", err)
@@ -254,7 +275,7 @@ func (c *VoucherRepository) FindVoucherByOutputIndexAndAppContract(
 }
 
 func (c *VoucherRepository) FindAllVouchersByBlockNumber(
-	ctx context.Context, startBlockGte uint64, endBlockLt uint64,
+	ctx context.Context, startBlockGte uint64, endBlockLt uint64, isDelegateCall bool,
 ) ([]*model.ConvenienceVoucher, error) {
 	stmt, err := c.Db.Preparex(`
 		SELECT
@@ -265,17 +286,18 @@ func (c *VoucherRepository) FindAllVouchersByBlockNumber(
 			v.output_index,
 			v.value,
 			v.output_hashes_siblings,
-			v.app_contract
+			v.app_contract,
+			v.is_delegated_call
 		FROM vouchers v
 			INNER JOIN convenience_inputs i
 				ON i.app_contract = v.app_contract AND i.input_index = v.input_index
-		WHERE i.block_number >= $1 and i.block_number < $2`)
+		WHERE i.block_number >= $1 and i.block_number < $2 and v.is_delegated_call = $3`)
 	if err != nil {
 		return nil, err
 	}
 	defer stmt.Close()
 	var rows []voucherRow
-	err = stmt.SelectContext(ctx, &rows, startBlockGte, endBlockLt)
+	err = stmt.SelectContext(ctx, &rows, startBlockGte, endBlockLt, isDelegateCall)
 	if err != nil {
 		return nil, err
 	}
@@ -328,7 +350,23 @@ func (c *VoucherRepository) Count(
 	ctx context.Context,
 	filter []*model.ConvenienceFilter,
 ) (uint64, error) {
+	return c.count(ctx, filter, false)
+}
+
+func (c *VoucherRepository) CountDelegateCall(
+	ctx context.Context,
+	filter []*model.ConvenienceFilter,
+) (uint64, error) {
+	return c.count(ctx, filter, true)
+}
+
+func (c *VoucherRepository) count(
+	ctx context.Context,
+	filter []*model.ConvenienceFilter,
+	isDelegateCall bool,
+) (uint64, error) {
 	query := `SELECT count(*) FROM vouchers `
+	filter = c.appendFilterDelegate(filter, isDelegateCall)
 	where, args, _, err := transformToQuery(filter)
 	if err != nil {
 		return 0, err
@@ -356,11 +394,51 @@ func (c *VoucherRepository) FindAllVouchers(
 	before *string,
 	filter []*model.ConvenienceFilter,
 ) (*commons.PageResult[model.ConvenienceVoucher], error) {
-	total, err := c.Count(ctx, filter)
+	return c.findAllVouchers(ctx, first, last, after, before, filter, false)
+}
+
+func (c *VoucherRepository) FindAllDelegateCalls(
+	ctx context.Context,
+	first *int,
+	last *int,
+	after *string,
+	before *string,
+	filter []*model.ConvenienceFilter,
+) (*commons.PageResult[model.ConvenienceVoucher], error) {
+	return c.findAllVouchers(ctx, first, last, after, before, filter, true)
+}
+
+func (c *VoucherRepository) appendFilterDelegate(filter []*model.ConvenienceFilter, isDelegateCall bool) []*model.ConvenienceFilter {
+	var (
+		value  = strconv.FormatBool(isDelegateCall)
+		key    = model.DELEGATED_CALL_VOUCHER
+		output []*model.ConvenienceFilter
+	)
+
+	output = append(filter, &model.ConvenienceFilter{
+		Field: &key,
+		Eq:    &value,
+	})
+
+	return output
+}
+
+func (c *VoucherRepository) findAllVouchers(
+	ctx context.Context,
+	first *int,
+	last *int,
+	after *string,
+	before *string,
+	filter []*model.ConvenienceFilter,
+	isDelegateCall bool,
+) (*commons.PageResult[model.ConvenienceVoucher], error) {
+	total, err := c.count(ctx, filter, isDelegateCall)
 	if err != nil {
 		return nil, err
 	}
 	query := `SELECT * FROM vouchers `
+
+	filter = c.appendFilterDelegate(filter, isDelegateCall)
 	where, args, argsCount, err := transformToQuery(filter)
 	if err != nil {
 		return nil, err
@@ -446,6 +524,7 @@ func convertToConvenienceVoucher(row voucherRow) model.ConvenienceVoucher {
 		OutputHashesSiblings: row.OutputHashesSiblings,
 		TransactionHash:      row.TransactionHash,
 		ProofOutputIndex:     row.ProofOutputIndex,
+		IsDelegatedCall:      row.IsDelegatedCall,
 	}
 	return voucher
 }
@@ -459,9 +538,24 @@ func transformToQuery(
 	}
 	args := []interface{}{}
 	where := []string{}
+
 	count := 1
 	for _, filter := range filter {
-		if *filter.Field == model.EXECUTED {
+		if *filter.Field == model.DELEGATED_CALL_VOUCHER {
+			if *filter.Eq == "true" {
+				where = append(where, fmt.Sprintf("is_delegated_call = $%d ", count))
+				args = append(args, true)
+				count += 1
+			} else if *filter.Eq == FALSE {
+				where = append(where, fmt.Sprintf("is_delegated_call = $%d ", count))
+				args = append(args, false)
+				count += 1
+			} else {
+				return "", nil, 0, fmt.Errorf(
+					"unexpected delegated call value %s", *filter.Eq,
+				)
+			}
+		} else if *filter.Field == model.EXECUTED {
 			if *filter.Eq == "true" {
 				where = append(where, fmt.Sprintf("executed = $%d ", count))
 				args = append(args, true)

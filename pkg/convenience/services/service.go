@@ -133,6 +133,23 @@ func (c *ConvenienceService) UpdateExecuted(
 	)
 }
 
+func (c *ConvenienceService) FindAllDelegateCalls(
+	ctx context.Context,
+	first *int,
+	last *int,
+	after *string,
+	before *string,
+	filter []*model.ConvenienceFilter,
+) (*commons.PageResult[model.ConvenienceVoucher], error) {
+	return c.VoucherRepository.FindAllDelegateCalls(
+		ctx,
+		first,
+		last,
+		after,
+		before,
+		filter,
+	)
+}
 func (c *ConvenienceService) FindAllVouchers(
 	ctx context.Context,
 	first *int,
@@ -208,9 +225,10 @@ func (c *ConvenienceService) FindAllByInputIndex(
 func (c *ConvenienceService) FindVoucherByOutputIndexAndAppContract(
 	ctx context.Context, outputIndex uint64,
 	appContract *common.Address,
+	isDelegateCall bool,
 ) (*model.ConvenienceVoucher, error) {
 	return c.VoucherRepository.FindVoucherByOutputIndexAndAppContract(
-		ctx, outputIndex, appContract,
+		ctx, outputIndex, appContract, isDelegateCall,
 	)
 }
 

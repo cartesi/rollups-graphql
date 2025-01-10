@@ -54,6 +54,24 @@ type Voucher struct {
 	TransactionHash string `json:"transactionHash"`
 }
 
+type DelegateCallVoucher struct {
+	// Voucher index within the context of the input that produced it
+	Index int `json:"index"`
+	// Index of the input
+	InputIndex int
+	// Transaction destination address in Ethereum hex binary format (20 bytes), starting with
+	// '0x'
+	Destination string `json:"destination"`
+	// Transaction payload in Ethereum hex binary format, starting with '0x'
+	Payload string `json:"payload"`
+
+	Executed bool `json:"executed"`
+
+	Proof Proof `json:"proof"`
+
+	TransactionHash string `json:"transactionHash"`
+}
+
 type Proof struct {
 	OutputIndex          string   `json:"outputIndex"`
 	OutputHashesSiblings []string `json:"outputHashesSiblings"`
@@ -90,6 +108,9 @@ type InputEdge = Edge[*Input]
 
 type VoucherConnection = Connection[*Voucher]
 type VoucherEdge = Edge[*Voucher]
+
+type DelegateCallVoucherConnection = Connection[*DelegateCallVoucher]
+type DelegateCallVoucherEdge = Edge[*DelegateCallVoucher]
 
 type NoticeConnection = Connection[*Notice]
 type NoticeEdge = Edge[*Notice]
