@@ -21,7 +21,7 @@ jobs:
         run: make up-db-raw
 
       - name: Compile cartesi-rollups-graphql
-        run: go build .
+        run: go build -o cartesi-rollups-graphql .
 
       - name: Install PostgreSQL Client
         run: sudo apt-get install -y postgresql-client
