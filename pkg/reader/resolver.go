@@ -1,7 +1,7 @@
 package reader
 
 import (
-	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/services"
+	"github.com/cartesi/rollups-graphql/pkg/convenience/services"
 )
 
 // This file will not be regenerated automatically.

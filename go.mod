@@ -1,4 +1,4 @@
-module github.com/calindra/cartesi-rollups-graphql
+module github.com/cartesi/rollups-graphql
 
 go 1.22.6
 

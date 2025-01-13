@@ -13,10 +13,10 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	cModel "github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/services"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/reader/graph"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/reader/loaders"
+	cModel "github.com/cartesi/rollups-graphql/pkg/convenience/model"
+	"github.com/cartesi/rollups-graphql/pkg/convenience/services"
+	"github.com/cartesi/rollups-graphql/pkg/reader/graph"
+	"github.com/cartesi/rollups-graphql/pkg/reader/loaders"
 	"github.com/labstack/echo/v4"
 )
 

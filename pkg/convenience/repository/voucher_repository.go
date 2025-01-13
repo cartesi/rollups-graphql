@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
+	"github.com/cartesi/rollups-graphql/pkg/commons"
+	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 )
