@@ -3,10 +3,10 @@ package convenience
 import (
 	"fmt"
 
-	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/decoder"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/repository"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/services"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/synchronizer"
+	"github.com/cartesi/rollups-graphql/pkg/convenience/decoder"
+	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
+	"github.com/cartesi/rollups-graphql/pkg/convenience/services"
+	"github.com/cartesi/rollups-graphql/pkg/convenience/synchronizer"
 	"github.com/jmoiron/sqlx"
 )
 

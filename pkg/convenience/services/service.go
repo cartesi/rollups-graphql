@@ -4,9 +4,9 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/repository"
+	"github.com/cartesi/rollups-graphql/pkg/commons"
+	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
+	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
 	"github.com/ethereum/go-ethereum/common"
 )
 

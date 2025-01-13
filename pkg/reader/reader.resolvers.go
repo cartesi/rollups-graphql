@@ -8,8 +8,8 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/calindra/cartesi-rollups-graphql/pkg/reader/graph"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/reader/model"
+	"github.com/cartesi/rollups-graphql/pkg/reader/graph"
+	"github.com/cartesi/rollups-graphql/pkg/reader/model"
 )
 
 // Input is the resolver for the input field.

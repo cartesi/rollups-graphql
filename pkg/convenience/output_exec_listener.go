@@ -7,8 +7,8 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/calindra/cartesi-rollups-graphql/pkg/contracts"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/services"
+	"github.com/cartesi/rollups-graphql/pkg/contracts"
+	"github.com/cartesi/rollups-graphql/pkg/convenience/services"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"

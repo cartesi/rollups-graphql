@@ -14,8 +14,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/calindra/cartesi-rollups-graphql/pkg/bootstrap"
 	"github.com/carlmjohnson/versioninfo"
+	"github.com/cartesi/rollups-graphql/pkg/bootstrap"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/joho/godotenv"

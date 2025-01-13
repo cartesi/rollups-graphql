@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/decoder"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/repository"
+	"github.com/cartesi/rollups-graphql/pkg/convenience/decoder"
+	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
+	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
 )
 
 type Synchronizer struct {

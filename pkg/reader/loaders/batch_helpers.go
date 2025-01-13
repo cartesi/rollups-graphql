@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/calindra/cartesi-rollups-graphql/pkg/commons"
-	cModel "github.com/calindra/cartesi-rollups-graphql/pkg/convenience/model"
-	"github.com/calindra/cartesi-rollups-graphql/pkg/convenience/repository"
+	"github.com/cartesi/rollups-graphql/pkg/commons"
+	cModel "github.com/cartesi/rollups-graphql/pkg/convenience/model"
+	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
 	"github.com/ethereum/go-ethereum/common"
 )
 
