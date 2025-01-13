@@ -1,7 +1,7 @@
 # Cartesi's GraphQL
 
-![CI](https://github.com/Calindra/cartesi-rollups-graphql/actions/workflows/ci.yaml/badge.svg)
-[![Go Report Card](https://goreportcard.com/badge/github.com/Calindra/cartesi-rollups-graphql)](https://goreportcard.com/report/github.com/Calindra/cartesi-rollups-graphql)
+![CI](https://github.com/cartesi/rollups-graphql/actions/workflows/ci.yaml/badge.svg)
+[![Go Report Card](https://goreportcard.com/badge/github.com/cartesi/rollups-graphql)](https://goreportcard.com/report/github.com/cartesi/rollups-graphql)
 
 [Technical Vision Forum Discussion](https://governance.cartesi.io/t/convenience-layer-for-voucher-management-on-cartesi/401)
 
@@ -50,6 +50,6 @@ The following environment variables are used for PostgreSQL configuration:
 
 ## Contributors
 
-[![Contributors](https://contributors-img.firebaseapp.com/image?repo=Calindra/cartesi-rollups-graphql)](https://github.com/Calindra/cartesi-rollups-graphql/graphs/contributors)
+[![Contributors](https://contributors-img.firebaseapp.com/image?repo=cartesi/rollups-graphql)](https://github.com/cartesi/rollups-graphql/graphs/contributors)
 
 Made with [contributors-img](https://contributors-img.firebaseapp.com).
