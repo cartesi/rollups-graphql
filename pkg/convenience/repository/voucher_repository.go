@@ -115,7 +115,7 @@ func (c *VoucherRepository) SetProof(
 	ctx context.Context, voucher *model.ConvenienceVoucher,
 ) error {
 	updateVoucher := `UPDATE vouchers SET
-		output_hashes_siblings = $1,
+		output_hashes_siblings = $1
 		WHERE app_contract = $2 and output_index = $3`
 	exec := DBExecutor{&c.Db}
 	res, err := exec.ExecContext(
