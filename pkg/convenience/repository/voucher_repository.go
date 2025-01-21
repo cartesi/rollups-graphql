@@ -116,14 +116,12 @@ func (c *VoucherRepository) SetProof(
 ) error {
 	updateVoucher := `UPDATE vouchers SET
 		output_hashes_siblings = $1,
-		proof_output_index = $2
-		WHERE app_contract = $3 and output_index = $4`
+		WHERE app_contract = $2 and output_index = $3`
 	exec := DBExecutor{&c.Db}
 	res, err := exec.ExecContext(
 		ctx,
 		updateVoucher,
 		voucher.OutputHashesSiblings,
-		voucher.ProofOutputIndex,
 		voucher.AppContract.Hex(),
 		voucher.OutputIndex,
 	)
