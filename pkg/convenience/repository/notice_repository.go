@@ -49,6 +49,7 @@ func (c *NoticeRepository) Create(
 			return nil, err
 		}
 		data.OutputIndex = count
+		data.ProofOutputIndex = count
 	}
 	insertSql := `INSERT INTO notices (
 		payload,
