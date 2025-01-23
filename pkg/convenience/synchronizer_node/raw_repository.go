@@ -205,7 +205,26 @@ func (s *RawRepository) FindAllReportsByFilter(ctx context.Context, filter Filte
 }
 
 func (s *RawRepository) FindInputByOutput(ctx context.Context, filter FilterID) (*RawInput, error) {
-	query := `SELECT * FROM input WHERE input.id = $1 LIMIT 1`
+	query := `
+		SELECT
+			i.index,
+			i.raw_data,
+			i.block_number,
+			i.status,
+			i.machine_hash,
+			i.outputs_hash,
+			i.epoch_index,
+			i.epoch_application_id,
+			i.transaction_reference,
+			i.created_at,
+			i.updated_at,
+			i.snapshot_uri,
+			a.iapplication_address as application_address
+		FROM input i
+		INNER JOIN application a
+		ON a.id = i.epoch_application_id
+		WHERE i.index = $1
+		LIMIT 1`
 	stmt, err := s.Db.Preparex(query)
 	if err != nil {
 		slog.Error("Failed to prepare statement in FindInputByOutput", "query", query, "error", err)

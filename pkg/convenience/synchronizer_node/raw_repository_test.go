@@ -75,7 +75,28 @@ func (s *RawNodeSuite) TestSynchronizerNodeListInputs() {
 	ctx, cancel := context.WithTimeout(s.ctx, s.DefaultTimeout)
 	defer cancel()
 
-	result, err := s.rawRepository.Db.QueryxContext(ctx, "SELECT * FROM input")
+	result, err := s.rawRepository.Db.QueryxContext(ctx, `
+	SELECT
+		i.index,
+		i.raw_data,
+		i.block_number,
+		i.status,
+		i.machine_hash,
+		i.outputs_hash,
+		i.epoch_index,
+		i.epoch_application_id,
+		i.transaction_reference,
+		i.created_at,
+		i.updated_at,
+		i.snapshot_uri,
+		a.iapplication_address as application_address
+	FROM
+		input i
+	INNER JOIN
+		application a
+	ON
+		a.id = i.epoch_application_id
+	`)
 	s.NoError(err)
 
 	inputs := []RawInput{}
