@@ -88,7 +88,7 @@ func (s *RawNodeSuite) TestSynchronizerNodeListInputs() {
 	}
 
 	firstInput := inputs[0]
-	s.Equal(firstInput.ID, uint64(1))
+	s.Equal(firstInput.Index, uint64(1))
 
 	b := inputs[0].BlockNumber
 
@@ -109,7 +109,7 @@ func (s *RawNodeSuite) TestSynchronizerNodeInputByID() {
 	inputs, err := s.rawRepository.FindAllInputsByFilter(ctx, FilterInput{IDgt: 2, IsStatusNone: false}, nil)
 	s.NoError(err)
 	firstInput := inputs[0]
-	s.Equal(firstInput.ID, uint64(2))
+	s.Equal(firstInput.Index, uint64(2))
 
 	b := inputs[0].BlockNumber
 
@@ -189,5 +189,5 @@ func (s *RawNodeSuite) TestSynchronizerNodeFindInputByOutput() {
 
 	input, err := s.rawRepository.FindInputByOutput(ctx, FilterID{IDgt: 1})
 	s.NoError(err)
-	s.Equal(uint64(1), input.ID)
+	s.Equal(uint64(1), input.Index)
 }

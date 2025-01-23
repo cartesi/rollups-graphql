@@ -81,7 +81,7 @@ func (s *SynchronizerUpdate) rollbackTransaction(ctx context.Context) {
 func (s *SynchronizerUpdate) mapIds(rawInputs []RawInput) []string {
 	ids := make([]string, len(rawInputs))
 	for i, input := range rawInputs {
-		ids[i] = strconv.FormatUint(input.ID, 10)
+		ids[i] = strconv.FormatUint(input.Index, 10)
 	}
 	return ids
 }
