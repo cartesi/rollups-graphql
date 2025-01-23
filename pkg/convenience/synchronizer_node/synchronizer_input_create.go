@@ -178,7 +178,7 @@ func (s *SynchronizerInputCreator) GetAdvanceInputFromMap(rawInput RawInput) (*m
 
 	slog.Debug("GetAdvanceInputFromMap", "chainId", chainId)
 	advanceInput := model.AdvanceInput{
-		ID:                     FormatTransactionId(rawInput.TransactionId),
+		ID:                     FormatTransactionId(rawInput.TransactionRef),
 		AppContract:            appContract,
 		Index:                  int(rawInput.Index),
 		InputBoxIndex:          int(inputBoxIndex.Int64()),

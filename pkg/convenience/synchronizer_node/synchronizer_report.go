@@ -3,7 +3,6 @@ package synchronizernode
 import (
 	"context"
 	"log/slog"
-	"strconv"
 
 	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
 	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
@@ -56,22 +55,12 @@ func (s *SynchronizerReport) syncReports(ctx context.Context) error {
 	}
 	for _, rawReport := range rawReports {
 		appContract := common.BytesToAddress(rawReport.AppContract)
-		index, err := strconv.ParseInt(rawReport.Index, 10, 64) // nolint
-		if err != nil {
-			slog.Error("fail to parse report index to int", "value", rawReport.Index)
-			return err
-		}
-		inputIndex, err := strconv.ParseInt(rawReport.InputIndex, 10, 64) // nolint
-		if err != nil {
-			slog.Error("fail to parse input index to int", "value", rawReport.InputIndex)
-			return err
-		}
 		_, err = s.ReportRepository.CreateReport(ctx, model.Report{
 			AppContract: appContract,
-			Index:       int(index),
-			InputIndex:  int(inputIndex),
+			Index:       int(rawReport.Index),
+			InputIndex:  int(rawReport.InputIndex),
 			Payload:     common.Bytes2Hex(rawReport.RawData),
-			RawID:       uint64(rawReport.ID),
+			RawID:       uint64(rawReport.Index),
 		})
 		if err != nil {
 			slog.Error("fail to create report", "err", err)

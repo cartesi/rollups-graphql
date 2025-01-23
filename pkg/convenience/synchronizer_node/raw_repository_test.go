@@ -129,11 +129,11 @@ func (s *RawNodeSuite) TestSynchronizerNodeReportByID() {
 	reports, err := s.rawRepository.FindAllReportsByFilter(ctx, FilterID{IDgt: 1})
 	s.NoError(err)
 	firstInput := reports[0]
-	s.Equal(firstInput.ID, int64(1))
+	s.Equal(firstInput.Index, int64(1))
 
-	b := reports[0].InputID
+	b := reports[0].InputIndex
 
-	firstInputID := big.NewInt(b)
+	firstInputID := new(big.Int).SetUint64(b)
 	slog.Info("First Input ID", "firstInputID", firstInputID)
 
 	firstInputIDDB := big.NewInt(1)

@@ -29,20 +29,20 @@ type RawInput struct {
 	MachineHash        []byte    `db:"machine_hash,omitempty"`
 	OutputsHash        []byte    `db:"outputs_hash,omitempty"`
 	EpochIndex         uint64    `db:"epoch_index"`
-	EpochAppId         uint64    `db:"epoch_application_id"`
-	TransactionId      []byte    `db:"transaction_reference"`
+	ApplicationId      int       `db:"epoch_application_id"`
+	TransactionRef     []byte    `db:"transaction_reference,omitempty"`
 	CreatedAt          time.Time `db:"created_at"`
 	UpdatedAt          time.Time `db:"updated_at"`
-	ApplicationAddress []byte
+	SnapshotURI        []byte    `db:"snapshot_uri,omitempty"`
+	ApplicationAddress []byte    `db:"application_address"`
 }
 
 type Report struct {
-	ID          int64  `db:"id"`
-	Index       string `db:"index"`
-	InputIndex  string `db:"input_index"`
-	RawData     []byte `db:"raw_data"`
-	InputID     int64  `db:"input_id"`
-	AppContract []byte `db:"app_contract"`
+	Index         uint64 `db:"index"`
+	InputIndex    uint64 `db:"input_index"`
+	ApplicationId int    `db:"input_epoch_application_id"`
+	RawData       []byte `db:"raw_data"`
+	AppContract   []byte `db:"app_contract"`
 }
 
 type Output struct {
@@ -84,38 +84,6 @@ func NewRawRepository(connectionURL string, db *sqlx.DB) *RawRepository {
 	return &RawRepository{connectionURL, db}
 }
 
-func (s *RawRepository) GetAppAddress(ctx context.Context, rawInputIdx uint64) ([]byte, error) {
-	bindVarIdx := 1
-	args := []interface{}{rawInputIdx}
-	baseQuery := fmt.Sprintf(`
-	select
-		a.iapplication_address
-	from
-		input i
-	inner join application a on
-		i.epoch_application_id = a.id
-	where
-		i.index = %d`, bindVarIdx)
-	// bindVarIdx++
-
-	result, err := s.Db.QueryxContext(ctx, baseQuery, args...)
-	if err != nil {
-		slog.Error("Failed to execute query in GetAppAddress", "error", err)
-		return nil, err
-	}
-	defer result.Close()
-
-	var appAddress RawInputAppAddress
-	for result.Next() {
-		err := result.StructScan(&appAddress)
-		if err != nil {
-			slog.Error("Failed to scan row into RawInputAppAddress struct", "error", err)
-			return nil, err
-		}
-	}
-	return appAddress.Address, nil
-}
-
 func (s *RawRepository) FindAllInputsByFilter(ctx context.Context, filter FilterInput, pag *Pagination) ([]RawInput, error) {
 	inputs := []RawInput{}
 
@@ -125,7 +93,28 @@ func (s *RawRepository) FindAllInputsByFilter(ctx context.Context, filter Filter
 	}
 
 	bindVarIdx := 1
-	baseQuery := fmt.Sprintf("SELECT * FROM input WHERE index >= $%d", bindVarIdx)
+	baseQuery := fmt.Sprintf(`
+	SELECT
+		i.index,
+		i.raw_data,
+		i.block_number,
+		i.status,
+		i.machine_hash,
+		i.outputs_hash,
+		i.epoch_index,
+		i.epoch_application_id,
+		i.transaction_reference,
+		i.created_at,
+		i.updated_at,
+		i.snapshot_uri,
+		a.iapplication_address as application_address
+	FROM
+		input i
+	INNER JOIN
+		application a
+	ON
+		a.id = i.epoch_application_id
+	WHERE index >= $%d`, bindVarIdx)
 	bindVarIdx++
 	args := []any{filter.IDgt}
 
@@ -164,13 +153,6 @@ func (s *RawRepository) FindAllInputsByFilter(ctx context.Context, filter Filter
 			slog.Error("Failed to scan row into RawInput struct", "error", err)
 			return nil, err
 		}
-		appAddress, err := s.GetAppAddress(ctx, input.Index)
-		if err != nil {
-			slog.Error("Failed to get app address", "error", err)
-			return nil, err
-		}
-		input.ApplicationAddress = appAddress
-
 		inputs = append(inputs, input)
 	}
 
@@ -180,21 +162,29 @@ func (s *RawRepository) FindAllInputsByFilter(ctx context.Context, filter Filter
 func (s *RawRepository) FindAllReportsByFilter(ctx context.Context, filter FilterID) ([]Report, error) {
 	reports := []Report{}
 
-	result, err := s.Db.QueryxContext(ctx, `
-        SELECT
-            r.id, r.index, r.raw_data, r.input_id,
-            inp.application_address as app_contract,
-            inp.index as input_index
-        FROM
-            report as r
-        INNER JOIN
-            input as inp
-        ON
-            r.input_id = inp.id
-        WHERE r.id >= $1
-        ORDER BY r.id ASC
-        LIMIT $2
-        `, filter.IDgt, LIMIT)
+	query := `
+	SELECT
+		r.index,
+		i.index as input_index,
+		r.input_epoch_application_id,
+		r.raw_data,
+		a.iapplication_address as app_contract
+	FROM
+		report r
+	INNER JOIN
+		input i
+	ON
+		i.index = r.input_index
+	INNER JOIN
+		application a
+	ON
+		a.id = i.epoch_application_id
+	WHERE r.index >= $1
+	ORDER BY r.index ASC
+	LIMIT $2
+	`
+
+	result, err := s.Db.QueryxContext(ctx, query, filter.IDgt, LIMIT)
 	if err != nil {
 		slog.Error("Failed to execute query in FindAllReportsByFilter", "error", err)
 		return nil, err
