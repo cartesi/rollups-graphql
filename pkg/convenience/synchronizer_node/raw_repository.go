@@ -46,15 +46,15 @@ type Report struct {
 }
 
 type Output struct {
-	ID                   uint64    `db:"id"`
-	Index                string    `db:"index"`
-	InputIndex           string    `db:"input_index"`
+	Index                uint64    `db:"index"`
+	InputIndex           uint64    `db:"input_index"`
 	RawData              []byte    `db:"raw_data"`
 	Hash                 []byte    `db:"hash,omitempty"`
 	OutputHashesSiblings []byte    `db:"output_hashes_siblings,omitempty"`
-	InputID              uint64    `db:"input_id"`
-	TransactionHash      []byte    `db:"transaction_hash,omitempty"`
+	TransactionHash      []byte    `db:"execution_transaction_hash,omitempty"`
+	CreatedAt            time.Time `db:"created_at"`
 	UpdatedAt            time.Time `db:"updated_at"`
+	ApplicationId        uint64    `db:"input_epoch_application_id"`
 	AppContract          []byte    `db:"app_contract"`
 }
 
@@ -231,18 +231,30 @@ func (s *RawRepository) FindAllOutputsByFilter(ctx context.Context, filter Filte
 	outputs := []Output{}
 
 	result, err := s.Db.QueryxContext(ctx, `
-        SELECT o.id, o.index, o.raw_data, o.hash,
+        SELECT
+			o.index,
+			i.index as input_index,
+			o.raw_data,
+			o.hash,
 			o.output_hashes_siblings,
-			o.input_id, o.transaction_hash, o.updated_at,
-			i.application_address app_contract,
-			i.index input_index
-		FROM output o
-		INNER JOIN
-			input i
-			ON i.id = o.input_id
-        WHERE o.id > $1
-        ORDER BY o.id ASC
-        LIMIT $2`, filter.IDgt, LIMIT)
+			o.execution_transaction_hash,
+			o.created_at,
+			o.updated_at,
+			o.input_epoch_application_id,
+			a.iapplication_address as app_contract
+		FROM
+			output o
+		INNER JOIN input i
+		ON
+			i.index = o.input_index
+		INNER JOIN application a
+		ON
+			a.id = o.input_epoch_application_id
+		WHERE
+			o.index > $1
+		ORDER BY
+			o.index ASC
+		LIMIT $2`, filter.IDgt, LIMIT)
 	if err != nil {
 		slog.Error("Failed to execute query in FindAllOutputsByFilter", "error", err)
 		return nil, err
@@ -265,11 +277,28 @@ func (s *RawRepository) FindAllOutputsByFilter(ctx context.Context, filter Filte
 func (s *RawRepository) FindAllOutputsWithProof(ctx context.Context, filter FilterID) ([]Output, error) {
 	outputs := []Output{}
 	result, err := s.Db.QueryxContext(ctx, `
-        SELECT *
-        FROM output
-        WHERE ID >= $1 and output_hashes_siblings IS NOT NULL
-        ORDER BY ID ASC
-        LIMIT $2
+        SELECT
+			o.index,
+			o.input_index,
+			o.raw_data,
+			o.hash,
+			o.output_hashes_siblings,
+			o.execution_transaction_hash,
+			o.created_at,
+			o.updated_at,
+			o.input_epoch_application_id,
+			a.iapplication_address as app_contract
+		FROM
+			output o
+		INNER JOIN application a
+		ON
+			a.id = o.input_epoch_application_id
+		WHERE
+			o.index >= $1
+			AND output_hashes_siblings IS NOT NULL
+		ORDER BY
+			o.index
+		LIMIT $2
     `, filter.IDgt, LIMIT)
 	if err != nil {
 		slog.Error("Failed to execute query in FindAllOutputsWithProof", "error", err)
@@ -293,11 +322,31 @@ func (s *RawRepository) FindAllOutputsWithProof(ctx context.Context, filter Filt
 func (s *RawRepository) FindAllOutputsExecutedAfter(ctx context.Context, afterUpdatedAt time.Time, rawId uint64) ([]Output, error) {
 	outputs := []Output{}
 	result, err := s.Db.QueryxContext(ctx, `
-        SELECT *
-        FROM output
-        WHERE ((updated_at > $1) or (updated_at = $1 and id > $2)) and transaction_hash IS NOT NULL
-        ORDER BY updated_at ASC, id ASC
-        LIMIT $3
+        SELECT
+			o.index,
+			o.input_index,
+			o.raw_data,
+			o.hash,
+			o.output_hashes_siblings,
+			o.execution_transaction_hash,
+			o.created_at,
+			o.updated_at,
+			o.input_epoch_application_id,
+			a.iapplication_address as app_contract
+		FROM
+			output o
+		INNER JOIN application a
+		ON
+			a.id = o.input_epoch_application_id
+		WHERE
+			((o.updated_at > $1)
+				OR (o.updated_at = $1
+					AND o.index > $2))
+			AND o.execution_transaction_hash IS NOT NULL
+		ORDER BY
+			o.updated_at ASC,
+			o.index ASC
+		LIMIT $3
     `, afterUpdatedAt, rawId, LIMIT)
 	if err != nil {
 		slog.Error("Failed to execute query in FindAllOutputsExecuted", "error", err)

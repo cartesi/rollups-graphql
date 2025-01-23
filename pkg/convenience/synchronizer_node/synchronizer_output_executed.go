@@ -78,7 +78,7 @@ func (s *SynchronizerOutputExecuted) UpdateExecutionData(
 	ctx context.Context,
 	rawOutput Output,
 ) error {
-	ref, err := s.RawOutputRefRepository.FindByID(ctx, rawOutput.ID)
+	ref, err := s.RawOutputRefRepository.FindByID(ctx, rawOutput.Index)
 	if err != nil {
 		return err
 	}
