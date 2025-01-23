@@ -385,6 +385,29 @@ func (c *VoucherRepository) count(
 	return count, nil
 }
 
+func (c *VoucherRepository) FindAll(
+	ctx context.Context,
+) ([]model.ConvenienceVoucher, error) {
+	query := `SELECT * FROM vouchers `
+	stmt, err := c.Db.Preparex(query)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	var rows []voucherRow
+	err = stmt.SelectContext(ctx, &rows)
+	if err != nil {
+		return nil, err
+	}
+
+	vouchers := make([]model.ConvenienceVoucher, len(rows))
+
+	for i, row := range rows {
+		vouchers[i] = convertToConvenienceVoucher(row)
+	}
+	return vouchers, nil
+}
+
 func (c *VoucherRepository) FindAllVouchers(
 	ctx context.Context,
 	first *int,
