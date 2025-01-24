@@ -129,6 +129,7 @@ func (s *RawNodeSuite) TestSynchronizerNodeInputByID() {
 	defer cancel()
 	inputs, err := s.rawRepository.FindAllInputsByFilter(ctx, FilterInput{IDgt: 2, IsStatusNone: false}, nil)
 	s.NoError(err)
+	s.Require().NotEmpty(inputs)
 	firstInput := inputs[0]
 	s.Equal(firstInput.Index, uint64(2))
 
