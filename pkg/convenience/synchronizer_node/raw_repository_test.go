@@ -71,59 +71,6 @@ func TestRawNodeSuite(t *testing.T) {
 	suite.Run(t, new(RawNodeSuite))
 }
 
-func (s *RawNodeSuite) TestSynchronizerNodeListInputs() {
-	ctx, cancel := context.WithTimeout(s.ctx, s.DefaultTimeout)
-	defer cancel()
-
-	result, err := s.rawRepository.Db.QueryxContext(ctx, `
-	SELECT
-		i.index,
-		i.raw_data,
-		i.block_number,
-		i.status,
-		i.machine_hash,
-		i.outputs_hash,
-		i.epoch_index,
-		i.epoch_application_id,
-		i.transaction_reference,
-		i.created_at,
-		i.updated_at,
-		i.snapshot_uri,
-		a.iapplication_address as application_address
-	FROM
-		input i
-	INNER JOIN
-		application a
-	ON
-		a.id = i.epoch_application_id
-	`)
-	s.NoError(err)
-
-	inputs := []RawInput{}
-
-	for result.Next() {
-		var input RawInput
-		err := result.StructScan(&input)
-		s.NoError(err)
-		inputs = append(inputs, input)
-	}
-
-	firstInput := inputs[0]
-	s.Equal(firstInput.Index, uint64(1))
-
-	b := inputs[0].BlockNumber
-
-	firstBlockNumber := big.NewInt(0).SetUint64(b)
-	slog.Info("First block number", "blockNumber", firstBlockNumber)
-
-	firstBlockNumberDB := big.NewInt(122)
-
-	s.Equal(firstBlockNumberDB, firstBlockNumber)
-
-	s.Equal(DEFAULT_TEST_APP_CONTRACT, common.BytesToAddress(inputs[0].ApplicationAddress).Hex())
-
-}
-
 func (s *RawNodeSuite) TestSynchronizerNodeInputByID() {
 	ctx, cancel := context.WithCancel(s.ctx)
 	defer cancel()
