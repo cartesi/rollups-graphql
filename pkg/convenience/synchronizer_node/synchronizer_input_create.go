@@ -116,7 +116,6 @@ func (s *SynchronizerInputCreator) CreateInput(ctx context.Context, rawInput Raw
 
 	rawInputRef := repository.RawInputRef{
 		ID:          inputBox.ID,
-		RawID:       uint64(rawInput.Index),
 		InputIndex:  rawInput.Index,
 		AppContract: common.BytesToAddress(rawInput.ApplicationAddress).Hex(),
 		Status:      rawInput.Status,

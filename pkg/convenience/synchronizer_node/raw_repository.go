@@ -70,6 +70,8 @@ type Pagination struct {
 }
 
 type FilterInput struct {
+	AppID        uint64
+	InputIndex   uint64
 	IDgt         uint64
 	IsStatusNone bool
 	Status       string

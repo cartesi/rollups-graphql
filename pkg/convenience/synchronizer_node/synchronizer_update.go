@@ -3,7 +3,6 @@ package synchronizernode
 import (
 	"context"
 	"log/slog"
-	"strconv"
 
 	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
 	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
@@ -43,8 +42,9 @@ func (s *SynchronizerUpdate) findFirst50RawInputsAfterRefWithStatus(
 	status string,
 ) ([]RawInput, error) {
 	return s.RawNode.FindAllInputsByFilter(ctx, FilterInput{
-		IDgt:   inputRef.RawID,
-		Status: status,
+		AppID:      inputRef.InputIndex,
+		InputIndex: inputRef.InputIndex,
+		Status:     status,
 	}, &Pagination{
 		Limit: uint64(s.BatchSize),
 	})
@@ -78,10 +78,13 @@ func (s *SynchronizerUpdate) rollbackTransaction(ctx context.Context) {
 	}
 }
 
-func (s *SynchronizerUpdate) mapIds(rawInputs []RawInput) []string {
-	ids := make([]string, len(rawInputs))
+func (s *SynchronizerUpdate) toInputRef(rawInputs []RawInput) []repository.RawInputRef {
+	ids := make([]repository.RawInputRef, len(rawInputs))
 	for i, input := range rawInputs {
-		ids[i] = strconv.FormatUint(input.Index, 10)
+		ids[i] = repository.RawInputRef{
+			AppID:      uint64(rawInputs[i].ApplicationId),
+			InputIndex: input.Index,
+		}
 	}
 	return ids
 }
@@ -138,7 +141,7 @@ func (s *SynchronizerUpdate) updateStatus(ctx context.Context, rawInputs []RawIn
 }
 
 func (s *SynchronizerUpdate) updateManyInputAndRefsStatus(ctx context.Context, rawInputs []RawInput, rosetta RosettaStatusRef) error {
-	err := s.RawInputRefRepository.UpdateStatus(ctx, s.mapIds(rawInputs), rosetta.RawStatus)
+	err := s.RawInputRefRepository.UpdateStatus(ctx, s.toInputRef(rawInputs), rosetta.RawStatus)
 	if err != nil {
 		return err
 	}
