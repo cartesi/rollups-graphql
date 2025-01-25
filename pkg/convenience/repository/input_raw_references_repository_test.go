@@ -52,7 +52,8 @@ func (s *RawInputRefSuite) TestNoDuplicateInputs() {
 	appContract := common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT)
 	err := s.RawInputRefRepository.Create(ctx, RawInputRef{
 		ID:          "001",
-		InputIndex:  uint64(1),
+		AppID:       1,
+		InputIndex:  uint64(3),
 		AppContract: appContract.Hex(),
 		Status:      "NONE",
 		ChainID:     "31337",
@@ -62,7 +63,8 @@ func (s *RawInputRefSuite) TestNoDuplicateInputs() {
 
 	err = s.RawInputRefRepository.Create(ctx, RawInputRef{
 		ID:          "001",
-		InputIndex:  uint64(1),
+		AppID:       1,
+		InputIndex:  uint64(3),
 		AppContract: appContract.Hex(),
 		Status:      "NONE",
 		ChainID:     "31337",
@@ -70,8 +72,8 @@ func (s *RawInputRefSuite) TestNoDuplicateInputs() {
 	s.Require().NoError(err)
 
 	var count int
-	err = s.RawInputRefRepository.Db.QueryRow(`SELECT COUNT(*) FROM convenience_input_raw_references WHERE raw_id = ? AND app_contract = ?`,
-		uint64(1), appContract.Hex()).Scan(&count)
+	err = s.RawInputRefRepository.Db.QueryRow(`SELECT COUNT(*) FROM convenience_input_raw_references WHERE input_index = ? AND app_contract = ?`,
+		uint64(3), appContract.Hex()).Scan(&count)
 
 	s.Require().NoError(err)
 	s.Require().Equal(1, count)
