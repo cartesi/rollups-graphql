@@ -82,7 +82,8 @@ func (s *RawInputRefSuite) TestSaveDifferentInputs() {
 	appContract := common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT)
 	err := s.RawInputRefRepository.Create(ctx, RawInputRef{
 		ID:          "001",
-		InputIndex:  uint64(1),
+		AppID:       uint64(1),
+		InputIndex:  uint64(0),
 		AppContract: appContract.Hex(),
 		Status:      "NONE",
 		ChainID:     "31337",
@@ -92,6 +93,7 @@ func (s *RawInputRefSuite) TestSaveDifferentInputs() {
 
 	err = s.RawInputRefRepository.Create(ctx, RawInputRef{
 		ID:          "002",
+		AppID:       uint64(1),
 		InputIndex:  uint64(1),
 		AppContract: appContract.Hex(),
 		Status:      "NONE",
