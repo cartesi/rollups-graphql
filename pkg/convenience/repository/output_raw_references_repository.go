@@ -27,6 +27,7 @@ type RawOutputRef struct {
 	HasProof    bool      `db:"has_proof"`
 	Executed    bool      `db:"executed"`
 	UpdatedAt   time.Time `db:"updated_at"`
+	CreatedAt   time.Time `db:"created_at"`
 }
 
 func (r *RawOutputRefRepository) CreateTable() error {
@@ -39,6 +40,7 @@ func (r *RawOutputRefRepository) CreateTable() error {
 		type            text NOT NULL CHECK (type IN ('voucher', 'notice')),
 		executed        BOOLEAN,
 		updated_at      TIMESTAMP NOT NULL,
+		created_at      TIMESTAMP NOT NULL,
 		PRIMARY KEY (input_index, output_index, app_contract));
 		
 		CREATE INDEX IF NOT EXISTS idx_input_index ON convenience_output_raw_references(input_index, app_contract);
@@ -64,7 +66,8 @@ func (r *RawOutputRefRepository) Create(ctx context.Context, rawOutput RawOutput
 		app_id,
 		has_proof,
 		executed,
-		updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		updated_at,
+		created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
 		rawOutput.InputIndex,
 		rawOutput.AppContract,
 		rawOutput.OutputIndex,
@@ -73,28 +76,37 @@ func (r *RawOutputRefRepository) Create(ctx context.Context, rawOutput RawOutput
 		rawOutput.HasProof,
 		rawOutput.Executed,
 		rawOutput.UpdatedAt,
+		rawOutput.CreatedAt,
 	)
 
 	if err != nil {
-		slog.Error("Error creating output reference", "error", err)
+		slog.Error("Error creating output reference", "error", err,
+			"AppID", rawOutput.AppID,
+			"OutputIndex", rawOutput.OutputIndex,
+			"InputIndex", rawOutput.InputIndex,
+		)
 		return err
 	}
 
 	return err
 }
 
-func (r *RawOutputRefRepository) GetLatestOutputRawId(ctx context.Context) (uint64, error) {
-	var outputId uint64
-	err := r.Db.GetContext(ctx, &outputId, `SELECT app_id FROM convenience_output_raw_references ORDER BY app_id DESC LIMIT 1`)
+func (r *RawOutputRefRepository) GetLatestRawOutputRef(ctx context.Context) (*RawOutputRef, error) {
+	var outputRef RawOutputRef
+	err := r.Db.GetContext(ctx, &outputRef, `
+		SELECT * FROM convenience_output_raw_references
+		ORDER BY created_at DESC, output_index DESC, app_id DESC
+		LIMIT 1
+	`)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return 0, nil
+			return nil, nil
 		}
 		slog.Error("Failed to retrieve the latest output ID", "error", err)
-		return 0, err
+		return nil, err
 	}
-	return outputId, err
+	return &outputRef, err
 }
 
 func (r *RawOutputRefRepository) SetHasProofToTrue(ctx context.Context, rawOutputRef *RawOutputRef) error {

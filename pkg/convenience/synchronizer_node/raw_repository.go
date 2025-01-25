@@ -80,6 +80,10 @@ type FilterInput struct {
 
 const LIMIT = uint64(50)
 
+const OUTPUT_ORDER_BY = `
+	ORDER BY o.created_at ASC, o.index ASC, o.input_epoch_application_id ASC
+`
+
 type FilterID struct {
 	IDgt uint64
 }
@@ -304,6 +308,100 @@ func (s *RawRepository) FindInputByOutput(ctx context.Context, filter FilterID) 
 	input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress))
 
 	return &input, nil
+}
+
+func (s *RawRepository) findAllOutputsLimited(ctx context.Context) ([]Output, error) {
+	outputs := []Output{}
+	query := fmt.Sprintf(`
+        SELECT
+			o.index,
+			i.index as input_index,
+			o.raw_data,
+			o.hash,
+			o.output_hashes_siblings,
+			o.execution_transaction_hash,
+			o.created_at,
+			o.updated_at,
+			o.input_epoch_application_id,
+			a.iapplication_address as app_contract
+		FROM
+			output o
+		INNER JOIN input i
+			ON i.index = o.input_index
+		INNER JOIN application a
+			ON a.id = o.input_epoch_application_id
+		%s
+		LIMIT $1`, OUTPUT_ORDER_BY)
+	result, err := s.Db.QueryxContext(ctx, query, LIMIT)
+	if err != nil {
+		slog.Error("Failed to execute query in FindAllOutputsByFilter", "error", err)
+		return nil, err
+	}
+	defer result.Close()
+
+	for result.Next() {
+		var output Output
+		err := result.StructScan(&output)
+		if err != nil {
+			slog.Error("Failed to scan row into Output struct", "error", err)
+			return nil, err
+		}
+		output.AppContract = common.Hex2Bytes(string(output.AppContract[2:]))
+		outputs = append(outputs, output)
+	}
+
+	return outputs, nil
+}
+
+func (s *RawRepository) FindAllOutputsGtRefLimited(ctx context.Context, outputRef *repository.RawOutputRef) ([]Output, error) {
+	outputs := []Output{}
+
+	if outputRef == nil {
+		return s.findAllOutputsLimited(ctx)
+	}
+	result, err := s.Db.QueryxContext(ctx, `
+        SELECT
+			o.index,
+			i.index as input_index,
+			o.raw_data,
+			o.hash,
+			o.output_hashes_siblings,
+			o.execution_transaction_hash,
+			o.created_at,
+			o.updated_at,
+			o.input_epoch_application_id,
+			a.iapplication_address as app_contract
+		FROM
+			output o
+		INNER JOIN input i
+			ON i.index = o.input_index
+		INNER JOIN application a
+			ON a.id = o.input_epoch_application_id
+		WHERE
+			(o.input_epoch_application_id = $3 and o.index > $1 and o.created_at >= $2)
+			OR
+			(o.input_epoch_application_id > $3 and o.created_at >= $2)
+		ORDER BY
+			o.created_at ASC, o.index ASC, o.input_epoch_application_id ASC
+		LIMIT $4`, outputRef.OutputIndex, outputRef.CreatedAt, outputRef.AppID, LIMIT)
+	if err != nil {
+		slog.Error("Failed to execute query in FindAllOutputsByFilter", "error", err)
+		return nil, err
+	}
+	defer result.Close()
+
+	for result.Next() {
+		var output Output
+		err := result.StructScan(&output)
+		if err != nil {
+			slog.Error("Failed to scan row into Output struct", "error", err)
+			return nil, err
+		}
+		output.AppContract = common.Hex2Bytes(string(output.AppContract[2:]))
+		outputs = append(outputs, output)
+	}
+
+	return outputs, nil
 }
 
 func (s *RawRepository) FindAllOutputsByFilter(ctx context.Context, filter FilterID) ([]Output, error) {

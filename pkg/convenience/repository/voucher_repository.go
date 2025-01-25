@@ -66,7 +66,7 @@ func (c *VoucherRepository) CreateTables() error {
 func (c *VoucherRepository) CreateVoucher(
 	ctx context.Context, voucher *model.ConvenienceVoucher,
 ) (*model.ConvenienceVoucher, error) {
-	slog.Debug("CreateVoucher", "payload", voucher.Payload, "value", voucher.Value)
+	// slog.Debug("CreateVoucher", "payload", voucher.Payload, "value", voucher.Value)
 	if c.AutoCount {
 		count, err := c.OutputRepository.CountAllOutputs(ctx)
 		if err != nil {

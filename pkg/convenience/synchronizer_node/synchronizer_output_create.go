@@ -53,16 +53,17 @@ func (s *SynchronizerOutputCreate) SyncOutputs(ctx context.Context) error {
 }
 
 func (s *SynchronizerOutputCreate) syncOutputs(ctx context.Context) error {
-	latestOutputRawID, err := s.RawOutputRefRepository.GetLatestOutputRawId(ctx)
+	latestOutputRawID, err := s.RawOutputRefRepository.GetLatestRawOutputRef(ctx)
 	if err != nil {
 		return err
 	}
-	outputs, err := s.RawNodeV2Repository.FindAllOutputsByFilter(ctx, FilterID{IDgt: latestOutputRawID})
+	slog.Debug("SyncOutputs", "latestOutputRawID", latestOutputRawID)
+	outputs, err := s.RawNodeV2Repository.FindAllOutputsGtRefLimited(ctx, latestOutputRawID)
 	if err != nil {
 		return err
 	}
 	for _, rawOutput := range outputs {
-		rawOutputRef, err := s.GetRawOutputRef(rawOutput)
+		rawOutputRef, err := s.ToRawOutputRef(rawOutput)
 		if err != nil {
 			return err
 		}
@@ -145,7 +146,7 @@ func (s *SynchronizerOutputCreate) GetConvenienceNotice(rawOutput Output) (*mode
 	return &cNotice, nil
 }
 
-func (s *SynchronizerOutputCreate) GetRawOutputRef(rawOutput Output) (*repository.RawOutputRef, error) {
+func (s *SynchronizerOutputCreate) ToRawOutputRef(rawOutput Output) (*repository.RawOutputRef, error) {
 	outputType, err := getOutputType(rawOutput.RawData)
 	if err != nil {
 		return nil, err

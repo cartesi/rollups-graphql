@@ -107,7 +107,7 @@ func (s *SynchronizerOutputCreateSuite) TestGetRawOutputRef() {
 	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 0})
 	s.Require().NoError(err)
 	rawOutput := outputs[0]
-	rawOutputRef, err := s.synchronizerOutputCreate.GetRawOutputRef(rawOutput)
+	rawOutputRef, err := s.synchronizerOutputCreate.ToRawOutputRef(rawOutput)
 	s.Require().NoError(err)
 	s.Equal("notice", rawOutputRef.Type)
 	s.Equal(DEFAULT_TEST_APP_CONTRACT, rawOutputRef.AppContract)
@@ -127,7 +127,7 @@ func (s *SynchronizerOutputCreateSuite) TestGetConvenienceVoucher() {
 	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 1})
 	s.Require().NoError(err)
 	rawOutput := outputs[0]
-	rawOutputRef, err := s.synchronizerOutputCreate.GetRawOutputRef(rawOutput)
+	rawOutputRef, err := s.synchronizerOutputCreate.ToRawOutputRef(rawOutput)
 	s.Require().NoError(err)
 	s.Equal("voucher", rawOutputRef.Type)
 	cVoucher, err := s.synchronizerOutputCreate.GetConvenienceVoucher(rawOutput)
@@ -145,7 +145,7 @@ func (s *SynchronizerOutputCreateSuite) TestGetConvenienceNotice() {
 	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 1})
 	s.Require().NoError(err)
 	rawOutput := outputs[0]
-	rawOutputRef, err := s.synchronizerOutputCreate.GetRawOutputRef(rawOutput)
+	rawOutputRef, err := s.synchronizerOutputCreate.ToRawOutputRef(rawOutput)
 	s.Require().NoError(err)
 	s.Equal("notice", rawOutputRef.Type)
 	cNotice, err := s.synchronizerOutputCreate.GetConvenienceNotice(rawOutput)

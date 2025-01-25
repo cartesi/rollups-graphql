@@ -104,7 +104,7 @@ func (s *SynchronizerOutputExecutedSuite) TestUpdateOutputsExecuted() {
 	s.Require().NoError(err)
 
 	// check setup
-	outputCount := s.countOutputs(ctx)
+	outputCount := s.countOurOutputs(ctx)
 	s.Require().Equal(0, outputCount)
 
 	// first call
@@ -114,7 +114,7 @@ func (s *SynchronizerOutputExecutedSuite) TestUpdateOutputsExecuted() {
 	// second call
 	err = s.synchronizerOutputCreate.SyncOutputs(ctx)
 	s.Require().NoError(err)
-	second := s.countOutputs(ctx)
+	second := s.countOurOutputs(ctx)
 	s.Equal(TOTAL_INPUT_TEST, second)
 
 	err = s.synchronizerOutputCreate.SyncOutputs(ctx)
@@ -123,7 +123,7 @@ func (s *SynchronizerOutputExecutedSuite) TestUpdateOutputsExecuted() {
 	s.Require().NoError(err)
 	err = s.synchronizerOutputCreate.SyncOutputs(ctx)
 	s.Require().NoError(err)
-	second = s.countOutputs(ctx)
+	second = s.countOurOutputs(ctx)
 	s.Equal((TOTAL_INPUT_TEST*2)+1, second)
 
 	// check setup
@@ -159,7 +159,7 @@ func (s *SynchronizerOutputExecutedSuite) TestUpdateOutputsExecuted() {
 	// s.Fail("uncomment this line just to see the logs")
 }
 
-func (s *SynchronizerOutputExecutedSuite) countOutputs(ctx context.Context) int {
+func (s *SynchronizerOutputExecutedSuite) countOurOutputs(ctx context.Context) int {
 	total, err := s.container.GetOutputRepository().CountAllOutputs(ctx)
 	s.Require().NoError(err)
 	return int(total)
