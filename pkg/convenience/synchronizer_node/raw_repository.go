@@ -324,11 +324,9 @@ func (s *RawRepository) FindAllOutputsByFilter(ctx context.Context, filter Filte
 		FROM
 			output o
 		INNER JOIN input i
-		ON
-			i.index = o.input_index
+			ON i.index = o.input_index
 		INNER JOIN application a
-		ON
-			a.id = o.input_epoch_application_id
+			ON a.id = o.input_epoch_application_id
 		WHERE
 			o.index > $1
 		ORDER BY

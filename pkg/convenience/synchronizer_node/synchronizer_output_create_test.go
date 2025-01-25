@@ -87,22 +87,24 @@ func (s *SynchronizerOutputCreateSuite) TestCreateOutputs() {
 	ctx := context.Background()
 
 	// check setup
-	proofCount := s.countOutputs(ctx)
-	s.Require().Equal(0, proofCount)
+	setupCount := s.countOurOutputs(ctx)
+	s.Require().Equal(0, setupCount)
 
 	// first call
 	err := s.synchronizerOutputCreate.SyncOutputs(ctx)
 	s.Require().NoError(err)
+	first := s.countOurOutputs(ctx)
+	s.Equal(TOTAL_INPUT_TEST/2, first)
 
 	// second call
 	err = s.synchronizerOutputCreate.SyncOutputs(ctx)
 	s.Require().NoError(err)
-	second := s.countOutputs(ctx)
+	second := s.countOurOutputs(ctx)
 	s.Equal(TOTAL_INPUT_TEST, second)
 }
 
 func (s *SynchronizerOutputCreateSuite) TestGetRawOutputRef() {
-	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 1})
+	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 0})
 	s.Require().NoError(err)
 	rawOutput := outputs[0]
 	rawOutputRef, err := s.synchronizerOutputCreate.GetRawOutputRef(rawOutput)
@@ -112,10 +114,10 @@ func (s *SynchronizerOutputCreateSuite) TestGetRawOutputRef() {
 	s.Equal(0, int(rawOutputRef.InputIndex))
 	s.Equal(false, rawOutputRef.HasProof)
 	s.Equal(1, int(rawOutputRef.OutputIndex))
-	s.Equal(2, int(rawOutputRef.RawID))
+	s.Equal(1, int(rawOutputRef.AppID))
 }
 
-func (s *SynchronizerOutputCreateSuite) countOutputs(ctx context.Context) int {
+func (s *SynchronizerOutputCreateSuite) countOurOutputs(ctx context.Context) int {
 	total, err := s.container.GetOutputRepository().CountAllOutputs(ctx)
 	s.Require().NoError(err)
 	return int(total)

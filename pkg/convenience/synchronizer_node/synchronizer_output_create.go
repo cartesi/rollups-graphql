@@ -151,7 +151,7 @@ func (s *SynchronizerOutputCreate) GetRawOutputRef(rawOutput Output) (*repositor
 		return nil, err
 	}
 	return &repository.RawOutputRef{
-		RawID:       rawOutput.Index,
+		AppID:       rawOutput.Index,
 		InputIndex:  rawOutput.InputIndex,
 		OutputIndex: rawOutput.Index,
 		AppContract: common.BytesToAddress(rawOutput.AppContract).Hex(),
