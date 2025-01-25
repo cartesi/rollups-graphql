@@ -96,7 +96,7 @@ func (r *RawOutputRefRepository) Create(ctx context.Context, rawOutput RawOutput
 	return err
 }
 
-func (r *RawOutputRefRepository) GetLatestRawOutputRef(ctx context.Context) (*RawOutputRef, error) {
+func (r *RawOutputRefRepository) FindLatestRawOutputRef(ctx context.Context) (*RawOutputRef, error) {
 	var outputRef RawOutputRef
 	err := r.Db.GetContext(ctx, &outputRef, `
 		SELECT * FROM convenience_output_raw_references

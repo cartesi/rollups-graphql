@@ -97,7 +97,7 @@ func (s *RawOutputRefSuite) TestRawRefOutputCreate() {
 	s.Equal(1, count)
 }
 
-func (s *RawOutputRefSuite) TestRawRefOutputGetLatestId() {
+func (s *RawOutputRefSuite) TestFindLatestRawOutputRef() {
 	ctx := context.Background()
 
 	firstRawOutput := RawOutputRef{
@@ -126,9 +126,9 @@ func (s *RawOutputRefSuite) TestRawRefOutputGetLatestId() {
 	err = s.rawOutputRefRepository.Db.QueryRow(`SELECT COUNT(*) FROM convenience_output_raw_references`).Scan(&count)
 	s.NoError(err)
 	//check if there are two records in the table.
-	s.Equal(2, count)
+	s.Require().Equal(2, count)
 
-	outputId, err := s.rawOutputRefRepository.GetLatestRawOutputRef(ctx)
+	lastOutputRef, err := s.rawOutputRefRepository.FindLatestRawOutputRef(ctx)
 	s.NoError(err)
-	s.Equal(lastRawOutput.AppID, outputId)
+	s.Equal(lastRawOutput.AppID, lastOutputRef.AppID)
 }

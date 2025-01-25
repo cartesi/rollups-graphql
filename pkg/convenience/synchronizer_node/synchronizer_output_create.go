@@ -53,7 +53,7 @@ func (s *SynchronizerOutputCreate) SyncOutputs(ctx context.Context) error {
 }
 
 func (s *SynchronizerOutputCreate) syncOutputs(ctx context.Context) error {
-	latestOutputRawID, err := s.RawOutputRefRepository.GetLatestRawOutputRef(ctx)
+	latestOutputRawID, err := s.RawOutputRefRepository.FindLatestRawOutputRef(ctx)
 	if err != nil {
 		return err
 	}
