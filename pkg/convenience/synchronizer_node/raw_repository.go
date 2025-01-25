@@ -138,7 +138,6 @@ func (s *RawRepository) FindAllInputsByFilter(ctx context.Context, filter Filter
 
 	orderBy := " ORDER BY index ASC "
 	query := baseQuery + additionalFilter + orderBy + pagination
-	slog.Debug("FindAllInputsByFilter", "query", query, "args", args)
 	result, err := s.Db.QueryxContext(ctx, query, args...)
 	if err != nil {
 		slog.Error("Failed to execute query in FindAllInputsByFilter",
@@ -154,9 +153,7 @@ func (s *RawRepository) FindAllInputsByFilter(ctx context.Context, filter Filter
 			slog.Error("Failed to scan row into RawInput struct", "error", err)
 			return nil, err
 		}
-		// slog.Debug("Found input", "address", input.ApplicationAddress)
 		input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress[2:]))
-		// slog.Debug("Change input", "address", input.ApplicationAddress)
 		inputs = append(inputs, input)
 	}
 
