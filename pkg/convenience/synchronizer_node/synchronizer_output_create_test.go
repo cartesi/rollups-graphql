@@ -124,7 +124,7 @@ func (s *SynchronizerOutputCreateSuite) countOurOutputs(ctx context.Context) int
 }
 
 func (s *SynchronizerOutputCreateSuite) TestGetConvenienceVoucher() {
-	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 0})
+	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 1})
 	s.Require().NoError(err)
 	rawOutput := outputs[0]
 	rawOutputRef, err := s.synchronizerOutputCreate.GetRawOutputRef(rawOutput)
@@ -134,8 +134,10 @@ func (s *SynchronizerOutputCreateSuite) TestGetConvenienceVoucher() {
 	s.Require().NoError(err)
 	s.Equal(DEFAULT_TEST_APP_CONTRACT, cVoucher.AppContract.Hex())
 	s.Equal("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", cVoucher.Destination.Hex())
-	s.Equal(0, int(cVoucher.InputIndex))
-	s.Equal(0, int(cVoucher.OutputIndex))
+	s.Equal(1, int(cVoucher.InputIndex))
+	s.Equal(2, int(cVoucher.OutputIndex))
+	s.Equal(int(rawOutput.ApplicationId), int(rawOutputRef.AppID))
+	s.Equal(int(rawOutput.Index), int(cVoucher.OutputIndex))
 	s.Equal("3735928559", cVoucher.Value)
 }
 
