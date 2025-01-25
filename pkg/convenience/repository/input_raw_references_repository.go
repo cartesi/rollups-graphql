@@ -129,7 +129,7 @@ func (r *RawInputRefRepository) GetLatestRawId(ctx context.Context) (uint64, err
 func (r *RawInputRefRepository) FindFirstInputByStatusNone(ctx context.Context) (*RawInputRef, error) {
 	query := `SELECT * FROM convenience_input_raw_references
 			  WHERE status = 'NONE'
-			  ORDER BY created_at ASC LIMIT 1`
+			  ORDER BY created_at ASC, app_id ASC, input_index ASC LIMIT 1`
 
 	stmt, err := r.Db.PreparexContext(ctx, query)
 	if err != nil {

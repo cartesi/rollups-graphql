@@ -110,9 +110,12 @@ func (s *RawRepository) First50RawInputsGteRefWithStatus(ctx context.Context, in
 			application a
 		ON
 			a.id = i.epoch_application_id
-		WHERE index >= $1 and application_address >= $2 and status = $3
+		WHERE
+			i.created_at >= $1 and i.epoch_application_id >= $2 and i.index >= $3 and status = $4
+		ORDER BY
+		    i.created_at ASC, i.epoch_application_id ASC, i.index ASC
 		LIMIT 50`
-	result, err := s.Db.QueryxContext(ctx, query, inputRef.InputIndex, inputRef.AppID, status)
+	result, err := s.Db.QueryxContext(ctx, query, inputRef.CreatedAt, inputRef.AppID, inputRef.InputIndex, status)
 	if err != nil {
 		slog.Error("Failed to execute query in First50RawInputsGteRefWithStatus",
 			"query", query, "error", err)
@@ -130,7 +133,12 @@ func (s *RawRepository) First50RawInputsGteRefWithStatus(ctx context.Context, in
 		input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress[2:]))
 		inputs = append(inputs, input)
 	}
-	slog.Debug("First50RawInputsGteRefWithStatus", "results", len(inputs))
+	slog.Debug("First50RawInputsGteRefWithStatus", "status", status, "results", len(inputs))
+	if len(inputs) > 0 {
+		slog.Debug("First50RawInputsGteRefWithStatus first result", "appID", inputs[0].ApplicationId,
+			"InputIndex", inputs[0].Index,
+		)
+	}
 	return inputs, nil
 }
 

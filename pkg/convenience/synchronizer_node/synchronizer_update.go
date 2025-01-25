@@ -128,7 +128,7 @@ func (s *SynchronizerUpdate) updateStatus(ctx context.Context, rawInputs []RawIn
 		// slog.Debug("Update", "appContract", appContract, "index", rawInput.Index, "status", status)
 		err := s.InputRepository.UpdateStatus(ctx, appContract, rawInput.Index, status)
 		if err != nil {
-			return err
+			slog.Warn("Ignoring missing input", "err", err)
 		}
 	}
 	return nil
