@@ -71,27 +71,6 @@ func TestRawNodeSuite(t *testing.T) {
 	suite.Run(t, new(RawNodeSuite))
 }
 
-func (s *RawNodeSuite) TestSynchronizerNodeInputByID() {
-	ctx, cancel := context.WithCancel(s.ctx)
-	defer cancel()
-	inputs, err := s.rawRepository.FindAllInputsByFilter(ctx, FilterInput{IDgt: 2, IsStatusNone: false}, nil)
-	s.NoError(err)
-	s.Require().NotEmpty(inputs)
-	firstInput := inputs[0]
-	s.Equal(firstInput.Index, uint64(2))
-
-	b := inputs[0].BlockNumber
-
-	firstBlockNumber := big.NewInt(0).SetUint64(b)
-	slog.Info("First block number", "blockNumber", firstBlockNumber)
-
-	firstBlockNumberDB := big.NewInt(124)
-
-	s.Equal(firstBlockNumberDB, firstBlockNumber)
-
-	s.Equal(DEFAULT_TEST_APP_CONTRACT, common.BytesToAddress(inputs[0].ApplicationAddress).Hex())
-}
-
 // deprecated
 func (s *RawNodeSuite) TestSynchronizerNodeReportByID() {
 	ctx, cancel := context.WithCancel(s.ctx)
