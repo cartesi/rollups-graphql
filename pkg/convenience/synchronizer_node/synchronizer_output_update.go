@@ -67,7 +67,7 @@ func (s *SynchronizerOutputUpdate) syncOutputsProofs(ctx context.Context) error 
 	}
 	total := len(rawOutputs)
 	if total == 0 {
-		slog.Debug("No new proofs to sync")
+		slog.Debug("SyncOutputsProofs: no new proofs to sync")
 		return nil
 	}
 	outputIndexes := []uint64{}
@@ -78,18 +78,18 @@ func (s *SynchronizerOutputUpdate) syncOutputsProofs(ctx context.Context) error 
 		}
 		outputIndexes = append(outputIndexes, rawOutput.Index)
 		if i == total-1 {
-			s.SetTopPriority(ctx, rawOutput)
+			err = s.SetTopPriority(ctx, rawOutput)
+			if err != nil {
+				return err
+			}
 		} else {
 			err = s.UpdateProof(ctx, rawOutput, hashes)
 			if err != nil {
 				return err
 			}
 		}
-
 	}
-	// lastRawOutput := rawOutputs[len(rawOutputs)-1]
-	// s.RawOutputRefRepository.SetTopPriority(ctx, lastRawOutput)
-	slog.Debug("SyncOutputsProofs lastOutputRefWithoutProof",
+	slog.Debug("SyncOutputsProofs: lastOutputRefWithoutProof",
 		"app_id", lastOutputRefWithoutProof.AppID,
 		"output_index", lastOutputRefWithoutProof.OutputIndex,
 		"output_indexes", outputIndexes,
@@ -115,7 +115,6 @@ func (s *SynchronizerOutputUpdate) SetTopPriority(
 		slog.Warn("We may need to wait for the reference to be created")
 		return nil
 	}
-	slog.Warn("Top priority", "outputIndex", ref.OutputIndex)
 	ref.SyncPriority = 0
 	err = s.RawOutputRefRepository.SetSyncPriority(ctx, ref)
 	if err != nil {

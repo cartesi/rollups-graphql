@@ -18,7 +18,7 @@ type RawInputRefRepository struct {
 }
 
 type RawInputRef struct {
-	// RawID    uint64 `db:"raw_id"` // Low level ID deprecated
+	// RawID    uint64 `db:"raw_id"`    // Low level ID deprecated
 	AppID       uint64    `db:"app_id"` // Low level app ID
 	ID          string    `db:"id"`     // High level ID refers to our ConvenienceInput.ID
 	InputIndex  uint64    `db:"input_index"`
@@ -56,23 +56,16 @@ func (r *RawInputRefRepository) UpdateStatus(ctx context.Context, rawInputsRefs 
 		return nil
 	}
 	exec := DBExecutor{&r.Db}
-	// Base query
 	query := `UPDATE convenience_input_raw_references SET status = $1 WHERE `
-
-	// Dynamically build the WHERE clause with placeholders
 	whereClauses := make([]string, len(rawInputsRefs))
-	args := []interface{}{status} // First argument is the status
-
+	args := []interface{}{status}
 	for i, input := range rawInputsRefs {
-		placeholderIndex := 2 + i*2 // Start at $2 and increment
+		// nolint
+		placeholderIndex := 2 + i*2
 		whereClauses[i] = fmt.Sprintf("(app_id = $%d AND input_index = $%d)", placeholderIndex, placeholderIndex+1)
 		args = append(args, input.AppID, input.InputIndex)
 	}
-
-	// Join all WHERE conditions with OR
 	query += strings.Join(whereClauses, " OR ")
-
-	// Execute the query
 	_, err := exec.ExecContext(ctx, query, args...)
 	return err
 }
