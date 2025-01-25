@@ -52,8 +52,8 @@ func (r *RawInputRefRepository) UpdateStatus(ctx context.Context, rawInputsIds [
 
 	exec := DBExecutor{&r.Db}
 	query, args, err := sqlx.In(`
-		UPDATE convenience_input_raw_references 
-		SET status = ? 
+		UPDATE convenience_input_raw_references
+		SET status = ?
 		WHERE raw_id IN (?)`, status, rawInputsIds)
 	if err != nil {
 		slog.Error("Failed to build query for status update", "query", query, "args", args, "error", err)
@@ -84,7 +84,7 @@ func (r *RawInputRefRepository) Create(ctx context.Context, rawInput RawInputRef
 	}
 
 	_, err = exec.ExecContext(ctx, `INSERT INTO convenience_input_raw_references (
-		id, raw_id, input_index, app_contract, status, chain_id) 
+		id, raw_id, input_index, app_contract, status, chain_id)
 		VALUES ($1, $2, $3, $4, $5, $6)`,
 		rawInput.ID, rawInput.RawID, rawInput.InputIndex,
 		rawInput.AppContract, rawInput.Status, rawInput.ChainID)
@@ -101,7 +101,7 @@ func (r *RawInputRefRepository) Create(ctx context.Context, rawInput RawInputRef
 func (r *RawInputRefRepository) GetLatestRawId(ctx context.Context) (uint64, error) {
 	var rawId uint64
 	err := r.Db.GetContext(ctx, &rawId, `
-		SELECT raw_id FROM convenience_input_raw_references 
+		SELECT raw_id FROM convenience_input_raw_references
 		ORDER BY raw_id DESC LIMIT 1`)
 
 	if err != nil {
@@ -120,7 +120,7 @@ func (r *RawInputRefRepository) GetLatestRawId(ctx context.Context) (uint64, err
 func (r *RawInputRefRepository) FindFirstInputByStatusNone(ctx context.Context, limit int) (*RawInputRef, error) {
 	query := `SELECT * FROM convenience_input_raw_references
 			  WHERE status = 'NONE'
-			  ORDER BY raw_id ASC LIMIT $1`
+			  ORDER BY input_index ASC LIMIT $1`
 
 	stmt, err := r.Db.PreparexContext(ctx, query)
 	if err != nil {
@@ -149,7 +149,7 @@ func (r *RawInputRefRepository) FindFirstInputByStatusNone(ctx context.Context, 
 func (r *RawInputRefRepository) FindByRawIdAndAppContract(ctx context.Context, rawId uint64, appContract *common.Address) (*RawInputRef, error) {
 	var inputRef RawInputRef
 	err := r.Db.GetContext(ctx, &inputRef, `
-		SELECT * FROM convenience_input_raw_references 
+		SELECT * FROM convenience_input_raw_references
 		WHERE raw_id = $1 and app_contract = $2
 		LIMIT 1`, rawId, appContract.Hex())
 	if err != nil {

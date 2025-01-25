@@ -113,6 +113,8 @@ func (s *SynchronizerUpdateNodeSuite) TestUpdateInputStatusNotEqNone() {
 	// second call
 	err = s.synchronizerUpdate.SyncInputStatus(ctx)
 	s.Require().NoError(err)
+	none := s.getNoneInputs(ctx)
+	slog.Debug("None", "none", none)
 	second := s.countAcceptedInput(ctx)
 	s.Equal(TOTAL_INPUT_TEST, second)
 }
@@ -129,6 +131,20 @@ func (s *SynchronizerUpdateNodeSuite) countInputWithStatusNone(ctx context.Conte
 	total, err := s.container.GetInputRepository().Count(ctx, filter)
 	s.Require().NoError(err)
 	return int(total)
+}
+
+func (s *SynchronizerUpdateNodeSuite) getNoneInputs(ctx context.Context) *commons.PageResult[model.AdvanceInput] {
+	status := model.STATUS_PROPERTY
+	value := fmt.Sprintf("%d", model.CompletionStatusUnprocessed)
+	filter := []*model.ConvenienceFilter{
+		{
+			Field: &status,
+			Eq:    &value,
+		},
+	}
+	result, err := s.container.GetInputRepository().FindAll(ctx, nil, nil, nil, nil, filter)
+	s.Require().NoError(err)
+	return result
 }
 
 func (s *SynchronizerUpdateNodeSuite) countAcceptedInput(ctx context.Context) int {

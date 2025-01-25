@@ -43,7 +43,7 @@ func (s *SynchronizerUpdate) findFirst50RawInputsAfterRefWithStatus(
 	status string,
 ) ([]RawInput, error) {
 	return s.RawNode.FindAllInputsByFilter(ctx, FilterInput{
-		IDgt:   inputRef.RawID,
+		IDgt:   inputRef.InputIndex,
 		Status: status,
 	}, &Pagination{
 		Limit: uint64(s.BatchSize),
