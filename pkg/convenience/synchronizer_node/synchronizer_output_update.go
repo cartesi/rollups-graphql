@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
 	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
@@ -34,12 +35,12 @@ func NewSynchronizerOutputUpdate(
 	}
 }
 
-func (s *SynchronizerOutputUpdate) SyncOutputs(ctx context.Context) error {
+func (s *SynchronizerOutputUpdate) SyncOutputsProofs(ctx context.Context) error {
 	txCtx, err := s.startTransaction(ctx)
 	if err != nil {
 		return err
 	}
-	err = s.syncOutputs(txCtx)
+	err = s.syncOutputsProofs(txCtx)
 	if err != nil {
 		s.rollbackTransaction(txCtx)
 		return err
@@ -51,30 +52,74 @@ func (s *SynchronizerOutputUpdate) SyncOutputs(ctx context.Context) error {
 	return nil
 }
 
-func (s *SynchronizerOutputUpdate) syncOutputs(ctx context.Context) error {
-	lastOutputIdWithoutProof, err := s.RawOutputRefRepository.GetFirstOutputIdWithoutProof(ctx)
+func (s *SynchronizerOutputUpdate) syncOutputsProofs(ctx context.Context) error {
+	lastOutputRefWithoutProof, err := s.RawOutputRefRepository.GetFirstOutputRefWithoutProof(ctx)
 	if err != nil {
 		return err
 	}
-	if lastOutputIdWithoutProof == 0 {
+	if lastOutputRefWithoutProof == nil {
+		// no output to add a proof
 		return nil
 	}
-	slog.Debug("SyncOutputs", "lastOutputIdWithoutProof", lastOutputIdWithoutProof)
-	rawOutputs, err := s.RawNodeV2Repository.FindAllOutputsWithProof(ctx, FilterID{
-		IDgt: lastOutputIdWithoutProof,
-	})
+	rawOutputs, err := s.RawNodeV2Repository.FindAllOutputsWithProofGte(ctx, lastOutputRefWithoutProof)
 	if err != nil {
 		return err
 	}
-	for _, rawOutput := range rawOutputs {
+	total := len(rawOutputs)
+	if total == 0 {
+		slog.Debug("No new proofs to sync")
+		return nil
+	}
+	outputIndexes := []uint64{}
+	for i, rawOutput := range rawOutputs {
 		hashes, err := parseAndDecode(string(rawOutput.OutputHashesSiblings))
 		if err != nil {
 			return err
 		}
-		err = s.UpdateProof(ctx, rawOutput, hashes)
-		if err != nil {
-			return err
+		outputIndexes = append(outputIndexes, rawOutput.Index)
+		if i == total-1 {
+			s.SetTopPriority(ctx, rawOutput)
+		} else {
+			err = s.UpdateProof(ctx, rawOutput, hashes)
+			if err != nil {
+				return err
+			}
 		}
+
+	}
+	// lastRawOutput := rawOutputs[len(rawOutputs)-1]
+	// s.RawOutputRefRepository.SetTopPriority(ctx, lastRawOutput)
+	slog.Debug("SyncOutputsProofs lastOutputRefWithoutProof",
+		"app_id", lastOutputRefWithoutProof.AppID,
+		"output_index", lastOutputRefWithoutProof.OutputIndex,
+		"output_indexes", outputIndexes,
+		"sync_priority", lastOutputRefWithoutProof.SyncPriority,
+		"rawOutputs", len(rawOutputs),
+	)
+	err = s.RawOutputRefRepository.UpdateSyncPriority(ctx, lastOutputRefWithoutProof)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *SynchronizerOutputUpdate) SetTopPriority(
+	ctx context.Context,
+	rawOutput Output,
+) error {
+	ref, err := s.RawOutputRefRepository.FindByAppIDAndOutputIndex(ctx, rawOutput.ApplicationId, rawOutput.Index)
+	if err != nil {
+		return err
+	}
+	if ref == nil {
+		slog.Warn("We may need to wait for the reference to be created")
+		return nil
+	}
+	slog.Warn("Top priority", "outputIndex", ref.OutputIndex)
+	ref.SyncPriority = 0
+	err = s.RawOutputRefRepository.SetSyncPriority(ctx, ref)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -125,6 +170,8 @@ func (s *SynchronizerOutputUpdate) UpdateProof(
 	} else {
 		return fmt.Errorf("unexpected output type: %s", ref.Type)
 	}
+	ref.UpdatedAt = rawOutput.UpdatedAt
+	ref.SyncPriority = uint64(time.Now().Unix())
 	err = s.RawOutputRefRepository.SetHasProofToTrue(ctx, ref)
 	if err != nil {
 		return err

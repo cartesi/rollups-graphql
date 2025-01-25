@@ -450,6 +450,58 @@ func (s *RawRepository) FindAllOutputsByFilter(ctx context.Context, filter Filte
 	return outputs, nil
 }
 
+func (s *RawRepository) FindAllOutputsWithProofGte(ctx context.Context, filter *repository.RawOutputRef) ([]Output, error) {
+	outputs := []Output{}
+	result, err := s.Db.QueryxContext(ctx, `
+		SELECT
+			o.index,
+			o.input_index,
+			o.raw_data,
+			o.hash,
+			o.output_hashes_siblings,
+			o.execution_transaction_hash,
+			o.created_at,
+			o.updated_at,
+			o.input_epoch_application_id,
+			a.iapplication_address as app_contract
+		FROM
+			output o
+		INNER JOIN application a
+		ON
+			a.id = o.input_epoch_application_id
+		WHERE
+			output_hashes_siblings IS NOT NULL
+			AND
+			(
+				(o.input_epoch_application_id = $1 AND o.index >= $2)
+				OR
+				(o.input_epoch_application_id <> $1 AND o.updated_at >= $3)
+				OR
+				(o.input_epoch_application_id = $1 AND o.index > $2 AND o.updated_at > $3)
+			)
+		ORDER BY
+			o.updated_at, o.index ASC, o.input_epoch_application_id ASC
+		LIMIT $4
+	`, filter.AppID, filter.OutputIndex, filter.UpdatedAt, LIMIT)
+	if err != nil {
+		slog.Error("Failed to execute query in FindAllOutputsWithProof", "error", err)
+		return nil, err
+	}
+	defer result.Close()
+
+	for result.Next() {
+		var output Output
+		err := result.StructScan(&output)
+		if err != nil {
+			slog.Error("Failed to scan row into Output struct", "error", err)
+			return nil, err
+		}
+		outputs = append(outputs, output)
+	}
+
+	return outputs, nil
+}
+
 func (s *RawRepository) FindAllOutputsWithProof(ctx context.Context, filter FilterID) ([]Output, error) {
 	outputs := []Output{}
 	result, err := s.Db.QueryxContext(ctx, `
