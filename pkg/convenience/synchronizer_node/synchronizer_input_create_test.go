@@ -96,12 +96,14 @@ func (s *SynchronizerInputCreate) TestCreateInputs() {
 	ctx := context.Background()
 
 	// check setup
-	proofCount := s.countInputs(ctx)
+	proofCount := s.countOurInputs(ctx)
 	s.Require().Equal(0, proofCount)
 
 	// first call
 	err := s.synchronizerInputCreate.SyncInputs(ctx)
 	s.Require().NoError(err)
+	first := s.countOurInputs(ctx)
+	s.Equal(TOTAL_INPUT_TEST/2, first)
 
 	// second call
 	err = s.synchronizerInputCreate.SyncInputs(ctx)
@@ -109,11 +111,11 @@ func (s *SynchronizerInputCreate) TestCreateInputs() {
 
 	err = s.synchronizerInputCreate.SyncInputs(ctx)
 	s.Require().NoError(err)
-	second := s.countInputs(ctx)
+	second := s.countOurInputs(ctx)
 	s.Equal(TOTAL_INPUT_TEST+1, second)
 }
 
-func (s *SynchronizerInputCreate) countInputs(ctx context.Context) int {
+func (s *SynchronizerInputCreate) countOurInputs(ctx context.Context) int {
 	total, err := s.container.GetInputRepository().Count(ctx, nil)
 	s.Require().NoError(err)
 	return int(total)

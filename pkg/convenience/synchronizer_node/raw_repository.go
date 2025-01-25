@@ -146,6 +146,109 @@ func (s *RawRepository) First50RawInputsGteRefWithStatus(ctx context.Context, in
 	return inputs, nil
 }
 
+func (s *RawRepository) FindAllInputs(ctx context.Context) ([]RawInput, error) {
+	inputs := []RawInput{}
+	query := `
+	SELECT
+		i.index,
+		i.raw_data,
+		i.block_number,
+		i.status,
+		i.machine_hash,
+		i.outputs_hash,
+		i.epoch_index,
+		i.epoch_application_id,
+		i.transaction_reference,
+		i.created_at,
+		i.updated_at,
+		i.snapshot_uri,
+		a.iapplication_address as application_address
+	FROM
+		input i
+	INNER JOIN
+		application a
+	ON
+		a.id = i.epoch_application_id
+	ORDER BY
+		i.created_at ASC, i.index ASC, i.epoch_application_id ASC
+	LIMIT $1
+	`
+	result, err := s.Db.QueryxContext(ctx, query, LIMIT)
+	if err != nil {
+		slog.Error("Failed to execute query in FindAllInputs",
+			"query", query, "error", err)
+		return nil, err
+	}
+	defer result.Close()
+
+	for result.Next() {
+		var input RawInput
+		err := result.StructScan(&input)
+		if err != nil {
+			slog.Error("Failed to scan row into RawInput struct", "error", err)
+			return nil, err
+		}
+		input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress[2:]))
+		inputs = append(inputs, input)
+	}
+	slog.Debug("FindAllInputs", "results", len(inputs))
+	return inputs, nil
+}
+
+func (s *RawRepository) FindAllInputsGtRef(ctx context.Context, inputRef *repository.RawInputRef) ([]RawInput, error) {
+	if inputRef == nil {
+		return s.FindAllInputs(ctx)
+	}
+	inputs := []RawInput{}
+	result, err := s.Db.QueryxContext(ctx, `
+	SELECT
+		i.index,
+		i.raw_data,
+		i.block_number,
+		i.status,
+		i.machine_hash,
+		i.outputs_hash,
+		i.epoch_index,
+		i.epoch_application_id,
+		i.transaction_reference,
+		i.created_at,
+		i.updated_at,
+		i.snapshot_uri,
+		a.iapplication_address as application_address
+	FROM
+		input i
+	INNER JOIN
+		application a
+	ON
+		a.id = i.epoch_application_id
+	WHERE 
+		(i.epoch_application_id = $1 AND i.index > $2)
+		OR
+		(i.epoch_application_id <> $1 AND i.created_at >= $3)
+	ORDER BY
+		i.created_at ASC, i.index ASC, i.epoch_application_id ASC
+	LIMIT $4
+	`, inputRef.AppID, inputRef.InputIndex, inputRef.CreatedAt, LIMIT)
+	if err != nil {
+		slog.Error("Failed to execute query in FindAllInputsGtRef", "error", err)
+		return nil, err
+	}
+	defer result.Close()
+
+	for result.Next() {
+		var input RawInput
+		err := result.StructScan(&input)
+		if err != nil {
+			slog.Error("Failed to scan row into RawInput struct", "error", err)
+			return nil, err
+		}
+		input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress[2:]))
+		inputs = append(inputs, input)
+	}
+	slog.Debug("FindAllInputsGtRef", "results", len(inputs))
+	return inputs, nil
+}
+
 func (s *RawRepository) FindAllInputsByFilter(ctx context.Context, filter FilterInput, pag *Pagination) ([]RawInput, error) {
 	inputs := []RawInput{}
 

@@ -107,23 +107,29 @@ func (r *RawInputRefRepository) Create(ctx context.Context, rawInput RawInputRef
 	return nil
 }
 
-func (r *RawInputRefRepository) GetLatestRawId(ctx context.Context) (uint64, error) {
-	var rawId uint64
-	err := r.Db.GetContext(ctx, &rawId, `
-		SELECT raw_id FROM convenience_input_raw_references 
-		ORDER BY raw_id DESC LIMIT 1`)
+func (r *RawInputRefRepository) GetLatestInputRef(ctx context.Context) (*RawInputRef, error) {
+	var inputRef RawInputRef
+	err := r.Db.GetContext(ctx, &inputRef, `
+		SELECT * FROM convenience_input_raw_references 
+		ORDER BY 
+			created_at DESC, input_index DESC, app_id DESC 
+		LIMIT 1
+	`)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			slog.Warn("No raw input references found")
-			return 0, nil
+			return nil, nil
 		}
-		slog.Error("Failed to get latest raw ID", "error", err)
-		return 0, err
+		slog.Error("Failed to get latest raw input ref", "err", err)
+		return nil, err
 	}
 
-	slog.Debug("Latest raw ID fetched", "rawId", rawId)
-	return rawId, nil
+	slog.Debug("Latest InputRef fetched",
+		"app_id", inputRef.AppID,
+		"input_index", inputRef.InputIndex,
+	)
+	return &inputRef, nil
 }
 
 func (r *RawInputRefRepository) FindFirstInputByStatusNone(ctx context.Context) (*RawInputRef, error) {
