@@ -129,7 +129,7 @@ func (r *RawOutputRefRepository) SetHasProofToTrue(ctx context.Context, rawOutpu
 	}
 
 	if affected != 1 {
-		return fmt.Errorf("unexpected number of rows updated: %d", affected)
+		return fmt.Errorf("err_code_1 unexpected number of rows updated: %d", affected)
 	}
 
 	return nil
@@ -140,9 +140,9 @@ func (r *RawOutputRefRepository) SetExecutedToTrue(ctx context.Context, rawOutpu
 
 	result, err := exec.ExecContext(ctx, `
 		UPDATE convenience_output_raw_references
-		SET executed = true,
-		updated_at = $1
-		WHERE app_id = $2`, rawOutputRef.UpdatedAt, rawOutputRef.AppID)
+		SET executed = true, updated_at = $1
+		WHERE app_id = $2 and output_index = $3
+		`, rawOutputRef.UpdatedAt, rawOutputRef.AppID, rawOutputRef.OutputIndex)
 
 	if err != nil {
 		slog.Error("Error updating executed field", "error", err)
@@ -156,27 +156,31 @@ func (r *RawOutputRefRepository) SetExecutedToTrue(ctx context.Context, rawOutpu
 	}
 
 	if affected != 1 {
-		return fmt.Errorf("unexpected number of rows updated: %d", affected)
+		return fmt.Errorf("err_code_2 unexpected number of rows updated: %d", affected)
 	}
 	slog.Debug("SetExecutedToTrue",
 		"updated_at", rawOutputRef.UpdatedAt,
 		"app_id", rawOutputRef.AppID,
+		"output_index", rawOutputRef.OutputIndex,
 	)
 	return nil
 }
 
-func (r *RawOutputRefRepository) FindByID(ctx context.Context, id uint64) (*RawOutputRef, error) {
+func (r *RawOutputRefRepository) FindByAppIDAndOutputIndex(ctx context.Context, appID, outputIndex uint64) (*RawOutputRef, error) {
 	var outputRef RawOutputRef
 	err := r.Db.GetContext(ctx, &outputRef, `
 		SELECT * FROM convenience_output_raw_references 
-		WHERE app_id = $1`, id)
+		WHERE app_id = $1 and output_index = $2`, appID, outputIndex)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			slog.Debug("Output reference not found", "app_id", id)
+			slog.Debug("Output reference not found",
+				"app_id", appID,
+				"output_index", outputIndex,
+			)
 			return nil, nil
 		}
-		slog.Error("Error finding output reference by ID", "error", err, "app_id", id)
+		slog.Error("Error finding output reference by ID", "error", err, "app_id", appID, "output_index", outputIndex)
 		return nil, err
 	}
 	return &outputRef, nil
@@ -204,27 +208,24 @@ func (r *RawOutputRefRepository) GetFirstOutputIdWithoutProof(ctx context.Contex
 	return outputId, err
 }
 
-func (r *RawOutputRefRepository) GetLastUpdatedAtExecuted(ctx context.Context) (*time.Time, *uint64, error) {
-	var result struct {
-		LastUpdatedAt time.Time `db:"updated_at"`
-		RawID         uint64    `db:"app_id"`
-	}
-	err := r.Db.GetContext(ctx, &result, `
+func (r *RawOutputRefRepository) GetLastUpdatedAtExecuted(ctx context.Context) (*RawOutputRef, error) {
+	var outputRef RawOutputRef
+	err := r.Db.GetContext(ctx, &outputRef, `
 		SELECT 
-			updated_at, app_id
+			*
 		FROM
 			convenience_output_raw_references 
 		WHERE
 			executed = true and type = 'voucher'
-		ORDER BY updated_at DESC, app_id DESC LIMIT 1`)
+		ORDER BY updated_at DESC, app_id DESC, output_index DESC LIMIT 1`)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			slog.Debug("No output ID executed = true")
-			return nil, nil, nil
+			slog.Debug("No output ref executed = true")
+			return nil, nil
 		}
 		slog.Error("Failed to retrieve output ID not executed", "error", err)
-		return nil, nil, err
+		return nil, err
 	}
-	return &result.LastUpdatedAt, &result.RawID, err
+	return &outputRef, err
 }

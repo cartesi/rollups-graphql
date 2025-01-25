@@ -84,7 +84,7 @@ func (s *SynchronizerOutputUpdate) UpdateProof(
 	rawOutput Output,
 	hashes []string,
 ) error {
-	ref, err := s.RawOutputRefRepository.FindByID(ctx, rawOutput.Index)
+	ref, err := s.RawOutputRefRepository.FindByAppIDAndOutputIndex(ctx, rawOutput.ApplicationId, rawOutput.Index)
 	if err != nil {
 		return err
 	}

@@ -133,7 +133,7 @@ func (c *VoucherRepository) SetProof(
 		return err
 	}
 	if affected != 1 {
-		return fmt.Errorf("wrong number of vouchers affected: %d; app_contract %v; output_index %d", affected, voucher.AppContract, voucher.OutputIndex)
+		return fmt.Errorf("err_1 wrong number of vouchers affected: %d; app_contract %v; output_index %d", affected, voucher.AppContract, voucher.OutputIndex)
 	}
 	return nil
 }
@@ -161,7 +161,7 @@ func (c *VoucherRepository) SetExecuted(
 		return err
 	}
 	if affected != 1 {
-		return fmt.Errorf("wrong number of vouchers affected: %d; app_contract %v; output_index %d", affected, voucher.AppContract, voucher.OutputIndex)
+		return fmt.Errorf("err_2 wrong number of vouchers affected: %d; app_contract %v; output_index %d", affected, voucher.AppContract, voucher.OutputIndex)
 	}
 	return nil
 }

@@ -495,7 +495,7 @@ func (s *RawRepository) FindAllOutputsWithProof(ctx context.Context, filter Filt
 	return outputs, nil
 }
 
-func (s *RawRepository) FindAllOutputsExecutedAfter(ctx context.Context, afterUpdatedAt time.Time, rawId uint64) ([]Output, error) {
+func (s *RawRepository) FindAllOutputsExecutedAfter(ctx context.Context, outputRef *repository.RawOutputRef) ([]Output, error) {
 	outputs := []Output{}
 	result, err := s.Db.QueryxContext(ctx, `
         SELECT
@@ -515,15 +515,21 @@ func (s *RawRepository) FindAllOutputsExecutedAfter(ctx context.Context, afterUp
 		ON
 			a.id = o.input_epoch_application_id
 		WHERE
-			((o.updated_at > $1)
-				OR (o.updated_at = $1
-					AND o.index > $2))
-			AND o.execution_transaction_hash IS NOT NULL
+			(
+				o.execution_transaction_hash IS NOT NULL
+			)
+				AND 
+			(
+				(o.updated_at > $1)
+					OR
+				(o.updated_at = $1 AND o.input_epoch_application_id = $2 AND o.index > $3)
+			)
 		ORDER BY
 			o.updated_at ASC,
-			o.index ASC
-		LIMIT $3
-    `, afterUpdatedAt, rawId, LIMIT)
+			o.index ASC,
+			o.input_epoch_application_id ASC
+		LIMIT $4
+    `, outputRef.UpdatedAt, outputRef.AppID, outputRef.OutputIndex, LIMIT)
 	if err != nil {
 		slog.Error("Failed to execute query in FindAllOutputsExecuted", "error", err)
 		return nil, err
@@ -531,13 +537,14 @@ func (s *RawRepository) FindAllOutputsExecutedAfter(ctx context.Context, afterUp
 	defer result.Close()
 
 	for result.Next() {
-		var report Output
-		err := result.StructScan(&report)
+		var output Output
+		err := result.StructScan(&output)
 		if err != nil {
 			slog.Error("Failed to scan row into Output struct", "error", err)
 			return nil, err
 		}
-		outputs = append(outputs, report)
+		output.AppContract = common.Hex2Bytes(string(output.AppContract[2:]))
+		outputs = append(outputs, output)
 	}
 
 	return outputs, nil
