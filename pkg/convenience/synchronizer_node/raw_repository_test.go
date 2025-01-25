@@ -145,13 +145,14 @@ func (s *RawNodeSuite) TestSynchronizerNodeInputByID() {
 	s.Equal(DEFAULT_TEST_APP_CONTRACT, common.BytesToAddress(inputs[0].ApplicationAddress).Hex())
 }
 
+// deprecated
 func (s *RawNodeSuite) TestSynchronizerNodeReportByID() {
 	ctx, cancel := context.WithCancel(s.ctx)
 	defer cancel()
 	reports, err := s.rawRepository.FindAllReportsByFilter(ctx, FilterID{IDgt: 1})
 	s.NoError(err)
 	firstInput := reports[0]
-	s.Equal(firstInput.Index, int64(1))
+	s.Equal(1, int(firstInput.Index))
 
 	b := reports[0].InputIndex
 
@@ -163,7 +164,7 @@ func (s *RawNodeSuite) TestSynchronizerNodeReportByID() {
 	s.Equal(firstInputIDDB, firstInputID)
 }
 
-// poetry
+// deprecated
 func (s *RawNodeSuite) TestSynchronizerNodeOutputByID() {
 	ctx, cancel := context.WithCancel(s.ctx)
 	defer cancel()
@@ -207,6 +208,7 @@ func (s *RawNodeSuite) TestDecodeChainIDFromInputbox() {
 	// s.NotNil(nil)
 }
 
+// deprecated
 func (s *RawNodeSuite) TestSynchronizerNodeFindInputByOutput() {
 	ctx := context.Background()
 
