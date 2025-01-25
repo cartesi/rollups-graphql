@@ -155,6 +155,7 @@ func (s *SynchronizerUpdateNodeSuite) fillRefData(ctx context.Context) {
 		err := s.container.GetRawInputRepository().Create(txCtx, repository.RawInputRef{
 			ID:          id,
 			InputIndex:  uint64(i),
+			AppID:       uint64(1),
 			AppContract: appContract.Hex(),
 			Status:      "NONE",
 			ChainID:     "31337",

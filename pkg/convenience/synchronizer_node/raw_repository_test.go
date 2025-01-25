@@ -163,6 +163,7 @@ func (s *RawNodeSuite) TestSynchronizerNodeReportByID() {
 	s.Equal(firstInputIDDB, firstInputID)
 }
 
+// poetry
 func (s *RawNodeSuite) TestSynchronizerNodeOutputByID() {
 	ctx, cancel := context.WithCancel(s.ctx)
 	defer cancel()
@@ -180,7 +181,7 @@ func (s *RawNodeSuite) TestSynchronizerNodeOutputByID() {
 
 	s.Equal(firstInputIdDB, firstInputID)
 	s.Equal(DEFAULT_TEST_APP_CONTRACT, common.BytesToAddress(outputs[0].AppContract).Hex())
-	s.Equal("1", outputs[1].InputIndex)
+	s.Equal(1, int(outputs[1].InputIndex))
 }
 
 func (s *RawNodeSuite) TestDecodeChainIDFromInputbox() {

@@ -13,7 +13,7 @@ const DefaultBatchSize = 50
 
 type SynchronizerUpdate struct {
 	DbRawUrl              string
-	RawNode               *RawRepository
+	RawNodeRepository     *RawRepository
 	RawInputRefRepository *repository.RawInputRefRepository
 	InputRepository       *repository.InputRepository
 	BatchSize             int
@@ -25,7 +25,7 @@ func NewSynchronizerUpdate(
 	inputRepository *repository.InputRepository,
 ) SynchronizerUpdate {
 	return SynchronizerUpdate{
-		RawNode:               rawNode,
+		RawNodeRepository:     rawNode,
 		RawInputRefRepository: rawInputRefRepository,
 		BatchSize:             DefaultBatchSize,
 		InputRepository:       inputRepository,
@@ -33,21 +33,15 @@ func NewSynchronizerUpdate(
 }
 
 func (s *SynchronizerUpdate) getFirstRefWithStatusNone(ctx context.Context) (*repository.RawInputRef, error) {
-	return s.RawInputRefRepository.FindFirstInputByStatusNone(ctx, s.BatchSize)
+	return s.RawInputRefRepository.FindFirstInputByStatusNone(ctx)
 }
 
-func (s *SynchronizerUpdate) findFirst50RawInputsAfterRefWithStatus(
+func (s *SynchronizerUpdate) findFirst50RawInputsGteRefWithStatus(
 	ctx context.Context,
 	inputRef repository.RawInputRef,
 	status string,
 ) ([]RawInput, error) {
-	return s.RawNode.FindAllInputsByFilter(ctx, FilterInput{
-		AppID:      inputRef.InputIndex,
-		InputIndex: inputRef.InputIndex,
-		Status:     status,
-	}, &Pagination{
-		Limit: uint64(s.BatchSize),
-	})
+	return s.RawNodeRepository.First50RawInputsGteRefWithStatus(ctx, inputRef, status)
 }
 
 func (s *SynchronizerUpdate) startTransaction(ctx context.Context) (context.Context, error) {
@@ -164,7 +158,7 @@ func (s *SynchronizerUpdate) SyncInputStatus(ctx context.Context) error {
 	if inputRef != nil {
 		rosettaStone := GetStatusRosetta()
 		for _, rosetta := range rosettaStone {
-			rawInputs, err := s.findFirst50RawInputsAfterRefWithStatus(ctx, *inputRef, rosetta.RawStatus)
+			rawInputs, err := s.findFirst50RawInputsGteRefWithStatus(ctx, *inputRef, rosetta.RawStatus)
 			if err != nil {
 				s.rollbackTransaction(ctxWithTx)
 				return err

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
@@ -18,12 +19,13 @@ type RawInputRefRepository struct {
 
 type RawInputRef struct {
 	// RawID    uint64 `db:"raw_id"` // Low level ID deprecated
-	AppID       uint64 `db:"app_id"` // Low level app ID
-	ID          string `db:"id"`     // High level ID refers to our ConvenienceInput.ID
-	InputIndex  uint64 `db:"input_index"`
-	AppContract string `db:"app_contract"`
-	Status      string `db:"status"`
-	ChainID     string `db:"chain_id"`
+	AppID       uint64    `db:"app_id"` // Low level app ID
+	ID          string    `db:"id"`     // High level ID refers to our ConvenienceInput.ID
+	InputIndex  uint64    `db:"input_index"`
+	AppContract string    `db:"app_contract"`
+	Status      string    `db:"status"`
+	ChainID     string    `db:"chain_id"`
+	CreatedAt   time.Time `db:"created_at"`
 }
 
 func (r *RawInputRefRepository) CreateTables() error {
@@ -33,7 +35,8 @@ func (r *RawInputRefRepository) CreateTables() error {
 		input_index		integer NOT NULL,
 		app_contract    text NOT NULL,
 		status	 		text,
-		chain_id        text);
+		chain_id        text,
+		created_at		TIMESTAMP NOT NULL);
 	CREATE INDEX IF NOT EXISTS idx_input_index ON convenience_input_raw_references(input_index, app_contract);
 	CREATE INDEX IF NOT EXISTS idx_input_index_2 ON convenience_input_raw_references(app_id, app_contract);
 	CREATE INDEX IF NOT EXISTS idx_convenience_input_raw_references_status_raw_id ON convenience_input_raw_references(status, app_id);
@@ -88,17 +91,19 @@ func (r *RawInputRefRepository) Create(ctx context.Context, rawInput RawInputRef
 	}
 
 	_, err = exec.ExecContext(ctx, `INSERT INTO convenience_input_raw_references (
-		id, app_id, input_index, app_contract, status, chain_id) 
-		VALUES ($1, $2, $3, $4, $5, $6)`,
+		id, app_id, input_index, app_contract, status, chain_id, created_at) 
+		VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 		rawInput.ID, rawInput.AppID, rawInput.InputIndex,
-		rawInput.AppContract, rawInput.Status, rawInput.ChainID)
+		rawInput.AppContract, rawInput.Status, rawInput.ChainID,
+		rawInput.CreatedAt,
+	)
 
 	if err != nil {
 		slog.Error("Failed to insert raw input reference", "rawInput", rawInput, "error", err)
 		return err
 	}
 
-	slog.Debug("Raw input reference created", "ID", rawInput.ID)
+	// slog.Debug("Raw input reference created", "ID", rawInput.ID)
 	return nil
 }
 
@@ -121,10 +126,10 @@ func (r *RawInputRefRepository) GetLatestRawId(ctx context.Context) (uint64, err
 	return rawId, nil
 }
 
-func (r *RawInputRefRepository) FindFirstInputByStatusNone(ctx context.Context, limit int) (*RawInputRef, error) {
+func (r *RawInputRefRepository) FindFirstInputByStatusNone(ctx context.Context) (*RawInputRef, error) {
 	query := `SELECT * FROM convenience_input_raw_references
 			  WHERE status = 'NONE'
-			  ORDER BY raw_id ASC LIMIT $1`
+			  ORDER BY created_at ASC LIMIT 1`
 
 	stmt, err := r.Db.PreparexContext(ctx, query)
 	if err != nil {
@@ -133,10 +138,9 @@ func (r *RawInputRefRepository) FindFirstInputByStatusNone(ctx context.Context, 
 	}
 	defer stmt.Close()
 
-	args := []interface{}{limit}
 	var row RawInputRef
 
-	err = stmt.GetContext(ctx, &row, args...)
+	err = stmt.GetContext(ctx, &row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			slog.Warn("No input found with status NONE")
@@ -146,7 +150,7 @@ func (r *RawInputRefRepository) FindFirstInputByStatusNone(ctx context.Context, 
 		return nil, err
 	}
 
-	slog.Debug("First input with status NONE fetched", "row", row)
+	slog.Debug("First input with status NONE fetched", "appID", row.AppID, "InputIndex", row.InputIndex)
 	return &row, nil
 }
 
@@ -158,7 +162,7 @@ func (r *RawInputRefRepository) FindByInputIndexAndAppContract(ctx context.Conte
 		LIMIT 1`, inputIndex, appContract.Hex())
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			slog.Debug("Input reference not found", "input_index", inputIndex)
+			// slog.Debug("Input reference not found", "input_index", inputIndex)
 			return nil, nil
 		}
 		slog.Error("Error finding input reference by input_index", "error", err, "input_index", inputIndex)

@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -70,11 +71,11 @@ type Pagination struct {
 }
 
 type FilterInput struct {
-	AppID        uint64
-	InputIndex   uint64
-	IDgt         uint64
-	IsStatusNone bool
-	Status       string
+	AppID         uint64
+	InputIndexGte uint64
+	IDgt          uint64
+	IsStatusNone  bool
+	Status        string
 }
 
 const LIMIT = uint64(50)
@@ -85,6 +86,52 @@ type FilterID struct {
 
 func NewRawRepository(connectionURL string, db *sqlx.DB) *RawRepository {
 	return &RawRepository{connectionURL, db}
+}
+
+func (s *RawRepository) First50RawInputsGteRefWithStatus(ctx context.Context, inputRef repository.RawInputRef, status string) ([]RawInput, error) {
+	query := `
+		SELECT
+			i.index,
+			i.raw_data,
+			i.block_number,
+			i.status,
+			i.machine_hash,
+			i.outputs_hash,
+			i.epoch_index,
+			i.epoch_application_id,
+			i.transaction_reference,
+			i.created_at,
+			i.updated_at,
+			i.snapshot_uri,
+			a.iapplication_address as application_address
+		FROM
+			input i
+		INNER JOIN
+			application a
+		ON
+			a.id = i.epoch_application_id
+		WHERE index >= $1 and application_address >= $2 and status = $3
+		LIMIT 50`
+	result, err := s.Db.QueryxContext(ctx, query, inputRef.InputIndex, inputRef.AppID, status)
+	if err != nil {
+		slog.Error("Failed to execute query in First50RawInputsGteRefWithStatus",
+			"query", query, "error", err)
+		return nil, err
+	}
+	defer result.Close()
+	inputs := []RawInput{}
+	for result.Next() {
+		var input RawInput
+		err := result.StructScan(&input)
+		if err != nil {
+			slog.Error("Failed to scan row into RawInput struct", "error", err)
+			return nil, err
+		}
+		input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress[2:]))
+		inputs = append(inputs, input)
+	}
+	slog.Debug("First50RawInputsGteRefWithStatus", "results", len(inputs))
+	return inputs, nil
 }
 
 func (s *RawRepository) FindAllInputsByFilter(ctx context.Context, filter FilterInput, pag *Pagination) ([]RawInput, error) {
@@ -119,7 +166,7 @@ func (s *RawRepository) FindAllInputsByFilter(ctx context.Context, filter Filter
 		a.id = i.epoch_application_id
 	WHERE index >= $%d`, bindVarIdx)
 	bindVarIdx++
-	args := []any{filter.IDgt}
+	args := []any{filter.InputIndexGte}
 
 	additionalFilter := ""
 
@@ -140,7 +187,6 @@ func (s *RawRepository) FindAllInputsByFilter(ctx context.Context, filter Filter
 
 	orderBy := " ORDER BY index ASC "
 	query := baseQuery + additionalFilter + orderBy + pagination
-	slog.Debug("FindAllInputsByFilter", "query", query, "args", args)
 	result, err := s.Db.QueryxContext(ctx, query, args...)
 	if err != nil {
 		slog.Error("Failed to execute query in FindAllInputsByFilter",
@@ -156,12 +202,10 @@ func (s *RawRepository) FindAllInputsByFilter(ctx context.Context, filter Filter
 			slog.Error("Failed to scan row into RawInput struct", "error", err)
 			return nil, err
 		}
-		// slog.Debug("Found input", "address", input.ApplicationAddress)
 		input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress[2:]))
-		// slog.Debug("Change input", "address", input.ApplicationAddress)
 		inputs = append(inputs, input)
 	}
-
+	slog.Debug("FindAllInputsByFilter", "args", args, "results", len(inputs))
 	return inputs, nil
 }
 
@@ -289,13 +333,14 @@ func (s *RawRepository) FindAllOutputsByFilter(ctx context.Context, filter Filte
 	defer result.Close()
 
 	for result.Next() {
-		var report Output
-		err := result.StructScan(&report)
+		var output Output
+		err := result.StructScan(&output)
 		if err != nil {
 			slog.Error("Failed to scan row into Output struct", "error", err)
 			return nil, err
 		}
-		outputs = append(outputs, report)
+		output.AppContract = common.Hex2Bytes(string(output.AppContract[2:]))
+		outputs = append(outputs, output)
 	}
 
 	return outputs, nil
