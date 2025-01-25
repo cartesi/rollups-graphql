@@ -87,64 +87,68 @@ func (s *SynchronizerOutputCreateSuite) TestCreateOutputs() {
 	ctx := context.Background()
 
 	// check setup
-	proofCount := s.countOutputs(ctx)
-	s.Require().Equal(0, proofCount)
+	setupCount := s.countOurOutputs(ctx)
+	s.Require().Equal(0, setupCount)
 
 	// first call
 	err := s.synchronizerOutputCreate.SyncOutputs(ctx)
 	s.Require().NoError(err)
+	first := s.countOurOutputs(ctx)
+	s.Equal(TOTAL_INPUT_TEST/2, first)
 
 	// second call
 	err = s.synchronizerOutputCreate.SyncOutputs(ctx)
 	s.Require().NoError(err)
-	second := s.countOutputs(ctx)
+	second := s.countOurOutputs(ctx)
 	s.Equal(TOTAL_INPUT_TEST, second)
 }
 
-func (s *SynchronizerOutputCreateSuite) TestGetRawOutputRef() {
-	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 1})
+func (s *SynchronizerOutputCreateSuite) TestToRawOutputRef() {
+	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 0})
 	s.Require().NoError(err)
 	rawOutput := outputs[0]
-	rawOutputRef, err := s.synchronizerOutputCreate.GetRawOutputRef(rawOutput)
+	rawOutputRef, err := s.synchronizerOutputCreate.ToRawOutputRef(rawOutput)
 	s.Require().NoError(err)
 	s.Equal("notice", rawOutputRef.Type)
 	s.Equal(DEFAULT_TEST_APP_CONTRACT, rawOutputRef.AppContract)
 	s.Equal(0, int(rawOutputRef.InputIndex))
 	s.Equal(false, rawOutputRef.HasProof)
 	s.Equal(1, int(rawOutputRef.OutputIndex))
-	s.Equal(2, int(rawOutputRef.RawID))
+	s.Equal(1, int(rawOutputRef.AppID))
 }
 
-func (s *SynchronizerOutputCreateSuite) countOutputs(ctx context.Context) int {
+func (s *SynchronizerOutputCreateSuite) countOurOutputs(ctx context.Context) int {
 	total, err := s.container.GetOutputRepository().CountAllOutputs(ctx)
 	s.Require().NoError(err)
 	return int(total)
 }
 
-func (s *SynchronizerOutputCreateSuite) TestGetConvenienceVoucher() {
-	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 0})
-	s.Require().NoError(err)
-	rawOutput := outputs[0]
-	rawOutputRef, err := s.synchronizerOutputCreate.GetRawOutputRef(rawOutput)
-	s.Require().NoError(err)
-	s.Equal("voucher", rawOutputRef.Type)
-	cVoucher, err := s.synchronizerOutputCreate.GetConvenienceVoucher(rawOutput)
-	s.Require().NoError(err)
-	s.Equal(DEFAULT_TEST_APP_CONTRACT, cVoucher.AppContract.Hex())
-	s.Equal("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", cVoucher.Destination.Hex())
-	s.Equal(0, int(cVoucher.InputIndex))
-	s.Equal(0, int(cVoucher.OutputIndex))
-	s.Equal("3735928559", cVoucher.Value)
-}
-
-func (s *SynchronizerOutputCreateSuite) TestGetConvenienceNotice() {
+func (s *SynchronizerOutputCreateSuite) TestToConvenienceVoucher() {
 	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 1})
 	s.Require().NoError(err)
 	rawOutput := outputs[0]
-	rawOutputRef, err := s.synchronizerOutputCreate.GetRawOutputRef(rawOutput)
+	rawOutputRef, err := s.synchronizerOutputCreate.ToRawOutputRef(rawOutput)
+	s.Require().NoError(err)
+	s.Equal("voucher", rawOutputRef.Type)
+	cVoucher, err := s.synchronizerOutputCreate.ToConvenienceVoucher(rawOutput)
+	s.Require().NoError(err)
+	s.Equal(DEFAULT_TEST_APP_CONTRACT, cVoucher.AppContract.Hex())
+	s.Equal("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", cVoucher.Destination.Hex())
+	s.Equal(1, int(cVoucher.InputIndex))
+	s.Equal(2, int(cVoucher.OutputIndex))
+	s.Equal(int(rawOutput.ApplicationId), int(rawOutputRef.AppID))
+	s.Equal(int(rawOutput.Index), int(cVoucher.OutputIndex))
+	s.Equal("3735928559", cVoucher.Value)
+}
+
+func (s *SynchronizerOutputCreateSuite) TestToConvenienceNotice() {
+	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 0})
+	s.Require().NoError(err)
+	rawOutput := outputs[0]
+	rawOutputRef, err := s.synchronizerOutputCreate.ToRawOutputRef(rawOutput)
 	s.Require().NoError(err)
 	s.Equal("notice", rawOutputRef.Type)
-	cNotice, err := s.synchronizerOutputCreate.GetConvenienceNotice(rawOutput)
+	cNotice, err := s.synchronizerOutputCreate.ToConvenienceNotice(rawOutput)
 	s.Require().NoError(err)
 	s.Equal(DEFAULT_TEST_APP_CONTRACT, cNotice.AppContract)
 	s.Equal(0, int(cNotice.InputIndex))

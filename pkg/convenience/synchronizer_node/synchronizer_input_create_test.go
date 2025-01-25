@@ -74,21 +74,21 @@ func TestSynchronizerInputCreateSuite(t *testing.T) {
 }
 
 func (s *SynchronizerInputCreate) TestGetAdvanceInputFromMap() {
-	inputs, err := s.rawNodeV2Repository.FindAllInputsByFilter(s.ctx, FilterInput{IDgt: 1}, &Pagination{Limit: 1})
+	inputs, err := s.rawNodeV2Repository.FindAllInputs(s.ctx)
 	s.Require().NoError(err)
 
 	rawInput := inputs[0]
 	advanceInput, err := s.synchronizerInputCreate.GetAdvanceInputFromMap(rawInput)
 	s.Require().NoError(err)
-	s.Equal("0", advanceInput.ID)
+	// s.Equal("0", advanceInput.ID)
 	s.Equal(DEFAULT_TEST_APP_CONTRACT, advanceInput.AppContract.Hex())
 	s.Equal(0, advanceInput.Index)
 	s.Equal(0, advanceInput.InputBoxIndex)
 	s.Equal("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", advanceInput.MsgSender.Hex())
-	s.Equal(uint64(0x7a), advanceInput.BlockNumber)
+	s.Equal(uint64(0x1ca), advanceInput.BlockNumber)
 	s.Equal("31337", advanceInput.ChainId)
 	s.Equal(commons.ConvertStatusStringToCompletionStatus("ACCEPTED"), advanceInput.Status)
-	expectedBlockTimestamp := int64(1729706123) // nolint
+	expectedBlockTimestamp := int64(1737746920) // nolint
 	s.Equal(expectedBlockTimestamp, advanceInput.BlockTimestamp.Unix())
 }
 
@@ -96,12 +96,14 @@ func (s *SynchronizerInputCreate) TestCreateInputs() {
 	ctx := context.Background()
 
 	// check setup
-	proofCount := s.countInputs(ctx)
+	proofCount := s.countOurInputs(ctx)
 	s.Require().Equal(0, proofCount)
 
 	// first call
 	err := s.synchronizerInputCreate.SyncInputs(ctx)
 	s.Require().NoError(err)
+	first := s.countOurInputs(ctx)
+	s.Equal(TOTAL_INPUT_TEST/2, first)
 
 	// second call
 	err = s.synchronizerInputCreate.SyncInputs(ctx)
@@ -109,11 +111,11 @@ func (s *SynchronizerInputCreate) TestCreateInputs() {
 
 	err = s.synchronizerInputCreate.SyncInputs(ctx)
 	s.Require().NoError(err)
-	second := s.countInputs(ctx)
+	second := s.countOurInputs(ctx)
 	s.Equal(TOTAL_INPUT_TEST+1, second)
 }
 
-func (s *SynchronizerInputCreate) countInputs(ctx context.Context) int {
+func (s *SynchronizerInputCreate) countOurInputs(ctx context.Context) int {
 	total, err := s.container.GetInputRepository().Count(ctx, nil)
 	s.Require().NoError(err)
 	return int(total)

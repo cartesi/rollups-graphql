@@ -93,18 +93,18 @@ func TestSynchronizerOutputExecutedSuite(t *testing.T) {
 
 // Dear Programmer, I hope this message finds you well.
 // Keep coding, keep learning, and never forget—your work shapes the future.
-func (s *SynchronizerOutputExecutedSuite) TestUpdateOutputs() {
+func (s *SynchronizerOutputExecutedSuite) TestUpdateOutputsExecuted() {
 	ctx := context.Background()
 
 	_, err := s.dbNodeV2.ExecContext(ctx, `
 		UPDATE output
-		SET transaction_hash = NULL,
+		SET execution_transaction_hash = NULL,
 			updated_at = '2024-11-06 15:30:00'
 	`)
 	s.Require().NoError(err)
 
 	// check setup
-	outputCount := s.countOutputs(ctx)
+	outputCount := s.countOurOutputs(ctx)
 	s.Require().Equal(0, outputCount)
 
 	// first call
@@ -114,7 +114,7 @@ func (s *SynchronizerOutputExecutedSuite) TestUpdateOutputs() {
 	// second call
 	err = s.synchronizerOutputCreate.SyncOutputs(ctx)
 	s.Require().NoError(err)
-	second := s.countOutputs(ctx)
+	second := s.countOurOutputs(ctx)
 	s.Equal(TOTAL_INPUT_TEST, second)
 
 	err = s.synchronizerOutputCreate.SyncOutputs(ctx)
@@ -123,6 +123,8 @@ func (s *SynchronizerOutputExecutedSuite) TestUpdateOutputs() {
 	s.Require().NoError(err)
 	err = s.synchronizerOutputCreate.SyncOutputs(ctx)
 	s.Require().NoError(err)
+	second = s.countOurOutputs(ctx)
+	s.Equal(202, second)
 
 	// check setup
 	executedCount := s.countExecuted(ctx)
@@ -131,7 +133,7 @@ func (s *SynchronizerOutputExecutedSuite) TestUpdateOutputs() {
 	_, err = s.dbNodeV2.ExecContext(ctx, `
 		UPDATE output
 		SET
-			transaction_hash = '\x0011223344',
+			execution_transaction_hash = '\x1122334455667788991011121314151617181920212223242526272829303132',
 			updated_at = NOW()
 		WHERE substring(raw_data FROM 1 FOR 2) = '\x237A'
 	`)
@@ -140,14 +142,18 @@ func (s *SynchronizerOutputExecutedSuite) TestUpdateOutputs() {
 	// first call
 	err = s.synchronizerOutputExecuted.SyncOutputsExecution(ctx)
 	s.Require().NoError(err)
+	first := s.countExecuted(ctx)
+	s.Equal((TOTAL_INPUT_TEST / 2), first)
 
 	// second call
 	err = s.synchronizerOutputExecuted.SyncOutputsExecution(ctx)
 	s.Require().NoError(err)
+	second = s.countExecuted(ctx)
+	s.Equal(TOTAL_INPUT_TEST, second)
 	err = s.synchronizerOutputExecuted.SyncOutputsExecution(ctx)
 	s.Require().NoError(err)
-	second = s.countExecuted(ctx)
-	s.Equal(TOTAL_INPUT_TEST+1, second)
+	third := s.countExecuted(ctx)
+	s.Equal(TOTAL_INPUT_TEST+1, third)
 	err = s.synchronizerOutputExecuted.SyncOutputsExecution(ctx)
 	s.Require().NoError(err)
 	lastCount := s.countExecuted(ctx)
@@ -155,7 +161,7 @@ func (s *SynchronizerOutputExecutedSuite) TestUpdateOutputs() {
 	// s.Fail("uncomment this line just to see the logs")
 }
 
-func (s *SynchronizerOutputExecutedSuite) countOutputs(ctx context.Context) int {
+func (s *SynchronizerOutputExecutedSuite) countOurOutputs(ctx context.Context) int {
 	total, err := s.container.GetOutputRepository().CountAllOutputs(ctx)
 	s.Require().NoError(err)
 	return int(total)

@@ -42,6 +42,7 @@
         "Graphile",
         "gsrpc",
         "hexutil",
+        "iapplication",
         "idempotency",
         "initdb",
         "inputbox",

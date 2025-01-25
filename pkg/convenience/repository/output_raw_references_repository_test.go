@@ -51,7 +51,7 @@ func (s *RawOutputRefSuite) TestRawRefOutputShouldThrowAnErrorWhenThereIsNoTypeA
 
 	rawNotice := RawOutputRef{
 		InputIndex:  1,
-		RawID:       2,
+		AppID:       2,
 		AppContract: "0x123456789abcdef",
 		OutputIndex: 2,
 	}
@@ -65,7 +65,7 @@ func (s *RawOutputRefSuite) TestRawRefOutputShouldThrowAnErrorWhenTypeAttributeI
 
 	rawNotice := RawOutputRef{
 		InputIndex:  1,
-		RawID:       2,
+		AppID:       2,
 		AppContract: "0x123456789abcdef",
 		OutputIndex: 2,
 		Type:        "report",
@@ -80,7 +80,7 @@ func (s *RawOutputRefSuite) TestRawRefOutputCreate() {
 
 	rawOutput := RawOutputRef{
 		InputIndex:  1,
-		RawID:       2,
+		AppID:       2,
 		AppContract: "0x123456789abcdef",
 		OutputIndex: 2,
 		Type:        "notice",
@@ -97,11 +97,11 @@ func (s *RawOutputRefSuite) TestRawRefOutputCreate() {
 	s.Equal(1, count)
 }
 
-func (s *RawOutputRefSuite) TestRawRefOutputGetLatestId() {
+func (s *RawOutputRefSuite) TestFindLatestRawOutputRef() {
 	ctx := context.Background()
 
 	firstRawOutput := RawOutputRef{
-		RawID:       1,
+		AppID:       1,
 		InputIndex:  1,
 		AppContract: "0x123456789abcdef",
 		OutputIndex: 2,
@@ -112,7 +112,7 @@ func (s *RawOutputRefSuite) TestRawRefOutputGetLatestId() {
 	s.NoError(err)
 
 	lastRawOutput := RawOutputRef{
-		RawID:       2,
+		AppID:       2,
 		InputIndex:  2,
 		AppContract: "0x123456789abcdef",
 		OutputIndex: 23,
@@ -126,9 +126,9 @@ func (s *RawOutputRefSuite) TestRawRefOutputGetLatestId() {
 	err = s.rawOutputRefRepository.Db.QueryRow(`SELECT COUNT(*) FROM convenience_output_raw_references`).Scan(&count)
 	s.NoError(err)
 	//check if there are two records in the table.
-	s.Equal(2, count)
+	s.Require().Equal(2, count)
 
-	outputId, err := s.rawOutputRefRepository.GetLatestOutputRawId(ctx)
+	lastOutputRef, err := s.rawOutputRefRepository.FindLatestRawOutputRef(ctx)
 	s.NoError(err)
-	s.Equal(lastRawOutput.RawID, outputId)
+	s.Equal(lastRawOutput.AppID, lastOutputRef.AppID)
 }

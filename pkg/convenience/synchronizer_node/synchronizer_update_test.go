@@ -170,8 +170,8 @@ func (s *SynchronizerUpdateNodeSuite) fillRefData(ctx context.Context) {
 		id := strconv.FormatInt(int64(i), 10) // our ID
 		err := s.container.GetRawInputRepository().Create(txCtx, repository.RawInputRef{
 			ID:          id,
-			RawID:       uint64(i + 1),
 			InputIndex:  uint64(i),
+			AppID:       uint64(1),
 			AppContract: appContract.Hex(),
 			Status:      "NONE",
 			ChainID:     "31337",
