@@ -90,27 +90,6 @@ func (s *RawNodeSuite) TestSynchronizerNodeReportByID() {
 	s.Equal(firstInputIDDB, firstInputID)
 }
 
-// deprecated
-func (s *RawNodeSuite) TestSynchronizerNodeOutputByID() {
-	ctx, cancel := context.WithCancel(s.ctx)
-	defer cancel()
-	outputs, err := s.rawRepository.FindAllOutputsByFilter(ctx, FilterID{IDgt: 1})
-	s.NoError(err)
-	firstInput := outputs[0]
-	s.Equal(2, int(firstInput.Index))
-
-	b := outputs[0].InputIndex
-
-	firstInputID := big.NewInt(0).SetUint64(b)
-	slog.Info("First Input ID", "firstInputID", firstInputID)
-
-	firstInputIdDB := big.NewInt(1)
-
-	s.Equal(firstInputIdDB, firstInputID)
-	s.Equal(DEFAULT_TEST_APP_CONTRACT, common.BytesToAddress(outputs[0].AppContract).Hex())
-	s.Equal(1, int(outputs[1].InputIndex))
-}
-
 func (s *RawNodeSuite) TestDecodeChainIDFromInputbox() {
 	abi, err := contracts.InputsMetaData.GetAbi()
 	s.NoError(err)

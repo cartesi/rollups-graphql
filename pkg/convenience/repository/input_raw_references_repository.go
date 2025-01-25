@@ -38,7 +38,7 @@ func (r *RawInputRefRepository) CreateTables() error {
 		chain_id        text,
 		created_at		TIMESTAMP NOT NULL);
 	CREATE INDEX IF NOT EXISTS idx_input_index ON convenience_input_raw_references(input_index, app_contract);
-	CREATE INDEX IF NOT EXISTS idx_input_index_2 ON convenience_input_raw_references(app_id, app_contract);
+	CREATE INDEX IF NOT EXISTS idx_app_id_input_index ON convenience_input_raw_references(app_id, input_index);
 	CREATE INDEX IF NOT EXISTS idx_convenience_input_raw_references_status_raw_id ON convenience_input_raw_references(status, app_id);
 	CREATE INDEX IF NOT EXISTS idx_status ON convenience_input_raw_references(status);`
 
@@ -128,7 +128,7 @@ func (r *RawInputRefRepository) GetLatestInputRef(ctx context.Context) (*RawInpu
 func (r *RawInputRefRepository) FindFirstInputByStatusNone(ctx context.Context) (*RawInputRef, error) {
 	query := `SELECT * FROM convenience_input_raw_references
 			  WHERE status = 'NONE'
-			  ORDER BY created_at ASC, app_id ASC, input_index ASC LIMIT 1`
+			  ORDER BY created_at ASC, input_index ASC, app_id ASC LIMIT 1`
 
 	stmt, err := r.Db.PreparexContext(ctx, query)
 	if err != nil {
@@ -149,7 +149,8 @@ func (r *RawInputRefRepository) FindFirstInputByStatusNone(ctx context.Context) 
 		return nil, err
 	}
 
-	slog.Debug("First input with status NONE fetched", "appID", row.AppID, "InputIndex", row.InputIndex)
+	slog.Debug("First input with status NONE fetched",
+		"app_id", row.AppID, "input_index", row.InputIndex)
 	return &row, nil
 }
 
@@ -164,7 +165,11 @@ func (r *RawInputRefRepository) FindByInputIndexAndAppContract(ctx context.Conte
 			// slog.Debug("Input reference not found", "input_index", inputIndex)
 			return nil, nil
 		}
-		slog.Error("Error finding input reference by input_index", "error", err, "input_index", inputIndex)
+		slog.Error("Error finding input reference by input_index",
+			"error", err,
+			"input_index", inputIndex,
+			"app_contract", appContract.Hex(),
+		)
 		return nil, err
 	}
 	return &inputRef, nil

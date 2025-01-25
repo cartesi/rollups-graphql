@@ -145,7 +145,7 @@ func (s *RawInputRefSuite) TestUpdateStatusJustOneRawID() {
 	})
 
 	s.Require().NoError(err)
-	rawInputIds := []RawInputRef{
+	rawInputsRefs := []RawInputRef{
 		{
 			ID:          "001",
 			InputIndex:  uint64(1),
@@ -155,7 +155,7 @@ func (s *RawInputRefSuite) TestUpdateStatusJustOneRawID() {
 			ChainID:     "31337",
 		},
 	}
-	err = s.RawInputRefRepository.UpdateStatus(ctx, rawInputIds, "ACCEPTED")
+	err = s.RawInputRefRepository.UpdateStatus(ctx, rawInputsRefs, "ACCEPTED")
 	s.Require().NoError(err)
 }
 
@@ -173,7 +173,7 @@ func (s *RawInputRefSuite) TestUpdateStatusJustOneRawIDUsingPG() {
 	})
 
 	s.Require().NoError(err)
-	rawInputIds := []RawInputRef{
+	rawInputsRefs := []RawInputRef{
 		{
 			ID:          "001",
 			InputIndex:  uint64(1),
@@ -183,7 +183,7 @@ func (s *RawInputRefSuite) TestUpdateStatusJustOneRawIDUsingPG() {
 			ChainID:     "31337",
 		},
 	}
-	err = s.RawInputRefRepository.UpdateStatus(ctx, rawInputIds, "ACCEPTED")
+	err = s.RawInputRefRepository.UpdateStatus(ctx, rawInputsRefs, "ACCEPTED")
 	s.Require().NoError(err)
 	rawInputRef, err := s.RawInputRefRepository.FindByInputIndexAndAppContract(ctx, uint64(1), &appContract)
 	s.Require().NoError(err)

@@ -10,6 +10,7 @@ import (
 	"github.com/cartesi/rollups-graphql/pkg/commons"
 	"github.com/cartesi/rollups-graphql/pkg/contracts"
 	"github.com/cartesi/rollups-graphql/pkg/convenience"
+	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
 	"github.com/cartesi/rollups-graphql/postgres/raw"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/suite"
@@ -104,12 +105,12 @@ func (s *SynchronizerOutputCreateSuite) TestCreateOutputs() {
 }
 
 func (s *SynchronizerOutputCreateSuite) TestToRawOutputRef() {
-	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 0})
+	outputs, err := s.rawNodeV2Repository.findAllOutputsLimited(s.ctx)
 	s.Require().NoError(err)
-	rawOutput := outputs[0]
+	rawOutput := outputs[1]
 	rawOutputRef, err := s.synchronizerOutputCreate.ToRawOutputRef(rawOutput)
 	s.Require().NoError(err)
-	s.Equal("notice", rawOutputRef.Type)
+	s.Equal(repository.RAW_NOTICE_TYPE, rawOutputRef.Type)
 	s.Equal(DEFAULT_TEST_APP_CONTRACT, rawOutputRef.AppContract)
 	s.Equal(0, int(rawOutputRef.InputIndex))
 	s.Equal(false, rawOutputRef.HasProof)
@@ -124,9 +125,9 @@ func (s *SynchronizerOutputCreateSuite) countOurOutputs(ctx context.Context) int
 }
 
 func (s *SynchronizerOutputCreateSuite) TestToConvenienceVoucher() {
-	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 1})
+	outputs, err := s.rawNodeV2Repository.findAllOutputsLimited(s.ctx)
 	s.Require().NoError(err)
-	rawOutput := outputs[0]
+	rawOutput := outputs[2]
 	rawOutputRef, err := s.synchronizerOutputCreate.ToRawOutputRef(rawOutput)
 	s.Require().NoError(err)
 	s.Equal("voucher", rawOutputRef.Type)
@@ -142,9 +143,9 @@ func (s *SynchronizerOutputCreateSuite) TestToConvenienceVoucher() {
 }
 
 func (s *SynchronizerOutputCreateSuite) TestToConvenienceNotice() {
-	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 0})
+	outputs, err := s.rawNodeV2Repository.findAllOutputsLimited(s.ctx)
 	s.Require().NoError(err)
-	rawOutput := outputs[0]
+	rawOutput := outputs[1]
 	rawOutputRef, err := s.synchronizerOutputCreate.ToRawOutputRef(rawOutput)
 	s.Require().NoError(err)
 	s.Equal("notice", rawOutputRef.Type)

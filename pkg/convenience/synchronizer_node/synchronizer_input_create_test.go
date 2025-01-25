@@ -74,7 +74,7 @@ func TestSynchronizerInputCreateSuite(t *testing.T) {
 }
 
 func (s *SynchronizerInputCreate) TestGetAdvanceInputFromMap() {
-	inputs, err := s.rawNodeV2Repository.FindAllInputs(s.ctx)
+	inputs, err := s.rawNodeV2Repository.FindAllRawInputs(s.ctx)
 	s.Require().NoError(err)
 
 	rawInput := inputs[0]
