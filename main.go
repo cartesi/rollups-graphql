@@ -114,7 +114,7 @@ func init() {
 	cmd.Flags().StringVar(&opts.DbImplementation, "db-implementation", opts.DbImplementation,
 		"DB to use. PostgreSQL or SQLite")
 
-	cmd.Flags().BoolVar(&opts.RawEnabled, "raw-enabled", opts.RawEnabled, "If set, enables raw database")
+	cmd.Flags().BoolVar(&opts.DisableSync, "disable-sync", opts.DisableSync, "If set disable data synchronization")
 }
 
 func deprecatedWarningCmd(cmd *cobra.Command, flag string, replacement string) {
@@ -133,7 +133,7 @@ func deprecatedFlags(cmd *cobra.Command) {
 	checkAndSetFlag(cmd, "sqlite-file", func(val string) { opts.SqliteFile = val }, "SQLITE_FILE")
 	checkAndSetFlag(cmd, "from-l1-block", func(val string) { tempFromBlockL1 = cast.ToUint64(val) }, "FROM_BLOCK_L1")
 	checkAndSetFlag(cmd, "db-implementation", func(val string) { opts.DbImplementation = val }, "DB_IMPLEMENTATION")
-	checkAndSetFlag(cmd, "raw-enabled", func(val string) { opts.RawEnabled = cast.ToBool(val) }, "RAW_ENABLED")
+	checkAndSetFlag(cmd, "disable-sync", func(val string) { opts.DisableSync = cast.ToBool(val) }, "DISABLE_SYNC")
 }
 
 /**
