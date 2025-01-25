@@ -248,7 +248,7 @@ func (r *RawOutputRefRepository) UpdateSyncPriority(ctx context.Context, rawOutp
 	if affected != 1 {
 		return fmt.Errorf("repo_err_3 unexpected number of rows updated: %d", affected)
 	}
-	slog.Debug("UpdateProofSyncAt",
+	slog.Debug("UpdateSyncPriority",
 		"updated_at", rawOutputRef.UpdatedAt,
 		"app_id", rawOutputRef.AppID,
 		"output_index", rawOutputRef.OutputIndex,

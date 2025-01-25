@@ -82,7 +82,7 @@ func (s *SynchronizerOutputCreate) syncOutputs(ctx context.Context) error {
 
 func (s *SynchronizerOutputCreate) CreateOutput(ctx context.Context, rawOutputRef *repository.RawOutputRef, rawOutput Output) error {
 	if rawOutputRef.Type == repository.RAW_VOUCHER_TYPE {
-		cVoucher, err := s.GetConvenienceVoucher(rawOutput)
+		cVoucher, err := s.ToConvenienceVoucher(rawOutput)
 		if err != nil {
 			return err
 		}
@@ -91,7 +91,7 @@ func (s *SynchronizerOutputCreate) CreateOutput(ctx context.Context, rawOutputRe
 			return err
 		}
 	} else if rawOutputRef.Type == repository.RAW_NOTICE_TYPE {
-		cNotice, err := s.GetConvenienceNotice(rawOutput)
+		cNotice, err := s.ToConvenienceNotice(rawOutput)
 		if err != nil {
 			return err
 		}
@@ -105,7 +105,7 @@ func (s *SynchronizerOutputCreate) CreateOutput(ctx context.Context, rawOutputRe
 	return nil
 }
 
-func (s *SynchronizerOutputCreate) GetConvenienceVoucher(rawOutput Output) (*model.ConvenienceVoucher, error) {
+func (s *SynchronizerOutputCreate) ToConvenienceVoucher(rawOutput Output) (*model.ConvenienceVoucher, error) {
 	data, err := s.AbiDecoder.GetMapRaw(rawOutput.RawData)
 	if err != nil {
 		return nil, err
@@ -133,7 +133,7 @@ func (s *SynchronizerOutputCreate) GetConvenienceVoucher(rawOutput Output) (*mod
 	return &cVoucher, nil
 }
 
-func (s *SynchronizerOutputCreate) GetConvenienceNotice(rawOutput Output) (*model.ConvenienceNotice, error) {
+func (s *SynchronizerOutputCreate) ToConvenienceNotice(rawOutput Output) (*model.ConvenienceNotice, error) {
 	strPayload := "0x" + common.Bytes2Hex(rawOutput.RawData)
 	cNotice := model.ConvenienceNotice{
 		Payload:              strPayload,

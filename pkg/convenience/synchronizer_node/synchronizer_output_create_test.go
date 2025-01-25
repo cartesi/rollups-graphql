@@ -103,7 +103,7 @@ func (s *SynchronizerOutputCreateSuite) TestCreateOutputs() {
 	s.Equal(TOTAL_INPUT_TEST, second)
 }
 
-func (s *SynchronizerOutputCreateSuite) TestGetRawOutputRef() {
+func (s *SynchronizerOutputCreateSuite) TestToRawOutputRef() {
 	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 0})
 	s.Require().NoError(err)
 	rawOutput := outputs[0]
@@ -123,14 +123,14 @@ func (s *SynchronizerOutputCreateSuite) countOurOutputs(ctx context.Context) int
 	return int(total)
 }
 
-func (s *SynchronizerOutputCreateSuite) TestGetConvenienceVoucher() {
+func (s *SynchronizerOutputCreateSuite) TestToConvenienceVoucher() {
 	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 1})
 	s.Require().NoError(err)
 	rawOutput := outputs[0]
 	rawOutputRef, err := s.synchronizerOutputCreate.ToRawOutputRef(rawOutput)
 	s.Require().NoError(err)
 	s.Equal("voucher", rawOutputRef.Type)
-	cVoucher, err := s.synchronizerOutputCreate.GetConvenienceVoucher(rawOutput)
+	cVoucher, err := s.synchronizerOutputCreate.ToConvenienceVoucher(rawOutput)
 	s.Require().NoError(err)
 	s.Equal(DEFAULT_TEST_APP_CONTRACT, cVoucher.AppContract.Hex())
 	s.Equal("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", cVoucher.Destination.Hex())
@@ -141,14 +141,14 @@ func (s *SynchronizerOutputCreateSuite) TestGetConvenienceVoucher() {
 	s.Equal("3735928559", cVoucher.Value)
 }
 
-func (s *SynchronizerOutputCreateSuite) TestGetConvenienceNotice() {
-	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 1})
+func (s *SynchronizerOutputCreateSuite) TestToConvenienceNotice() {
+	outputs, err := s.rawNodeV2Repository.FindAllOutputsByFilter(s.ctx, FilterID{IDgt: 0})
 	s.Require().NoError(err)
 	rawOutput := outputs[0]
 	rawOutputRef, err := s.synchronizerOutputCreate.ToRawOutputRef(rawOutput)
 	s.Require().NoError(err)
 	s.Equal("notice", rawOutputRef.Type)
-	cNotice, err := s.synchronizerOutputCreate.GetConvenienceNotice(rawOutput)
+	cNotice, err := s.synchronizerOutputCreate.ToConvenienceNotice(rawOutput)
 	s.Require().NoError(err)
 	s.Equal(DEFAULT_TEST_APP_CONTRACT, cNotice.AppContract)
 	s.Equal(0, int(cNotice.InputIndex))
