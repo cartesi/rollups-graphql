@@ -39,11 +39,25 @@ func (s SynchronizerCreateWorker) Start(ctx context.Context, ready chan<- struct
 }
 
 // nolint
+func isFirst24BytesZero(hash []byte) bool {
+	for i := 0; i < 24; i++ {
+		if hash[i] != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+// nolint
 func FormatTransactionId(txId []byte) string {
 	if len(txId) <= 8 {
 		padded := make([]byte, 8)
 		copy(padded[8-len(txId):], txId)
 		n := binary.BigEndian.Uint64(padded)
+		return strconv.FormatUint(n, 10)
+	} else if isFirst24BytesZero(txId) {
+		last8Bytes := txId[len(txId)-8:]
+		n := binary.BigEndian.Uint64(last8Bytes)
 		return strconv.FormatUint(n, 10)
 	} else {
 		return "0x" + common.Bytes2Hex(txId)
