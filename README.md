@@ -31,8 +31,32 @@ Start a Postgres instance locally using docker compose.
 make up-db-raw
 ```
 
-```sh
-export POSTGRES_GRAPHQL_DB_URL="postgres://postgres:password@localhost:5432/rlgraphql?sslmode=disable"
+```shell
+export POSTGRES_GRAPHQL_DB_URL="postgres://postgres:password@127.0.0.1:5432/hlgraphql?sslmode=disable"
+export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
+go run . --http-address=0.0.0.0
+```
+
+## Running with Node V2
+
+Build Node V2 and then start it.
+
+Create the rollups graphql database:
+
+```shell
+docker exec -i postgres psql -U postgres -d hlgraphql < ./postgres/raw/hlgraphql.sql
+```
+
+Compile:
+
+```shell
+go build -o cartesi-rollups-graphql
+```
+
+Run the rollups graphql:
+
+```shell
+export POSTGRES_GRAPHQL_DB_URL="postgres://postgres:password@localhost:5432/hlgraphql?sslmode=disable"
 export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
 ./cartesi-rollups-graphql
 ```

@@ -42,7 +42,7 @@ func (c *NoticeRepository) CreateTables() error {
 func (c *NoticeRepository) Create(
 	ctx context.Context, data *model.ConvenienceNotice,
 ) (*model.ConvenienceNotice, error) {
-	slog.Debug("CreateNotice", "payload", data.Payload)
+	// slog.Debug("CreateNotice", "payload", data.Payload)
 	if c.AutoCount {
 		count, err := c.OutputRepository.CountAllOutputs(ctx)
 		if err != nil {

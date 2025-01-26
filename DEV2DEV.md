@@ -4,6 +4,12 @@
 watchexec --exts go --watch . 'make test && make lint'
 ```
 
+To run just one test:
+
+```shell
+watchexec --exts go --watch . 'go test -p 1 ./... -testify.m ^TestNoDuplicateInputs$'
+```
+
 uint64 type is based on [rollups_outputs.rs](https://github.com/cartesi/rollups-node/blob/392c75972037352ecf94fb482619781b1b09083f/offchain/rollups-events/src/rollups_outputs.rs#L41)
 
 ```go
@@ -47,9 +53,9 @@ go run . --enable-debug
 ```
 
 ```shell
-export POSTGRES_GRAPHQL_DB_URL="postgres://myuser:mypassword@127.0.0.1:5432/mydatabase?sslmode=disable"
+export POSTGRES_GRAPHQL_DB_URL="postgres://postgres:password@127.0.0.1:5432/hlgraphql?sslmode=disable"
 export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
-go run . --http-address=0.0.0.0 --enable-debug --db-implementation postgres
+go run . --http-address=0.0.0.0 --enable-debug
 ```
 
 ## Environment Variables

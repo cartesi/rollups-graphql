@@ -80,20 +80,15 @@ func (s *SynchronizerInputCreator) commitTransaction(ctx context.Context) error 
 }
 
 func (s *SynchronizerInputCreator) syncInputs(ctx context.Context) error {
-	latestRawID, err := s.RawInputRefRepository.GetLatestRawId(ctx)
+	latestInputRef, err := s.RawInputRefRepository.GetLatestInputRef(ctx)
 	if err != nil {
 		return err
 	}
-
-	page := &Pagination{Limit: LIMIT}
-
-	inputs, err := s.RawNodeV2Repository.FindAllInputsByFilter(ctx, FilterInput{IDgt: latestRawID}, page)
+	inputs, err := s.RawNodeV2Repository.FindAllInputsGtRef(ctx, latestInputRef)
 	if err != nil {
 		return err
 	}
-
 	for _, input := range inputs {
-
 		err = s.CreateInput(ctx, input)
 		if err != nil {
 			return err
@@ -116,11 +111,11 @@ func (s *SynchronizerInputCreator) CreateInput(ctx context.Context, rawInput Raw
 
 	rawInputRef := repository.RawInputRef{
 		ID:          inputBox.ID,
-		RawID:       uint64(rawInput.Index),
 		InputIndex:  rawInput.Index,
 		AppContract: common.BytesToAddress(rawInput.ApplicationAddress).Hex(),
 		Status:      rawInput.Status,
 		ChainID:     advanceInput.ChainId,
+		AppID:       uint64(rawInput.ApplicationId),
 	}
 
 	err = s.RawInputRefRepository.Create(ctx, rawInputRef)
@@ -176,7 +171,7 @@ func (s *SynchronizerInputCreator) GetAdvanceInputFromMap(rawInput RawInput) (*m
 		return nil, fmt.Errorf("inputBoxIndex not found")
 	}
 
-	slog.Debug("GetAdvanceInputFromMap", "chainId", chainId)
+	// slog.Debug("GetAdvanceInputFromMap", "chainId", chainId)
 	advanceInput := model.AdvanceInput{
 		ID:                     FormatTransactionId(rawInput.TransactionRef),
 		AppContract:            appContract,

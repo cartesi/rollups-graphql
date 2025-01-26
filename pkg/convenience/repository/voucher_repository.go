@@ -66,7 +66,7 @@ func (c *VoucherRepository) CreateTables() error {
 func (c *VoucherRepository) CreateVoucher(
 	ctx context.Context, voucher *model.ConvenienceVoucher,
 ) (*model.ConvenienceVoucher, error) {
-	slog.Debug("CreateVoucher", "payload", voucher.Payload, "value", voucher.Value)
+	// slog.Debug("CreateVoucher", "payload", voucher.Payload, "value", voucher.Value)
 	if c.AutoCount {
 		count, err := c.OutputRepository.CountAllOutputs(ctx)
 		if err != nil {
@@ -133,7 +133,7 @@ func (c *VoucherRepository) SetProof(
 		return err
 	}
 	if affected != 1 {
-		return fmt.Errorf("wrong number of vouchers affected: %d; app_contract %v; output_index %d", affected, voucher.AppContract, voucher.OutputIndex)
+		return fmt.Errorf("repo_err_1 wrong number of vouchers affected: %d; app_contract %v; output_index %d", affected, voucher.AppContract, voucher.OutputIndex)
 	}
 	return nil
 }
@@ -161,7 +161,7 @@ func (c *VoucherRepository) SetExecuted(
 		return err
 	}
 	if affected != 1 {
-		return fmt.Errorf("wrong number of vouchers affected: %d; app_contract %v; output_index %d", affected, voucher.AppContract, voucher.OutputIndex)
+		return fmt.Errorf("repo_err_2 wrong number of vouchers affected: %d; app_contract %v; output_index %d", affected, voucher.AppContract, voucher.OutputIndex)
 	}
 	return nil
 }
@@ -251,7 +251,7 @@ func (c *VoucherRepository) FindVoucherByOutputIndexAndAppContract(
 	rows, err := c.queryByOutputIndexAndAppContract(ctx, outputIndex, appContract, isDelegatedCall)
 
 	if err != nil {
-		slog.Error("database error", "err", err)
+		slog.Error("RollupsGraphql: FindVoucherByOutputIndexAndAppContract database error", "err", err)
 		return nil, err
 	}
 	defer rows.Close()

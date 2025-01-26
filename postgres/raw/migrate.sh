@@ -14,3 +14,5 @@ EOSQL
 for f in /sql/*.sql; do
 	psql -v ON_ERROR_STOP=0 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -f $f
 done
+
+psql -U "$POSTGRES_USER" -d hlgraphql < /sql/hlgraphql.sql

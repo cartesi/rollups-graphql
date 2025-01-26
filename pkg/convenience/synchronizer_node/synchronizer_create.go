@@ -86,7 +86,7 @@ func (s SynchronizerCreateWorker) WatchNewInputs(stdCtx context.Context) error {
 						return
 					}
 
-					err = s.SynchronizerOutputUpdate.SyncOutputs(ctx)
+					err = s.SynchronizerOutputUpdate.SyncOutputsProofs(ctx)
 					if err != nil {
 						errCh <- err
 						return

@@ -4,8 +4,10 @@ import (
 	"context"
 	"log/slog"
 	"testing"
+	"time"
 
 	"github.com/cartesi/rollups-graphql/pkg/commons"
+	configtest "github.com/cartesi/rollups-graphql/pkg/convenience/config_test"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -51,7 +53,7 @@ func (s *RawOutputRefSuite) TestRawRefOutputShouldThrowAnErrorWhenThereIsNoTypeA
 
 	rawNotice := RawOutputRef{
 		InputIndex:  1,
-		RawID:       2,
+		AppID:       2,
 		AppContract: "0x123456789abcdef",
 		OutputIndex: 2,
 	}
@@ -65,7 +67,7 @@ func (s *RawOutputRefSuite) TestRawRefOutputShouldThrowAnErrorWhenTypeAttributeI
 
 	rawNotice := RawOutputRef{
 		InputIndex:  1,
-		RawID:       2,
+		AppID:       2,
 		AppContract: "0x123456789abcdef",
 		OutputIndex: 2,
 		Type:        "report",
@@ -78,30 +80,39 @@ func (s *RawOutputRefSuite) TestRawRefOutputShouldThrowAnErrorWhenTypeAttributeI
 func (s *RawOutputRefSuite) TestRawRefOutputCreate() {
 	ctx := context.Background()
 
-	rawOutput := RawOutputRef{
+	createdAt := time.Now()
+	rawOutputRef := RawOutputRef{
 		InputIndex:  1,
-		RawID:       2,
-		AppContract: "0x123456789abcdef",
+		AppID:       2,
+		AppContract: configtest.DEFAULT_TEST_APP_CONTRACT,
 		OutputIndex: 2,
-		Type:        "notice",
+		Type:        RAW_NOTICE_TYPE,
+		CreatedAt:   createdAt,
+		UpdatedAt:   createdAt,
 	}
 
-	err := s.rawOutputRefRepository.Create(ctx, rawOutput)
+	err := s.rawOutputRefRepository.Create(ctx, rawOutputRef)
 	s.NoError(err)
 
 	var count int
 	err = s.rawOutputRefRepository.Db.QueryRow(`SELECT COUNT(*) FROM convenience_output_raw_references WHERE input_index = ? AND app_contract = ? AND output_index = ?`,
-		rawOutput.InputIndex, rawOutput.AppContract, rawOutput.OutputIndex).Scan(&count)
+		rawOutputRef.InputIndex, rawOutputRef.AppContract, rawOutputRef.OutputIndex).Scan(&count)
 
 	s.NoError(err)
 	s.Equal(1, count)
+
+	saved, err := s.rawOutputRefRepository.FindByAppIDAndOutputIndex(ctx, 2, 2)
+	s.Require().NoError(err)
+
+	// here we have a round problem using sqlite
+	s.Equal(createdAt.UnixMilli(), saved.CreatedAt.UnixMilli())
 }
 
-func (s *RawOutputRefSuite) TestRawRefOutputGetLatestId() {
+func (s *RawOutputRefSuite) TestFindLatestRawOutputRef() {
 	ctx := context.Background()
 
 	firstRawOutput := RawOutputRef{
-		RawID:       1,
+		AppID:       1,
 		InputIndex:  1,
 		AppContract: "0x123456789abcdef",
 		OutputIndex: 2,
@@ -112,7 +123,7 @@ func (s *RawOutputRefSuite) TestRawRefOutputGetLatestId() {
 	s.NoError(err)
 
 	lastRawOutput := RawOutputRef{
-		RawID:       2,
+		AppID:       2,
 		InputIndex:  2,
 		AppContract: "0x123456789abcdef",
 		OutputIndex: 23,
@@ -126,9 +137,9 @@ func (s *RawOutputRefSuite) TestRawRefOutputGetLatestId() {
 	err = s.rawOutputRefRepository.Db.QueryRow(`SELECT COUNT(*) FROM convenience_output_raw_references`).Scan(&count)
 	s.NoError(err)
 	//check if there are two records in the table.
-	s.Equal(2, count)
+	s.Require().Equal(2, count)
 
-	outputId, err := s.rawOutputRefRepository.GetLatestOutputRawId(ctx)
+	lastOutputRef, err := s.rawOutputRefRepository.FindLatestRawOutputRef(ctx)
 	s.NoError(err)
-	s.Equal(lastRawOutput.RawID, outputId)
+	s.Equal(lastRawOutput.AppID, lastOutputRef.AppID)
 }

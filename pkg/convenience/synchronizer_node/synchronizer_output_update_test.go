@@ -47,6 +47,7 @@ func (s *SynchronizerOutputUpdateSuite) SetupTest() {
 
 	// Database
 	sqliteFileName := filepath.Join(tempDir, "output.sqlite3")
+	// sqliteFileName = fmt.Sprintf("../../../sync-proof-output-%d.sqlite3", time.Now().Unix())
 
 	db := sqlx.MustConnect("sqlite3", sqliteFileName)
 	s.container = convenience.NewContainer(*db, false)
@@ -79,7 +80,7 @@ func TestSynchronizerOutputUpdateSuiteSuite(t *testing.T) {
 
 // Dear Programmer, I hope this message finds you well.
 // Keep coding, keep learning, and never forget—your work shapes the future.
-func (s *SynchronizerOutputUpdateSuite) TestUpdateOutputs() {
+func (s *SynchronizerOutputUpdateSuite) TestUpdateOutputsProofs() {
 	ctx := context.Background()
 
 	s.fillRefData(ctx)
@@ -89,14 +90,22 @@ func (s *SynchronizerOutputUpdateSuite) TestUpdateOutputs() {
 	s.Require().Equal(0, proofCount)
 
 	// first call
-	err := s.synchronizerOutputUpdate.SyncOutputs(ctx)
+	err := s.synchronizerOutputUpdate.SyncOutputsProofs(ctx)
 	s.Require().NoError(err)
+	first := s.countHLProofs(ctx)
+	s.Equal((TOTAL_INPUT_TEST / 2), first)
 
 	// second call
-	err = s.synchronizerOutputUpdate.SyncOutputs(ctx)
+	err = s.synchronizerOutputUpdate.SyncOutputsProofs(ctx)
 	s.Require().NoError(err)
 	second := s.countHLProofs(ctx)
 	s.Equal(TOTAL_INPUT_TEST, second)
+
+	// third call
+	err = s.synchronizerOutputUpdate.SyncOutputsProofs(ctx)
+	s.Require().NoError(err)
+	third := s.countHLProofs(ctx)
+	s.Equal(TOTAL_INPUT_TEST+(TOTAL_INPUT_TEST/2), third)
 }
 
 func (s *SynchronizerOutputUpdateSuite) countHLProofs(ctx context.Context) int {
@@ -106,16 +115,17 @@ func (s *SynchronizerOutputUpdateSuite) countHLProofs(ctx context.Context) int {
 }
 
 func (s *SynchronizerOutputUpdateSuite) fillRefData(ctx context.Context) {
-	appContract := common.HexToAddress("0x5112cf49f2511ac7b13a032c4c62a48410fc28fb")
-	// msgSender := common.HexToAddress(devnet.SenderAddress)
+	txCtx, err := s.synchronizerOutputUpdate.startTransaction(ctx)
+	s.Require().NoError(err)
+	appContract := common.HexToAddress(DEFAULT_TEST_APP_CONTRACT)
 	for i := 0; i < TOTAL_INPUT_TEST*2; i++ {
 		// id := strconv.FormatInt(int64(i), 10) // our ID
 		outputType := repository.RAW_VOUCHER_TYPE
 		if i%2 == 0 {
 			outputType = "notice"
 		}
-		err := s.container.GetRawOutputRefRepository().Create(ctx, repository.RawOutputRef{
-			RawID:       uint64(i + 1),
+		err := s.container.GetRawOutputRefRepository().Create(txCtx, repository.RawOutputRef{
+			AppID:       uint64(1),
 			InputIndex:  uint64(i),
 			OutputIndex: uint64(i),
 			AppContract: appContract.Hex(),
@@ -125,7 +135,7 @@ func (s *SynchronizerOutputUpdateSuite) fillRefData(ctx context.Context) {
 		s.Require().NoError(err)
 		if outputType == repository.RAW_VOUCHER_TYPE {
 			_, err = s.container.GetVoucherRepository().CreateVoucher(
-				ctx, &model.ConvenienceVoucher{
+				txCtx, &model.ConvenienceVoucher{
 					AppContract: appContract,
 					OutputIndex: uint64(i),
 					InputIndex:  uint64(i),
@@ -134,7 +144,7 @@ func (s *SynchronizerOutputUpdateSuite) fillRefData(ctx context.Context) {
 			s.Require().NoError(err)
 		} else {
 			_, err = s.container.GetNoticeRepository().Create(
-				ctx, &model.ConvenienceNotice{
+				txCtx, &model.ConvenienceNotice{
 					AppContract: appContract.Hex(),
 					OutputIndex: uint64(i),
 					InputIndex:  uint64(i),
@@ -143,4 +153,6 @@ func (s *SynchronizerOutputUpdateSuite) fillRefData(ctx context.Context) {
 			s.Require().NoError(err)
 		}
 	}
+	err = s.synchronizerOutputUpdate.commitTransaction(txCtx)
+	s.Require().NoError(err)
 }

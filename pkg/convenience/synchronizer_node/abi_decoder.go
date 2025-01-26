@@ -1,8 +1,6 @@
 package synchronizernode
 
 import (
-	"log/slog"
-
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
@@ -22,6 +20,6 @@ func (s AbiDecoder) GetMapRaw(rawData []byte) (map[string]any, error) {
 		return nil, err
 	}
 	err = method.Inputs.UnpackIntoMap(data, rawData[4:])
-	slog.Debug("DecodedData", "map", data)
+	// slog.Debug("DecodedData", "map", data)
 	return data, err
 }

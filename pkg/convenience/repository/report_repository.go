@@ -25,7 +25,7 @@ func (r *ReportRepository) CreateTables() error {
     payload       text,
     input_index   integer,
     app_contract  text,
-    raw_id        integer,
+    app_id        integer,
     PRIMARY KEY (input_index, output_index, app_contract)
 	);
 
@@ -41,8 +41,49 @@ func (r *ReportRepository) CreateTables() error {
 	return err
 }
 
+func (r *ReportRepository) CreateFastReport(ctx context.Context, report cModel.FastReport) (*cModel.FastReport, error) {
+	if r.AutoCount {
+		count, err := r.Count(ctx, nil)
+		if err != nil {
+			slog.Error("database error", "err", err)
+			return nil, err
+		}
+		report.Index = int(count)
+	}
+	if report.AppContract == "" {
+		return nil, fmt.Errorf("report is missing app_contract")
+	}
+	insertSql := `INSERT INTO convenience_reports (
+		output_index,
+		payload,
+		input_index,
+		app_contract,
+		app_id) VALUES ($1, $2, $3, $4, $5)`
+
+	var hexPayload string
+	if !strings.HasPrefix(report.Payload, "0x") {
+		hexPayload = "0x" + report.Payload
+	} else {
+		hexPayload = report.Payload
+	}
+	exec := DBExecutor{r.Db}
+	_, err := exec.ExecContext(
+		ctx,
+		insertSql,
+		report.Index,
+		hexPayload,
+		report.InputIndex,
+		report.AppContract,
+		report.AppID,
+	)
+	if err != nil {
+		slog.Error("database error", "err", err)
+		return nil, err
+	}
+	return &report, nil
+}
+
 func (r *ReportRepository) CreateReport(ctx context.Context, report cModel.Report) (cModel.Report, error) {
-	// slog.Debug("CreateReport", "payload", report.Payload)
 	if r.AutoCount {
 		count, err := r.Count(ctx, nil)
 		if err != nil {
@@ -56,7 +97,7 @@ func (r *ReportRepository) CreateReport(ctx context.Context, report cModel.Repor
 		payload,
 		input_index,
 		app_contract,
-		raw_id) VALUES ($1, $2, $3, $4, $5)`
+		app_id) VALUES ($1, $2, $3, $4, $5)`
 
 	var hexPayload string
 	if !strings.HasPrefix(report.Payload, "0x") {
@@ -73,7 +114,7 @@ func (r *ReportRepository) CreateReport(ctx context.Context, report cModel.Repor
 		hexPayload,
 		report.InputIndex,
 		report.AppContract.Hex(),
-		report.RawID,
+		report.AppID,
 	)
 
 	if err != nil {
@@ -129,17 +170,22 @@ func (r *ReportRepository) queryByOutputIndexAndAppContract(
 	}
 }
 
-func (r *ReportRepository) FindLastRawId(ctx context.Context) (uint64, error) {
-	var outputId uint64
-	err := r.Db.GetContext(ctx, &outputId, `SELECT raw_id FROM convenience_reports ORDER BY raw_id DESC LIMIT 1`)
+func (r *ReportRepository) FindLastReport(ctx context.Context) (*cModel.FastReport, error) {
+	var report cModel.FastReport
+	err := r.Db.GetContext(ctx, &report, `
+		SELECT * FROM convenience_reports 
+		ORDER BY 
+			output_index DESC,
+			app_id DESC
+		LIMIT 1`)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return 0, nil
+			return nil, nil
 		}
-		slog.Error("Failed to retrieve the last raw_id from the database", "error", err)
-		return 0, err
+		slog.Error("Failed to retrieve the last report from the database", "error", err)
+		return nil, err
 	}
-	return outputId, err
+	return &report, err
 }
 
 func (r *ReportRepository) FindByOutputIndexAndAppContract(
@@ -162,43 +208,6 @@ func (r *ReportRepository) FindByOutputIndexAndAppContract(
 		}
 		report := &cModel.Report{
 			InputIndex: inputIndex,
-			Index:      int(outputIndex),
-			Payload:    payload,
-		}
-		return report, nil
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return nil, nil
-}
-
-func (r *ReportRepository) FindByInputAndOutputIndex(
-	ctx context.Context,
-	inputIndex uint64,
-	outputIndex uint64,
-) (*cModel.Report, error) {
-	rows, err := r.Db.QueryxContext(ctx, `
-		SELECT payload FROM convenience_reports
-		WHERE input_index = $1 AND output_index = $2
-		LIMIT 1`,
-		inputIndex, outputIndex,
-	)
-	if err != nil {
-		slog.Error("database error", "err", err)
-		return nil, err
-	}
-	defer rows.Close()
-
-	if rows.Next() {
-		var payload string
-		if err := rows.Scan(&payload); err != nil {
-			return nil, err
-		}
-		report := &cModel.Report{
-			InputIndex: int(inputIndex),
 			Index:      int(outputIndex),
 			Payload:    payload,
 		}

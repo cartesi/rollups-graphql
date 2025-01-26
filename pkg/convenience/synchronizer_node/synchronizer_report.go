@@ -43,24 +43,23 @@ func (s *SynchronizerReport) SyncReports(ctx context.Context) error {
 }
 
 func (s *SynchronizerReport) syncReports(ctx context.Context) error {
-	lastRawId, err := s.ReportRepository.FindLastRawId(ctx)
+	ourLastReport, err := s.ReportRepository.FindLastReport(ctx)
 	if err != nil {
 		slog.Error("fail to find last report imported")
 		return err
 	}
-	rawReports, err := s.RawRepository.FindAllReportsByFilter(ctx, FilterID{IDgt: lastRawId + 1})
+	rawReports, err := s.RawRepository.FindAllReportsGt(ctx, ourLastReport)
 	if err != nil {
 		slog.Error("fail to find all reports")
 		return err
 	}
 	for _, rawReport := range rawReports {
-		appContract := common.BytesToAddress(rawReport.AppContract)
-		_, err = s.ReportRepository.CreateReport(ctx, model.Report{
-			AppContract: appContract,
+		_, err = s.ReportRepository.CreateFastReport(ctx, model.FastReport{
+			AppContract: rawReport.AppContract,
 			Index:       int(rawReport.Index),
 			InputIndex:  int(rawReport.InputIndex),
 			Payload:     common.Bytes2Hex(rawReport.RawData),
-			RawID:       uint64(rawReport.Index),
+			AppID:       uint64(rawReport.Index),
 		})
 		if err != nil {
 			slog.Error("fail to create report", "err", err)

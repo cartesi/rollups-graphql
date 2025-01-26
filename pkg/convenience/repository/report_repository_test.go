@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/cartesi/rollups-graphql/pkg/commons"
+	configtest "github.com/cartesi/rollups-graphql/pkg/convenience/config_test"
 	cModel "github.com/cartesi/rollups-graphql/pkg/convenience/model"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
@@ -52,18 +53,31 @@ func (s *ReportRepositorySuite) TestCreateReport() {
 	s.NoError(err)
 }
 
-func (s *ReportRepositorySuite) TestCreateReportAndFind() {
+func (s *ReportRepositorySuite) TestCreateFastReport() {
 	ctx := context.Background()
-	_, err := s.reportRepository.CreateReport(ctx, cModel.Report{
-		InputIndex: 1,
-		Index:      2,
-		Payload:    "1122",
+	_, err := s.reportRepository.CreateFastReport(ctx, cModel.FastReport{
+		AppContract: configtest.DEFAULT_TEST_APP_CONTRACT,
+		Index:       1,
+		InputIndex:  2,
+		Payload:     "1122",
 	})
 	s.NoError(err)
-	report, err := s.reportRepository.FindByInputAndOutputIndex(
+}
+
+func (s *ReportRepositorySuite) TestCreateReportAndFind() {
+	ctx := context.Background()
+	appContract := common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT[2:])
+	_, err := s.reportRepository.CreateReport(ctx, cModel.Report{
+		AppContract: appContract,
+		InputIndex:  1,
+		Index:       2,
+		Payload:     "1122",
+	})
+	s.NoError(err)
+	report, err := s.reportRepository.FindByOutputIndexAndAppContract(
 		ctx,
-		uint64(1),
 		uint64(2),
+		&appContract,
 	)
 	s.NoError(err)
 	s.Equal("0x1122", report.Payload)
@@ -71,10 +85,11 @@ func (s *ReportRepositorySuite) TestCreateReportAndFind() {
 
 func (s *ReportRepositorySuite) TestReportNotFound() {
 	ctx := context.Background()
-	report, err := s.reportRepository.FindByInputAndOutputIndex(
+	appContract := common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT[2:])
+	report, err := s.reportRepository.FindByOutputIndexAndAppContract(
 		ctx,
 		uint64(404),
-		uint64(404),
+		&appContract,
 	)
 	s.NoError(err)
 	s.Nil(report)
