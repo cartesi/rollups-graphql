@@ -52,7 +52,7 @@ type BootstrapOpts struct {
 // Create the options struct with default values.
 func NewBootstrapOpts() BootstrapOpts {
 	return BootstrapOpts{
-		HttpAddress:        "127.0.0.1",
+		HttpAddress:        "0.0.0.0",
 		HttpPort:           DefaultHttpPort,
 		ApplicationAddress: "0x75135d8ADb7180640d29d822D9AD59E83E8695b2",
 		SqliteFile:         "",
@@ -87,7 +87,7 @@ func NewSupervisorGraphQL(opts BootstrapOpts) supervisor.SupervisorWorker {
 	if !opts.DisableSync {
 		dbRawUrl, ok := os.LookupEnv("POSTGRES_NODE_DB_URL")
 		if !ok {
-			panic("POSTGRES_RAW_DB_URL environment variable not set")
+			panic("POSTGRES_NODE_DB_URL environment variable not set")
 		}
 		dbNodeV2 := sqlx.MustConnect("postgres", dbRawUrl)
 		rawRepository := synchronizernode.NewRawRepository(dbRawUrl, dbNodeV2)
