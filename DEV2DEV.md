@@ -55,7 +55,7 @@ go run . --enable-debug
 ```shell
 export POSTGRES_GRAPHQL_DB_URL="postgres://postgres:password@127.0.0.1:5432/hlgraphql?sslmode=disable"
 export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
-go run . --http-address=0.0.0.0 --http-port 8081 --enable-debug --db-implementation postgres
+go run . --http-address=0.0.0.0 --enable-debug
 ```
 
 ## Environment Variables
