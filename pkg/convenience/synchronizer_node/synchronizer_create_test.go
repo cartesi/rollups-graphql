@@ -143,6 +143,7 @@ func (s *SynchronizerNodeSuite) TearDownSuite() {
 }
 
 func (s *SynchronizerNodeSuite) TearDownTest() {
+	time.Sleep(1 * time.Second) // wait for io
 	s.dbFactory.Cleanup()
 	s.workerCancel()
 }
