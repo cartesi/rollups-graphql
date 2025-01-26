@@ -47,6 +47,7 @@ jobs:
           export POSTGRES_GRAPHQL_DB_URL="postgres://postgres:password@localhost:5432/rlgraphql?sslmode=disable"
           export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
           nohup ./cartesi-rollups-graphql -d --db-implementation=postgres &
+          sleep 10
 
       - name: Run k6 tests
         id: k6
@@ -54,5 +55,4 @@ jobs:
         with:
           debug: true
           path: |
-            sleep 10
             ./loadtesting/test.js
