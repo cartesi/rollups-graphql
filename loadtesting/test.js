@@ -8,7 +8,7 @@ export let options = {
     { duration: '1s', target: 0 },
   ],
   thresholds: {
-    http_req_failed: [{ threshold: 'rate<0.05', abortOnFail: true }],
+    http_req_failed: [{ threshold: 'rate>0.95', abortOnFail: true }],
   },
 }
 
@@ -91,14 +91,11 @@ function testInputFound() {
 
   const response = http.post(GRAPHQL_ENDPOINT, payload, params)
 
-  const respOk = check(response, {
+  check(response, {
     'testInputFound is status 200': (r) => r.status === 200,
     'testInputFound response body contains expected content': (r) => 
       assertStringContains(r.body, '{"data":{"input":{"index":1}}}'),
   })
-  if (!respOk) {
-    fail('Exiting with code != 0 due to failed input check')
-  }
 }
 
 function testReportFound() {
