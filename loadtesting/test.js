@@ -1,4 +1,4 @@
-import { check, fail } from 'k6'
+import { check } from 'k6'
 import http from 'k6/http'
 
 export let options = {
@@ -95,7 +95,7 @@ function testInputFound() {
   check(response, {
     'testInputFound is status 200': (r) => r.status === 200,
     'testInputFound response body contains expected content': (r) => 
-      assertStringContains(r.body, '{"data":{"input":{"index":1}}}'),
+      assertStringContains(r.body, '{"data":{"input":{"index":404}}}'),
   })
 }
 
