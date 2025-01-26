@@ -93,16 +93,19 @@ func (s *SynchronizerOutputUpdateSuite) TestUpdateOutputsProofs() {
 	err := s.synchronizerOutputUpdate.SyncOutputsProofs(ctx)
 	s.Require().NoError(err)
 	first := s.countHLProofs(ctx)
-	s.Equal((TOTAL_INPUT_TEST/2)-1, first)
-
-	err = s.synchronizerOutputUpdate.SyncOutputsProofs(ctx)
-	s.Require().NoError(err)
+	s.Equal((TOTAL_INPUT_TEST / 2), first)
 
 	// second call
 	err = s.synchronizerOutputUpdate.SyncOutputsProofs(ctx)
 	s.Require().NoError(err)
 	second := s.countHLProofs(ctx)
-	s.Equal(TOTAL_INPUT_TEST+1, second)
+	s.Equal(TOTAL_INPUT_TEST, second)
+
+	// third call
+	err = s.synchronizerOutputUpdate.SyncOutputsProofs(ctx)
+	s.Require().NoError(err)
+	third := s.countHLProofs(ctx)
+	s.Equal(TOTAL_INPUT_TEST+(TOTAL_INPUT_TEST/2), third)
 }
 
 func (s *SynchronizerOutputUpdateSuite) countHLProofs(ctx context.Context) int {

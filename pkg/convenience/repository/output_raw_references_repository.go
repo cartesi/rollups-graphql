@@ -266,7 +266,7 @@ func (r *RawOutputRefRepository) GetFirstOutputRefWithoutProof(ctx context.Conte
 		WHERE
 			has_proof = false
 		ORDER BY
-			sync_priority ASC, updated_at ASC, output_index ASC, app_id ASC
+			sync_priority ASC, output_index ASC, app_id ASC
 		LIMIT 1`)
 
 	if err != nil {

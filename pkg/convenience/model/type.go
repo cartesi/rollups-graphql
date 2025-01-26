@@ -104,7 +104,7 @@ type Report struct {
 	InputIndex  int
 	Payload     string
 	AppContract common.Address `json:"app_contract"`
-	RawID       uint64
+	AppID       uint64
 }
 
 // Rollups advance input type.

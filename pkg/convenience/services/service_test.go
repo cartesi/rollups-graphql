@@ -246,33 +246,6 @@ func (s *ConvenienceServiceSuite) XTestCreateNoticeIdempotency() {
 	s.Equal("1122", notice.Payload)
 }
 
-func (s *ConvenienceServiceSuite) XTestCreateReportIdempotency() {
-	// we need a better way to do this
-	ctx := context.Background()
-	_, err := s.service.CreateReport(ctx, &model.Report{
-		InputIndex: 1,
-		Index:      2,
-	})
-	s.NoError(err)
-	count, err := s.reportRepository.Count(ctx, nil)
-	s.NoError(err)
-	s.Equal(1, int(count))
-
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = s.service.CreateReport(ctx, &model.Report{
-		InputIndex: 1,
-		Index:      2,
-		Payload:    "1122",
-	})
-	s.NoError(err)
-	count, err = s.reportRepository.Count(ctx, nil)
-	s.NoError(err)
-	s.Equal(1, int(count))
-}
-
 func (s *ConvenienceServiceSuite) TestCreateInputIdempotency() {
 	ctx := context.Background()
 	_, err := s.service.CreateInput(ctx, &model.AdvanceInput{

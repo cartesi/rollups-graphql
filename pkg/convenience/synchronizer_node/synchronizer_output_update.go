@@ -82,11 +82,10 @@ func (s *SynchronizerOutputUpdate) syncOutputsProofs(ctx context.Context) error 
 			if err != nil {
 				return err
 			}
-		} else {
-			err = s.UpdateProof(ctx, rawOutput, hashes)
-			if err != nil {
-				return err
-			}
+		}
+		err = s.UpdateProof(ctx, rawOutput, hashes)
+		if err != nil {
+			return err
 		}
 	}
 	slog.Debug("SyncOutputsProofs: lastOutputRefWithoutProof",
@@ -94,6 +93,7 @@ func (s *SynchronizerOutputUpdate) syncOutputsProofs(ctx context.Context) error 
 		"output_index", lastOutputRefWithoutProof.OutputIndex,
 		"output_indexes", outputIndexes,
 		"sync_priority", lastOutputRefWithoutProof.SyncPriority,
+		"updated_at", lastOutputRefWithoutProof.UpdatedAt,
 		"rawOutputs", len(rawOutputs),
 	)
 	err = s.RawOutputRefRepository.UpdateSyncPriority(ctx, lastOutputRefWithoutProof)

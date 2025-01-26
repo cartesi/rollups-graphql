@@ -287,6 +287,7 @@ func (s *RawRepository) FindAllReportsByFilter(ctx context.Context, filter Filte
 			slog.Error("Failed to scan row into Report struct", "error", err)
 			return nil, err
 		}
+		report.AppContract = common.Hex2Bytes(string(report.AppContract[2:]))
 		reports = append(reports, report)
 	}
 
@@ -455,16 +456,13 @@ func (s *RawRepository) FindAllOutputsWithProofGte(ctx context.Context, filter *
 			output_hashes_siblings IS NOT NULL
 			AND
 			(
-				(o.input_epoch_application_id = $1 AND o.index >= $2)
-				OR
-				(o.input_epoch_application_id <> $1 AND o.updated_at >= $3)
-				OR
-				(o.input_epoch_application_id = $1 AND o.index > $2 AND o.updated_at > $3)
+				(o.index >= $2 AND o.input_epoch_application_id >= $1 )
 			)
 		ORDER BY
-			o.updated_at, o.index ASC, o.input_epoch_application_id ASC
-		LIMIT $4
-	`, filter.AppID, filter.OutputIndex, filter.UpdatedAt, LIMIT)
+			o.index ASC, 
+			o.input_epoch_application_id ASC
+		LIMIT $3
+	`, filter.AppID, filter.OutputIndex, LIMIT)
 	if err != nil {
 		slog.Error("Failed to execute query in FindAllOutputsWithProof", "error", err)
 		return nil, err
