@@ -71,25 +71,6 @@ func TestRawNodeSuite(t *testing.T) {
 	suite.Run(t, new(RawNodeSuite))
 }
 
-// deprecated
-func (s *RawNodeSuite) TestSynchronizerNodeReportByID() {
-	ctx, cancel := context.WithCancel(s.ctx)
-	defer cancel()
-	reports, err := s.rawRepository.FindAllReportsByFilter(ctx, FilterID{IDgt: 1})
-	s.NoError(err)
-	firstInput := reports[0]
-	s.Equal(1, int(firstInput.Index))
-
-	b := reports[0].InputIndex
-
-	firstInputID := new(big.Int).SetUint64(b)
-	slog.Info("First Input ID", "firstInputID", firstInputID)
-
-	firstInputIDDB := big.NewInt(1)
-
-	s.Equal(firstInputIDDB, firstInputID)
-}
-
 func (s *RawNodeSuite) TestDecodeChainIDFromInputbox() {
 	abi, err := contracts.InputsMetaData.GetAbi()
 	s.NoError(err)

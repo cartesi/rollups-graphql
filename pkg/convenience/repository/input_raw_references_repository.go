@@ -142,7 +142,7 @@ func (r *RawInputRefRepository) FindFirstInputByStatusNone(ctx context.Context) 
 	err = stmt.GetContext(ctx, &row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			slog.Warn("No input found with status NONE")
+			slog.Debug("No input found with status NONE")
 			return nil, nil
 		}
 		slog.Error("Failed to execute query for status NONE", "error", err)

@@ -100,11 +100,19 @@ type Input interface{}
 
 // Rollups report type.
 type Report struct {
-	Index       int
-	InputIndex  int
+	Index       int `db:"output_index"`
+	InputIndex  int `db:"input_index"`
 	Payload     string
-	AppContract common.Address `json:"app_contract"`
-	AppID       uint64
+	AppContract common.Address `json:"app_contract" db:"app_contract"`
+	AppID       uint64         `db:"app_id"`
+}
+
+type FastReport struct {
+	Index       int `db:"output_index"`
+	InputIndex  int `db:"input_index"`
+	Payload     string
+	AppContract string `json:"app_contract" db:"app_contract"`
+	AppID       uint64 `db:"app_id"`
 }
 
 // Rollups advance input type.

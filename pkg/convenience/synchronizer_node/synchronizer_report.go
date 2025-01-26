@@ -43,12 +43,12 @@ func (s *SynchronizerReport) SyncReports(ctx context.Context) error {
 }
 
 func (s *SynchronizerReport) syncReports(ctx context.Context) error {
-	lastRawId, err := s.ReportRepository.FindLastRawId(ctx)
+	ourLastReport, err := s.ReportRepository.FindLastReport(ctx)
 	if err != nil {
 		slog.Error("fail to find last report imported")
 		return err
 	}
-	rawReports, err := s.RawRepository.FindAllReportsByFilter(ctx, FilterID{IDgt: lastRawId + 1})
+	rawReports, err := s.RawRepository.FindAllReportsGt(ctx, ourLastReport)
 	if err != nil {
 		slog.Error("fail to find all reports")
 		return err

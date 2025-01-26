@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
 	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
@@ -248,32 +249,42 @@ func (s *RawRepository) FindAllInputsGtRef(ctx context.Context, inputRef *reposi
 	return inputs, nil
 }
 
-func (s *RawRepository) FindAllReportsByFilter(ctx context.Context, filter FilterID) ([]Report, error) {
+func (s *RawRepository) FindAllReportsGt(ctx context.Context, ourReport *model.FastReport) ([]Report, error) {
 	reports := []Report{}
-
+	// order like semantic version (major = output_index, minor = app_id)
 	query := `
-	SELECT
-		r.index,
-		i.index as input_index,
-		r.input_epoch_application_id,
-		r.raw_data,
-		a.iapplication_address as app_contract
-	FROM
-		report r
-	INNER JOIN
-		input i
-	ON
-		i.index = r.input_index
-	INNER JOIN
-		application a
-	ON
-		a.id = i.epoch_application_id
-	WHERE r.index >= $1
-	ORDER BY r.index ASC
-	LIMIT $2
+		SELECT
+			r.index,
+			i.index as input_index,
+			r.input_epoch_application_id,
+			r.raw_data,
+			a.iapplication_address as app_contract
+		FROM
+			report r
+		INNER JOIN
+			input i
+		ON
+			i.index = r.input_index
+		INNER JOIN
+			application a
+		ON
+			a.id = i.epoch_application_id
+		WHERE 
+			(r.index > $1)
+				OR
+			(r.index = $1 AND r.input_epoch_application_id > $2)
+		ORDER BY 
+			r.index ASC,
+			r.input_epoch_application_id ASC
+		LIMIT $3
 	`
-
-	result, err := s.Db.QueryxContext(ctx, query, filter.IDgt, LIMIT)
+	if ourReport == nil {
+		ourReport = &model.FastReport{
+			AppID: 0,
+			Index: -1,
+		}
+	}
+	result, err := s.Db.QueryxContext(ctx, query, ourReport.Index, ourReport.AppID, LIMIT)
 	if err != nil {
 		slog.Error("Failed to execute query in FindAllReportsByFilter", "error", err)
 		return nil, err
@@ -311,8 +322,8 @@ func (s *RawRepository) FindInputByOutput(ctx context.Context, filter FilterID) 
 			i.snapshot_uri,
 			a.iapplication_address as application_address
 		FROM input i
-		INNER JOIN application a
-		ON a.id = i.epoch_application_id
+		INNER JOIN 
+			application a ON a.id = i.epoch_application_id
 		WHERE i.index = $1
 		LIMIT 1`
 	stmt, err := s.Db.Preparex(query)
@@ -389,7 +400,7 @@ func (s *RawRepository) FindAllOutputsGtRefLimited(ctx context.Context, outputRe
 		return s.findAllOutputsLimited(ctx)
 	}
 	result, err := s.Db.QueryxContext(ctx, `
-        SELECT
+		SELECT
 			o.index,
 			i.index as input_index,
 			o.raw_data,
@@ -435,6 +446,7 @@ func (s *RawRepository) FindAllOutputsGtRefLimited(ctx context.Context, outputRe
 
 func (s *RawRepository) FindAllOutputsWithProofGte(ctx context.Context, filter *repository.RawOutputRef) ([]Output, error) {
 	outputs := []Output{}
+	// like a sem version system
 	result, err := s.Db.QueryxContext(ctx, `
 		SELECT
 			o.index,
@@ -454,9 +466,11 @@ func (s *RawRepository) FindAllOutputsWithProofGte(ctx context.Context, filter *
 			a.id = o.input_epoch_application_id
 		WHERE
 			output_hashes_siblings IS NOT NULL
-			AND
+				AND
 			(
-				(o.index >= $2 AND o.input_epoch_application_id >= $1 )
+				(o.index = $2 AND o.input_epoch_application_id >= $1)
+					OR
+				(o.index > $2)
 			)
 		ORDER BY
 			o.index ASC, 
@@ -482,55 +496,10 @@ func (s *RawRepository) FindAllOutputsWithProofGte(ctx context.Context, filter *
 	return outputs, nil
 }
 
-func (s *RawRepository) FindAllOutputsWithProof(ctx context.Context, filter FilterID) ([]Output, error) {
-	outputs := []Output{}
-	result, err := s.Db.QueryxContext(ctx, `
-        SELECT
-			o.index,
-			o.input_index,
-			o.raw_data,
-			o.hash,
-			o.output_hashes_siblings,
-			o.execution_transaction_hash,
-			o.created_at,
-			o.updated_at,
-			o.input_epoch_application_id,
-			a.iapplication_address as app_contract
-		FROM
-			output o
-		INNER JOIN application a
-		ON
-			a.id = o.input_epoch_application_id
-		WHERE
-			o.index >= $1
-			AND output_hashes_siblings IS NOT NULL
-		ORDER BY
-			o.index
-		LIMIT $2
-    `, filter.IDgt, LIMIT)
-	if err != nil {
-		slog.Error("Failed to execute query in FindAllOutputsWithProof", "error", err)
-		return nil, err
-	}
-	defer result.Close()
-
-	for result.Next() {
-		var report Output
-		err := result.StructScan(&report)
-		if err != nil {
-			slog.Error("Failed to scan row into Output struct", "error", err)
-			return nil, err
-		}
-		outputs = append(outputs, report)
-	}
-
-	return outputs, nil
-}
-
 func (s *RawRepository) FindAllOutputsExecutedAfter(ctx context.Context, outputRef *repository.RawOutputRef) ([]Output, error) {
 	outputs := []Output{}
 	result, err := s.Db.QueryxContext(ctx, `
-        SELECT
+		SELECT
 			o.index,
 			o.input_index,
 			o.raw_data,
@@ -554,14 +523,16 @@ func (s *RawRepository) FindAllOutputsExecutedAfter(ctx context.Context, outputR
 			(
 				(o.updated_at > $1)
 					OR
-				(o.updated_at = $1 AND o.input_epoch_application_id = $2 AND o.index > $3)
+				(o.updated_at = $1 AND o.index > $3)
+					OR
+				(o.updated_at = $1 AND o.index = $3 AND o.input_epoch_application_id > $2)
 			)
 		ORDER BY
 			o.updated_at ASC,
 			o.index ASC,
 			o.input_epoch_application_id ASC
 		LIMIT $4
-    `, outputRef.UpdatedAt, outputRef.AppID, outputRef.OutputIndex, LIMIT)
+	`, outputRef.UpdatedAt, outputRef.AppID, outputRef.OutputIndex, LIMIT)
 	if err != nil {
 		slog.Error("Failed to execute query in FindAllOutputsExecuted", "error", err)
 		return nil, err

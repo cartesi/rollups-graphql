@@ -129,17 +129,22 @@ func (r *ReportRepository) queryByOutputIndexAndAppContract(
 	}
 }
 
-func (r *ReportRepository) FindLastRawId(ctx context.Context) (uint64, error) {
-	var outputId uint64
-	err := r.Db.GetContext(ctx, &outputId, `SELECT app_id FROM convenience_reports ORDER BY app_id DESC LIMIT 1`)
+func (r *ReportRepository) FindLastReport(ctx context.Context) (*cModel.FastReport, error) {
+	var report cModel.FastReport
+	err := r.Db.GetContext(ctx, &report, `
+		SELECT * FROM convenience_reports 
+		ORDER BY 
+			output_index DESC,
+			app_id DESC
+		LIMIT 1`)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return 0, nil
+			return nil, nil
 		}
-		slog.Error("Failed to retrieve the last app_id from the database", "error", err)
-		return 0, err
+		slog.Error("Failed to retrieve the last report from the database", "error", err)
+		return nil, err
 	}
-	return outputId, err
+	return &report, err
 }
 
 func (r *ReportRepository) FindByOutputIndexAndAppContract(
