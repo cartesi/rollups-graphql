@@ -53,6 +53,17 @@ func (s *ReportRepositorySuite) TestCreateReport() {
 	s.NoError(err)
 }
 
+func (s *ReportRepositorySuite) TestCreateFastReport() {
+	ctx := context.Background()
+	_, err := s.reportRepository.CreateFastReport(ctx, cModel.FastReport{
+		AppContract: configtest.DEFAULT_TEST_APP_CONTRACT,
+		Index:       1,
+		InputIndex:  2,
+		Payload:     "1122",
+	})
+	s.NoError(err)
+}
+
 func (s *ReportRepositorySuite) TestCreateReportAndFind() {
 	ctx := context.Background()
 	appContract := common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT[2:])

@@ -41,8 +41,49 @@ func (r *ReportRepository) CreateTables() error {
 	return err
 }
 
+func (r *ReportRepository) CreateFastReport(ctx context.Context, report cModel.FastReport) (*cModel.FastReport, error) {
+	if r.AutoCount {
+		count, err := r.Count(ctx, nil)
+		if err != nil {
+			slog.Error("database error", "err", err)
+			return nil, err
+		}
+		report.Index = int(count)
+	}
+	if report.AppContract == "" {
+		return nil, fmt.Errorf("report is missing app_contract")
+	}
+	insertSql := `INSERT INTO convenience_reports (
+		output_index,
+		payload,
+		input_index,
+		app_contract,
+		app_id) VALUES ($1, $2, $3, $4, $5)`
+
+	var hexPayload string
+	if !strings.HasPrefix(report.Payload, "0x") {
+		hexPayload = "0x" + report.Payload
+	} else {
+		hexPayload = report.Payload
+	}
+	exec := DBExecutor{r.Db}
+	_, err := exec.ExecContext(
+		ctx,
+		insertSql,
+		report.Index,
+		hexPayload,
+		report.InputIndex,
+		report.AppContract,
+		report.AppID,
+	)
+	if err != nil {
+		slog.Error("database error", "err", err)
+		return nil, err
+	}
+	return &report, nil
+}
+
 func (r *ReportRepository) CreateReport(ctx context.Context, report cModel.Report) (cModel.Report, error) {
-	// slog.Debug("CreateReport", "payload", report.Payload)
 	if r.AutoCount {
 		count, err := r.Count(ctx, nil)
 		if err != nil {

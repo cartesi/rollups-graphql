@@ -39,12 +39,12 @@ type RawInput struct {
 	ApplicationAddress []byte    `db:"application_address"`
 }
 
-type Report struct {
+type RawReport struct {
 	Index         uint64 `db:"index"`
 	InputIndex    uint64 `db:"input_index"`
 	ApplicationId int    `db:"input_epoch_application_id"`
 	RawData       []byte `db:"raw_data"`
-	AppContract   []byte `db:"app_contract"`
+	AppContract   string `db:"app_contract"`
 }
 
 type Output struct {
@@ -249,8 +249,8 @@ func (s *RawRepository) FindAllInputsGtRef(ctx context.Context, inputRef *reposi
 	return inputs, nil
 }
 
-func (s *RawRepository) FindAllReportsGt(ctx context.Context, ourReport *model.FastReport) ([]Report, error) {
-	reports := []Report{}
+func (s *RawRepository) FindAllReportsGt(ctx context.Context, ourReport *model.FastReport) ([]RawReport, error) {
+	reports := []RawReport{}
 	// order like semantic version (major = output_index, minor = app_id)
 	query := `
 		SELECT
@@ -292,13 +292,12 @@ func (s *RawRepository) FindAllReportsGt(ctx context.Context, ourReport *model.F
 	defer result.Close()
 
 	for result.Next() {
-		var report Report
+		var report RawReport
 		err := result.StructScan(&report)
 		if err != nil {
 			slog.Error("Failed to scan row into Report struct", "error", err)
 			return nil, err
 		}
-		report.AppContract = common.Hex2Bytes(string(report.AppContract[2:]))
 		reports = append(reports, report)
 	}
 

@@ -4,8 +4,10 @@ import (
 	"context"
 	"log/slog"
 	"testing"
+	"time"
 
 	"github.com/cartesi/rollups-graphql/pkg/commons"
+	configtest "github.com/cartesi/rollups-graphql/pkg/convenience/config_test"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -78,23 +80,32 @@ func (s *RawOutputRefSuite) TestRawRefOutputShouldThrowAnErrorWhenTypeAttributeI
 func (s *RawOutputRefSuite) TestRawRefOutputCreate() {
 	ctx := context.Background()
 
-	rawOutput := RawOutputRef{
+	createdAt := time.Now()
+	rawOutputRef := RawOutputRef{
 		InputIndex:  1,
 		AppID:       2,
-		AppContract: "0x123456789abcdef",
+		AppContract: configtest.DEFAULT_TEST_APP_CONTRACT,
 		OutputIndex: 2,
-		Type:        "notice",
+		Type:        RAW_NOTICE_TYPE,
+		CreatedAt:   createdAt,
+		UpdatedAt:   createdAt,
 	}
 
-	err := s.rawOutputRefRepository.Create(ctx, rawOutput)
+	err := s.rawOutputRefRepository.Create(ctx, rawOutputRef)
 	s.NoError(err)
 
 	var count int
 	err = s.rawOutputRefRepository.Db.QueryRow(`SELECT COUNT(*) FROM convenience_output_raw_references WHERE input_index = ? AND app_contract = ? AND output_index = ?`,
-		rawOutput.InputIndex, rawOutput.AppContract, rawOutput.OutputIndex).Scan(&count)
+		rawOutputRef.InputIndex, rawOutputRef.AppContract, rawOutputRef.OutputIndex).Scan(&count)
 
 	s.NoError(err)
 	s.Equal(1, count)
+
+	saved, err := s.rawOutputRefRepository.FindByAppIDAndOutputIndex(ctx, 2, 2)
+	s.Require().NoError(err)
+
+	// here we have a round problem using sqlite
+	s.Equal(createdAt.UnixMilli(), saved.CreatedAt.UnixMilli())
 }
 
 func (s *RawOutputRefSuite) TestFindLatestRawOutputRef() {

@@ -53,12 +53,12 @@ func (s *SynchronizerOutputCreate) SyncOutputs(ctx context.Context) error {
 }
 
 func (s *SynchronizerOutputCreate) syncOutputs(ctx context.Context) error {
-	latestOutputRawID, err := s.RawOutputRefRepository.FindLatestRawOutputRef(ctx)
+	latestOutputRef, err := s.RawOutputRefRepository.FindLatestRawOutputRef(ctx)
 	if err != nil {
 		return err
 	}
-	slog.Debug("SyncOutputs", "latestOutputRawID", latestOutputRawID)
-	outputs, err := s.RawNodeV2Repository.FindAllOutputsGtRefLimited(ctx, latestOutputRawID)
+	slog.Debug("SyncOutputs", "latestOutputRef", latestOutputRef)
+	outputs, err := s.RawNodeV2Repository.FindAllOutputsGtRefLimited(ctx, latestOutputRef)
 	if err != nil {
 		return err
 	}
