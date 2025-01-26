@@ -8,7 +8,8 @@ export let options = {
     { duration: '1s', target: 0 },
   ],
   thresholds: {
-    http_req_failed: [{ threshold: 'rate>0.95', abortOnFail: true }],
+    http_req_failed: [{ threshold: 'rate<0.05', abortOnFail: true }],
+    checks: ['rate>0.99'],
   },
 }
 
