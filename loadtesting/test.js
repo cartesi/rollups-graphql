@@ -95,7 +95,7 @@ function testInputFound() {
   check(response, {
     'testInputFound is status 200': (r) => r.status === 200,
     'testInputFound response body contains expected content': (r) => 
-      assertStringContains(r.body, '{"data":{"input":{"index":404}}}'),
+      assertStringContains(r.body, '{"data":{"input":{"index":1}}}'),
   })
 }
 
