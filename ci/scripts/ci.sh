@@ -1,9 +1,13 @@
-#!/bin/bash
+#!/bin/zsh
 set -e
 
 rm -rf ./rollups-node
 
 git clone -b feature/new-build --recurse-submodules https://github.com/cartesi/rollups-node.git
+
+if [ ! -d "rollups-espresso-reader" ]; then
+git clone -b main --recurse-submodules https://github.com/cartesi/rollups-espresso-reader.git
+fi
 
 docker stop $(docker ps -q) || true
 
@@ -13,15 +17,19 @@ docker run -d --rm --name postgres -p 5432:5432 -e POSTGRES_PASSWORD=password -e
 
 echo "Migrate DB node v2"
 cd rollups-node
+# WSL2
+# export PATH=$(printf '%q' $(printenv PATH))
 eval $(make env)
 export CGO_CFLAGS="-D_GNU_SOURCE -D__USE_MISC"
 go run dev/migrate/main.go
 cd -
 
 echo "Migrate DB Espresso"
+cd rollups-espresso-reader
 eval $(make env)
 make migrate
 make generate-db
+cd -
 
 echo "Build image"
 #docker build -t espresso .
