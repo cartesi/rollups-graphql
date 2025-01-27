@@ -54,8 +54,8 @@ func (s *SynchronizerReport) syncReports(ctx context.Context) error {
 		return err
 	}
 	for _, rawReport := range rawReports {
-		_, err = s.ReportRepository.CreateFastReport(ctx, model.FastReport{
-			AppContract: rawReport.AppContract,
+		_, err = s.ReportRepository.CreateReport(ctx, model.Report{
+			AppContract: common.BytesToAddress(rawReport.AppContract),
 			Index:       int(rawReport.Index),
 			InputIndex:  int(rawReport.InputIndex),
 			Payload:     common.Bytes2Hex(rawReport.RawData),

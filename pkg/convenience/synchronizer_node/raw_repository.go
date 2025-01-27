@@ -9,7 +9,6 @@ import (
 
 	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
 	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -44,7 +43,7 @@ type RawReport struct {
 	InputIndex    uint64 `db:"input_index"`
 	ApplicationId int    `db:"input_epoch_application_id"`
 	RawData       []byte `db:"raw_data"`
-	AppContract   string `db:"app_contract"`
+	AppContract   []byte `db:"app_contract"`
 }
 
 type Output struct {
@@ -134,7 +133,7 @@ func (s *RawRepository) First50RawInputsGteRefWithStatus(ctx context.Context, in
 			slog.Error("Failed to scan row into RawInput struct", "error", err)
 			return nil, err
 		}
-		input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress[2:]))
+		// input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress[2:]))
 		inputs = append(inputs, input)
 	}
 	slog.Debug("First50RawInputsGteRefWithStatus", "status", status, "results", len(inputs))
@@ -188,7 +187,7 @@ func (s *RawRepository) FindAllRawInputs(ctx context.Context) ([]RawInput, error
 			slog.Error("Failed to scan row into RawInput struct", "error", err)
 			return nil, err
 		}
-		input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress[2:]))
+		// input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress[2:]))
 		inputs = append(inputs, input)
 	}
 	slog.Debug("FindAllRawInputs", "results", len(inputs))
@@ -221,7 +220,7 @@ func (s *RawRepository) FindAllInputsGtRef(ctx context.Context, inputRef *reposi
 		application a
 	ON
 		a.id = i.epoch_application_id
-	WHERE 
+	WHERE
 		(i.epoch_application_id = $1 AND i.index > $2)
 		OR
 		(i.epoch_application_id <> $1 AND i.created_at >= $3)
@@ -242,7 +241,7 @@ func (s *RawRepository) FindAllInputsGtRef(ctx context.Context, inputRef *reposi
 			slog.Error("Failed to scan row into RawInput struct", "error", err)
 			return nil, err
 		}
-		input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress[2:]))
+		// input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress[2:]))
 		inputs = append(inputs, input)
 	}
 	slog.Debug("FindAllInputsGtRef", "results", len(inputs))
@@ -269,11 +268,11 @@ func (s *RawRepository) FindAllReportsGt(ctx context.Context, ourReport *model.F
 			application a
 		ON
 			a.id = i.epoch_application_id
-		WHERE 
+		WHERE
 			(r.index > $1)
 				OR
 			(r.index = $1 AND r.input_epoch_application_id > $2)
-		ORDER BY 
+		ORDER BY
 			r.index ASC,
 			r.input_epoch_application_id ASC
 		LIMIT $3
@@ -321,7 +320,7 @@ func (s *RawRepository) FindInputByOutput(ctx context.Context, filter FilterID) 
 			i.snapshot_uri,
 			a.iapplication_address as application_address
 		FROM input i
-		INNER JOIN 
+		INNER JOIN
 			application a ON a.id = i.epoch_application_id
 		WHERE i.index = $1
 		LIMIT 1`
@@ -343,7 +342,7 @@ func (s *RawRepository) FindInputByOutput(ctx context.Context, filter FilterID) 
 		slog.Error("Failed to get context for input in FindInputByOutput", "error", err)
 		return nil, err
 	}
-	input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress))
+	// input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress))
 
 	return &input, nil
 }
@@ -368,7 +367,7 @@ func (s *RawRepository) findAllOutputsLimited(ctx context.Context) ([]Output, er
 			ON i.index = o.input_index
 		INNER JOIN application a
 			ON a.id = o.input_epoch_application_id
-		ORDER BY 
+		ORDER BY
 			o.created_at ASC, o.index ASC, o.input_epoch_application_id ASC
 		LIMIT $1`
 	result, err := s.Db.QueryxContext(ctx, query, LIMIT)
@@ -385,7 +384,7 @@ func (s *RawRepository) findAllOutputsLimited(ctx context.Context) ([]Output, er
 			slog.Error("Failed to scan row into Output struct", "error", err)
 			return nil, err
 		}
-		output.AppContract = common.Hex2Bytes(string(output.AppContract[2:]))
+		// output.AppContract = common.Hex2Bytes(string(output.AppContract[2:]))
 		outputs = append(outputs, output)
 	}
 
@@ -436,7 +435,7 @@ func (s *RawRepository) FindAllOutputsGtRefLimited(ctx context.Context, outputRe
 			slog.Error("Failed to scan row into Output struct", "error", err)
 			return nil, err
 		}
-		output.AppContract = common.Hex2Bytes(string(output.AppContract[2:]))
+		// output.AppContract = common.Hex2Bytes(string(output.AppContract[2:]))
 		outputs = append(outputs, output)
 	}
 
@@ -472,7 +471,7 @@ func (s *RawRepository) FindAllOutputsWithProofGte(ctx context.Context, filter *
 				(o.index > $2)
 			)
 		ORDER BY
-			o.index ASC, 
+			o.index ASC,
 			o.input_epoch_application_id ASC
 		LIMIT $3
 	`, filter.AppID, filter.OutputIndex, LIMIT)
@@ -518,7 +517,7 @@ func (s *RawRepository) FindAllOutputsExecutedAfter(ctx context.Context, outputR
 			(
 				o.execution_transaction_hash IS NOT NULL
 			)
-				AND 
+				AND
 			(
 				(o.updated_at > $1)
 					OR
@@ -545,7 +544,7 @@ func (s *RawRepository) FindAllOutputsExecutedAfter(ctx context.Context, outputR
 			slog.Error("Failed to scan row into Output struct", "error", err)
 			return nil, err
 		}
-		output.AppContract = common.Hex2Bytes(string(output.AppContract[2:]))
+		// output.AppContract = common.Hex2Bytes(string(output.AppContract[2:]))
 		outputs = append(outputs, output)
 	}
 

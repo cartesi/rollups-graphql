@@ -111,7 +111,7 @@ type FastReport struct {
 	Index       int    `db:"output_index"`
 	InputIndex  int    `db:"input_index"`
 	Payload     string `db:"payload"`
-	AppContract string `json:"app_contract" db:"app_contract"`
+	AppContract []byte `json:"app_contract" db:"app_contract"`
 	AppID       uint64 `db:"app_id"`
 }
 
