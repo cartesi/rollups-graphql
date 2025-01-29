@@ -19,6 +19,7 @@ const NOTICE_SELECTOR = "c258d6e5"
 const INPUT_INDEX = "InputIndex"
 const APP_CONTRACT = "AppContract"
 const DELEGATED_CALL_VOUCHER = "DelegatedCallVoucher"
+const STATE = "State"
 
 // Completion status for inputs.
 type CompletionStatus int
@@ -33,6 +34,29 @@ const (
 	CompletionStatusTimeLimitExceeded
 	CompletionStatusPayloadLengthLimitExceeded
 )
+
+type ApplicationState uint8
+
+const (
+	ApplicationStateEnabled ApplicationState = iota
+	ApplicationStateDisabled
+	ApplicationStateInoperable
+)
+
+func (s ApplicationState) String() *string {
+	var output string
+
+	switch s {
+	case ApplicationStateEnabled:
+		output = "ENABLED"
+	case ApplicationStateDisabled:
+		output = "DISABLED"
+	case ApplicationStateInoperable:
+		output = "INOPERABLE"
+	}
+
+	return &output
+}
 
 type ConvenienceApplication struct {
 	ID                   uint64         `db:"id"`

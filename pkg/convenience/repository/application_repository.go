@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
 	"github.com/jmoiron/sqlx"
@@ -106,9 +108,38 @@ func (a *ApplicationRepository) Create(ctx context.Context, rawApp *model.Conven
 	return rawApp, nil
 }
 
+func transformToApplicationQuery(filter []*model.ConvenienceFilter) (string, []any, int, error) {
+	query := ""
+	if len(filter) > 0 {
+		query += WHERE
+	}
+	args := []any{}
+	where := []string{}
+	count := 1
+	for _, filter := range filter {
+		if *filter.Field == model.STATE {
+			if filter.Eq != nil {
+				where = append(
+					where,
+					fmt.Sprintf("state = $%d", count),
+				)
+				args = append(args, *filter.Eq)
+				count++
+			} else {
+				return "", nil, 0, fmt.Errorf("operation not implemented")
+			}
+		} else {
+			return "", nil, 0, fmt.Errorf("unexpected field %s", *filter.Field)
+		}
+	}
+
+	query += strings.Join(where, " and ")
+	return query, args, count, nil
+}
+
 func (a *ApplicationRepository) Count(ctx context.Context, filter []*model.ConvenienceFilter) (uint64, error) {
 	query := `SELECT COUNT(*) FROM convenience_application `
-	where, args, _, err := transformToNoticeQuery(filter)
+	where, args, _, err := transformToApplicationQuery(filter)
 	if err != nil {
 		return 0, err
 	}
@@ -126,4 +157,31 @@ func (a *ApplicationRepository) Count(ctx context.Context, filter []*model.Conve
 		return 0, err
 	}
 	return countApplication, nil
+}
+
+func (a *ApplicationRepository) Update(ctx context.Context, data *model.ConvenienceApplication) error {
+	query := `UPDATE convenience_application SET
+		reason = $1,
+		updated_at = $2,
+		state = $3,
+		last_processed_block = $4,
+		last_claim_check_block = $5,
+		last_output_check_block = $6,
+		processed_inputs = $7
+		WHERE application_address = $8;`
+
+	exec := DBExecutor{db: &a.Db}
+
+	_, err := exec.ExecContext(ctx, query,
+		data.Reason,
+		data.UpdatedAt,
+		data.State,
+		data.LastProcessedBlock,
+		data.LastClaimCheckBlock,
+		data.LastOutputCheckBlock,
+		data.ProcessedInputs,
+		data.ApplicationAddress,
+	)
+
+	return err
 }
