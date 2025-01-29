@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"math/big"
-	"strconv"
 
 	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
 	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
@@ -54,16 +53,17 @@ func (s *SynchronizerOutputCreate) SyncOutputs(ctx context.Context) error {
 }
 
 func (s *SynchronizerOutputCreate) syncOutputs(ctx context.Context) error {
-	latestOutputRawID, err := s.RawOutputRefRepository.GetLatestOutputRawId(ctx)
+	latestOutputRef, err := s.RawOutputRefRepository.FindLatestRawOutputRef(ctx)
 	if err != nil {
 		return err
 	}
-	outputs, err := s.RawNodeV2Repository.FindAllOutputsByFilter(ctx, FilterID{IDgt: latestOutputRawID})
+	slog.Debug("SyncOutputs", "latestOutputRef", latestOutputRef)
+	outputs, err := s.RawNodeV2Repository.FindAllOutputsGtRefLimited(ctx, latestOutputRef)
 	if err != nil {
 		return err
 	}
 	for _, rawOutput := range outputs {
-		rawOutputRef, err := s.GetRawOutputRef(rawOutput)
+		rawOutputRef, err := s.ToRawOutputRef(rawOutput)
 		if err != nil {
 			return err
 		}
@@ -82,7 +82,7 @@ func (s *SynchronizerOutputCreate) syncOutputs(ctx context.Context) error {
 
 func (s *SynchronizerOutputCreate) CreateOutput(ctx context.Context, rawOutputRef *repository.RawOutputRef, rawOutput Output) error {
 	if rawOutputRef.Type == repository.RAW_VOUCHER_TYPE {
-		cVoucher, err := s.GetConvenienceVoucher(rawOutput)
+		cVoucher, err := s.ToConvenienceVoucher(rawOutput)
 		if err != nil {
 			return err
 		}
@@ -91,7 +91,7 @@ func (s *SynchronizerOutputCreate) CreateOutput(ctx context.Context, rawOutputRe
 			return err
 		}
 	} else if rawOutputRef.Type == repository.RAW_NOTICE_TYPE {
-		cNotice, err := s.GetConvenienceNotice(rawOutput)
+		cNotice, err := s.ToConvenienceNotice(rawOutput)
 		if err != nil {
 			return err
 		}
@@ -105,7 +105,7 @@ func (s *SynchronizerOutputCreate) CreateOutput(ctx context.Context, rawOutputRe
 	return nil
 }
 
-func (s *SynchronizerOutputCreate) GetConvenienceVoucher(rawOutput Output) (*model.ConvenienceVoucher, error) {
+func (s *SynchronizerOutputCreate) ToConvenienceVoucher(rawOutput Output) (*model.ConvenienceVoucher, error) {
 	data, err := s.AbiDecoder.GetMapRaw(rawOutput.RawData)
 	if err != nil {
 		return nil, err
@@ -119,66 +119,42 @@ func (s *SynchronizerOutputCreate) GetConvenienceVoucher(rawOutput Output) (*mod
 	if !ok {
 		return nil, fmt.Errorf("value not found %v", data)
 	}
-	outputIndex, err := strconv.ParseUint(rawOutput.Index, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	inputIndex, err := strconv.ParseUint(rawOutput.InputIndex, 10, 64)
-	if err != nil {
-		return nil, err
-	}
 	strPayload := "0x" + common.Bytes2Hex(rawOutput.RawData)
 	cVoucher := model.ConvenienceVoucher{
 		Destination:      destination,
 		Payload:          strPayload,
 		Executed:         false,
-		InputIndex:       inputIndex,
-		OutputIndex:      outputIndex,
-		ProofOutputIndex: outputIndex,
+		InputIndex:       rawOutput.InputIndex,
+		OutputIndex:      rawOutput.Index,
+		ProofOutputIndex: rawOutput.Index,
 		AppContract:      common.BytesToAddress(rawOutput.AppContract),
 		Value:            voucherValue.String(),
 	}
 	return &cVoucher, nil
 }
 
-func (s *SynchronizerOutputCreate) GetConvenienceNotice(rawOutput Output) (*model.ConvenienceNotice, error) {
-	outputIndex, err := strconv.ParseUint(rawOutput.Index, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	inputIndex, err := strconv.ParseUint(rawOutput.InputIndex, 10, 64)
-	if err != nil {
-		return nil, err
-	}
+func (s *SynchronizerOutputCreate) ToConvenienceNotice(rawOutput Output) (*model.ConvenienceNotice, error) {
 	strPayload := "0x" + common.Bytes2Hex(rawOutput.RawData)
 	cNotice := model.ConvenienceNotice{
 		Payload:              strPayload,
-		InputIndex:           inputIndex,
-		OutputIndex:          outputIndex,
-		ProofOutputIndex:     outputIndex,
+		InputIndex:           rawOutput.InputIndex,
+		OutputIndex:          rawOutput.Index,
+		ProofOutputIndex:     rawOutput.Index,
 		AppContract:          common.BytesToAddress(rawOutput.AppContract).Hex(),
 		OutputHashesSiblings: string(rawOutput.OutputHashesSiblings),
 	}
 	return &cNotice, nil
 }
 
-func (s *SynchronizerOutputCreate) GetRawOutputRef(rawOutput Output) (*repository.RawOutputRef, error) {
-	outputIndex, err := strconv.ParseUint(rawOutput.Index, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	inputIndex, err := strconv.ParseUint(rawOutput.InputIndex, 10, 64)
-	if err != nil {
-		return nil, err
-	}
+func (s *SynchronizerOutputCreate) ToRawOutputRef(rawOutput Output) (*repository.RawOutputRef, error) {
 	outputType, err := getOutputType(rawOutput.RawData)
 	if err != nil {
 		return nil, err
 	}
 	return &repository.RawOutputRef{
-		RawID:       rawOutput.ID,
-		InputIndex:  inputIndex,
-		OutputIndex: outputIndex,
+		AppID:       rawOutput.ApplicationId,
+		InputIndex:  rawOutput.InputIndex,
+		OutputIndex: rawOutput.Index,
 		AppContract: common.BytesToAddress(rawOutput.AppContract).Hex(),
 		Type:        outputType,
 		UpdatedAt:   rawOutput.UpdatedAt,

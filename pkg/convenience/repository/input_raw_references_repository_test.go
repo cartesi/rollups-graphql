@@ -52,8 +52,8 @@ func (s *RawInputRefSuite) TestNoDuplicateInputs() {
 	appContract := common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT)
 	err := s.RawInputRefRepository.Create(ctx, RawInputRef{
 		ID:          "001",
-		RawID:       uint64(1),
-		InputIndex:  uint64(1),
+		AppID:       1,
+		InputIndex:  uint64(3),
 		AppContract: appContract.Hex(),
 		Status:      "NONE",
 		ChainID:     "31337",
@@ -63,8 +63,8 @@ func (s *RawInputRefSuite) TestNoDuplicateInputs() {
 
 	err = s.RawInputRefRepository.Create(ctx, RawInputRef{
 		ID:          "001",
-		RawID:       uint64(1),
-		InputIndex:  uint64(1),
+		AppID:       1,
+		InputIndex:  uint64(3),
 		AppContract: appContract.Hex(),
 		Status:      "NONE",
 		ChainID:     "31337",
@@ -72,8 +72,8 @@ func (s *RawInputRefSuite) TestNoDuplicateInputs() {
 	s.Require().NoError(err)
 
 	var count int
-	err = s.RawInputRefRepository.Db.QueryRow(`SELECT COUNT(*) FROM convenience_input_raw_references WHERE raw_id = ? AND app_contract = ?`,
-		uint64(1), appContract.Hex()).Scan(&count)
+	err = s.RawInputRefRepository.Db.QueryRow(`SELECT COUNT(*) FROM convenience_input_raw_references WHERE input_index = ? AND app_contract = ?`,
+		uint64(3), appContract.Hex()).Scan(&count)
 
 	s.Require().NoError(err)
 	s.Require().Equal(1, count)
@@ -84,8 +84,8 @@ func (s *RawInputRefSuite) TestSaveDifferentInputs() {
 	appContract := common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT)
 	err := s.RawInputRefRepository.Create(ctx, RawInputRef{
 		ID:          "001",
-		RawID:       uint64(1),
-		InputIndex:  uint64(1),
+		AppID:       uint64(1),
+		InputIndex:  uint64(0),
 		AppContract: appContract.Hex(),
 		Status:      "NONE",
 		ChainID:     "31337",
@@ -95,7 +95,7 @@ func (s *RawInputRefSuite) TestSaveDifferentInputs() {
 
 	err = s.RawInputRefRepository.Create(ctx, RawInputRef{
 		ID:          "002",
-		RawID:       uint64(2),
+		AppID:       uint64(1),
 		InputIndex:  uint64(1),
 		AppContract: appContract.Hex(),
 		Status:      "NONE",
@@ -110,12 +110,11 @@ func (s *RawInputRefSuite) TestSaveDifferentInputs() {
 	s.Require().Equal(2, count)
 }
 
-func (s *RawInputRefSuite) TestFindByRawIdAndAppContract() {
+func (s *RawInputRefSuite) TestFindByInputIndexAndAppContract() {
 	ctx := context.Background()
 	appContract := common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT)
 	err := s.RawInputRefRepository.Create(ctx, RawInputRef{
 		ID:          "001",
-		RawID:       uint64(1),
 		InputIndex:  uint64(1),
 		AppContract: appContract.Hex(),
 		Status:      "NONE",
@@ -124,7 +123,7 @@ func (s *RawInputRefSuite) TestFindByRawIdAndAppContract() {
 
 	s.Require().NoError(err)
 
-	input, err := s.RawInputRefRepository.FindByRawIdAndAppContract(ctx, uint64(1), &appContract)
+	input, err := s.RawInputRefRepository.FindByInputIndexAndAppContract(ctx, uint64(1), &appContract)
 
 	s.Require().NoError(err)
 	s.Require().Equal("001", input.ID)
@@ -138,16 +137,25 @@ func (s *RawInputRefSuite) TestUpdateStatusJustOneRawID() {
 	appContract := common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT)
 	err := s.RawInputRefRepository.Create(ctx, RawInputRef{
 		ID:          "001",
-		RawID:       uint64(1),
 		InputIndex:  uint64(1),
+		AppID:       uint64(3),
 		AppContract: appContract.Hex(),
 		Status:      "NONE",
 		ChainID:     "31337",
 	})
 
 	s.Require().NoError(err)
-	rawInputIds := []string{"1"}
-	err = s.RawInputRefRepository.UpdateStatus(ctx, rawInputIds, "ACCEPTED")
+	rawInputsRefs := []RawInputRef{
+		{
+			ID:          "001",
+			InputIndex:  uint64(1),
+			AppID:       uint64(3),
+			AppContract: "someContractAddress",
+			Status:      "NONE",
+			ChainID:     "31337",
+		},
+	}
+	err = s.RawInputRefRepository.UpdateStatus(ctx, rawInputsRefs, "ACCEPTED")
 	s.Require().NoError(err)
 }
 
@@ -157,18 +165,27 @@ func (s *RawInputRefSuite) TestUpdateStatusJustOneRawIDUsingPG() {
 	appContract := common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT)
 	err := s.RawInputRefRepository.Create(ctx, RawInputRef{
 		ID:          "001",
-		RawID:       uint64(1),
 		InputIndex:  uint64(1),
+		AppID:       uint64(7),
 		AppContract: appContract.Hex(),
 		Status:      "NONE",
 		ChainID:     "31337",
 	})
 
 	s.Require().NoError(err)
-	rawInputIds := []string{"1"}
-	err = s.RawInputRefRepository.UpdateStatus(ctx, rawInputIds, "ACCEPTED")
+	rawInputsRefs := []RawInputRef{
+		{
+			ID:          "001",
+			InputIndex:  uint64(1),
+			AppID:       uint64(7),
+			AppContract: appContract.Hex(),
+			Status:      "NONE",
+			ChainID:     "31337",
+		},
+	}
+	err = s.RawInputRefRepository.UpdateStatus(ctx, rawInputsRefs, "ACCEPTED")
 	s.Require().NoError(err)
-	rawInputRef, err := s.RawInputRefRepository.FindByRawIdAndAppContract(ctx, uint64(1), &appContract)
+	rawInputRef, err := s.RawInputRefRepository.FindByInputIndexAndAppContract(ctx, uint64(1), &appContract)
 	s.Require().NoError(err)
 	s.Equal("ACCEPTED", rawInputRef.Status)
 }

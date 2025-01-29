@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"log/slog"
 
 	"github.com/cartesi/rollups-graphql/pkg/commons"
 	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
@@ -91,32 +90,6 @@ func (s *ConvenienceService) CreateInput(
 		return s.InputRepository.Update(ctx, *input)
 	}
 	return s.InputRepository.Create(ctx, *input)
-}
-
-func (s *ConvenienceService) CreateReport(
-	ctx context.Context,
-	report *model.Report,
-) (*model.Report, error) {
-	reportInDb, err := s.ReportRepository.FindByInputAndOutputIndex(ctx,
-		uint64(report.InputIndex),
-		uint64(report.Index),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	if reportInDb != nil {
-		slog.Debug("Report exist",
-			"inputIndex", report.InputIndex,
-			"outputIndex", report.Index,
-		)
-		return s.ReportRepository.Update(ctx, *reportInDb)
-	}
-	reportCreated, err := s.ReportRepository.CreateReport(ctx, *report)
-	if err != nil {
-		return nil, err
-	}
-	return &reportCreated, err
 }
 
 func (c *ConvenienceService) UpdateExecuted(

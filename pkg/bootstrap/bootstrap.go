@@ -46,20 +46,20 @@ type BootstrapOpts struct {
 	SqliteFile         string
 	DbImplementation   string
 	TimeoutWorker      time.Duration
-	RawEnabled         bool
+	DisableSync        bool
 }
 
 // Create the options struct with default values.
 func NewBootstrapOpts() BootstrapOpts {
 	return BootstrapOpts{
-		HttpAddress:        "127.0.0.1",
+		HttpAddress:        "0.0.0.0",
 		HttpPort:           DefaultHttpPort,
 		ApplicationAddress: "0x75135d8ADb7180640d29d822D9AD59E83E8695b2",
 		SqliteFile:         "",
 		DbImplementation:   "postgres",
 		TimeoutWorker:      supervisor.DefaultSupervisorTimeout,
 		AutoCount:          false,
-		RawEnabled:         true,
+		DisableSync:        false,
 	}
 }
 
@@ -84,10 +84,10 @@ func NewSupervisorGraphQL(opts BootstrapOpts) supervisor.SupervisorWorker {
 		Handler: e,
 	})
 
-	if opts.RawEnabled {
+	if !opts.DisableSync {
 		dbRawUrl, ok := os.LookupEnv("POSTGRES_NODE_DB_URL")
 		if !ok {
-			panic("POSTGRES_RAW_DB_URL environment variable not set")
+			panic("POSTGRES_NODE_DB_URL environment variable not set")
 		}
 		dbNodeV2 := sqlx.MustConnect("postgres", dbRawUrl)
 		rawRepository := synchronizernode.NewRawRepository(dbRawUrl, dbNodeV2)

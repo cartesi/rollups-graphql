@@ -50,18 +50,26 @@ func (s *SynchronizerOutputExecuted) SyncOutputsExecution(ctx context.Context) e
 }
 
 func (s *SynchronizerOutputExecuted) syncOutputs(ctx context.Context) error {
-	lastUpdatedAtExecuted, lastId, err := s.RawOutputRefRepository.GetLastUpdatedAtExecuted(ctx)
+	lastOutputRef, err := s.RawOutputRefRepository.GetLastUpdatedAtExecuted(ctx)
 	if err != nil {
 		return err
 	}
-	if lastUpdatedAtExecuted == nil && lastId == nil {
-		startTime := time.Unix(0, 0)
-		startId := uint64(0)
-		lastUpdatedAtExecuted = &startTime
-		lastId = &startId
+	if lastOutputRef == nil {
+		lastOutputRef = &repository.RawOutputRef{
+			AppID:       0,
+			OutputIndex: 0,
+			InputIndex:  0,
+			UpdatedAt:   time.Unix(0, 0),
+		}
+	} else {
+		slog.Debug("SyncOutputs",
+			"lastUpdatedAtExecuted", lastOutputRef.UpdatedAt,
+			"AppID", lastOutputRef.AppID,
+			"OutputIndex", lastOutputRef.OutputIndex,
+		)
 	}
-	slog.Debug("SyncOutputs", "lastUpdatedAtExecuted", lastUpdatedAtExecuted, "lastId", *lastId)
-	rawOutputs, err := s.RawNodeV2Repository.FindAllOutputsExecutedAfter(ctx, *lastUpdatedAtExecuted, *lastId)
+
+	rawOutputs, err := s.RawNodeV2Repository.FindAllOutputsExecutedAfter(ctx, lastOutputRef)
 	if err != nil {
 		return err
 	}
@@ -78,7 +86,7 @@ func (s *SynchronizerOutputExecuted) UpdateExecutionData(
 	ctx context.Context,
 	rawOutput Output,
 ) error {
-	ref, err := s.RawOutputRefRepository.FindByID(ctx, rawOutput.ID)
+	ref, err := s.RawOutputRefRepository.FindByAppIDAndOutputIndex(ctx, rawOutput.ApplicationId, rawOutput.Index)
 	if err != nil {
 		return err
 	}
@@ -86,12 +94,12 @@ func (s *SynchronizerOutputExecuted) UpdateExecutionData(
 		slog.Warn("We may need to wait for the reference to be created")
 		return nil
 	}
-	appContract := common.HexToAddress(ref.AppContract)
+	appContract := common.BytesToAddress(rawOutput.AppContract)
 	if ref.Type == repository.RAW_VOUCHER_TYPE {
 		err = s.VoucherRepository.SetExecuted(ctx,
 			&model.ConvenienceVoucher{
 				AppContract:     appContract,
-				OutputIndex:     ref.OutputIndex,
+				OutputIndex:     rawOutput.Index,
 				TransactionHash: "0x" + common.Bytes2Hex(rawOutput.TransactionHash),
 			})
 		if err != nil {

@@ -9,6 +9,7 @@ export let options = {
   ],
   thresholds: {
     http_req_failed: [{ threshold: 'rate<0.05', abortOnFail: true }],
+    checks: ['rate>0.99'],
   },
 }
 
@@ -93,7 +94,7 @@ function testInputFound() {
 
   check(response, {
     'testInputFound is status 200': (r) => r.status === 200,
-    'testInputFound response body contains expected content': (r) =>
+    'testInputFound response body contains expected content': (r) => 
       assertStringContains(r.body, '{"data":{"input":{"index":1}}}'),
   })
 }

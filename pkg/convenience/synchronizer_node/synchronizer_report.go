@@ -3,7 +3,6 @@ package synchronizernode
 import (
 	"context"
 	"log/slog"
-	"strconv"
 
 	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
 	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
@@ -44,34 +43,23 @@ func (s *SynchronizerReport) SyncReports(ctx context.Context) error {
 }
 
 func (s *SynchronizerReport) syncReports(ctx context.Context) error {
-	lastRawId, err := s.ReportRepository.FindLastRawId(ctx)
+	ourLastReport, err := s.ReportRepository.FindLastReport(ctx)
 	if err != nil {
 		slog.Error("fail to find last report imported")
 		return err
 	}
-	rawReports, err := s.RawRepository.FindAllReportsByFilter(ctx, FilterID{IDgt: lastRawId + 1})
+	rawReports, err := s.RawRepository.FindAllReportsGt(ctx, ourLastReport)
 	if err != nil {
 		slog.Error("fail to find all reports")
 		return err
 	}
 	for _, rawReport := range rawReports {
-		appContract := common.BytesToAddress(rawReport.AppContract)
-		index, err := strconv.ParseInt(rawReport.Index, 10, 64) // nolint
-		if err != nil {
-			slog.Error("fail to parse report index to int", "value", rawReport.Index)
-			return err
-		}
-		inputIndex, err := strconv.ParseInt(rawReport.InputIndex, 10, 64) // nolint
-		if err != nil {
-			slog.Error("fail to parse input index to int", "value", rawReport.InputIndex)
-			return err
-		}
 		_, err = s.ReportRepository.CreateReport(ctx, model.Report{
-			AppContract: appContract,
-			Index:       int(index),
-			InputIndex:  int(inputIndex),
+			AppContract: common.BytesToAddress(rawReport.AppContract),
+			Index:       int(rawReport.Index),
+			InputIndex:  int(rawReport.InputIndex),
 			Payload:     common.Bytes2Hex(rawReport.RawData),
-			RawID:       uint64(rawReport.ID),
+			AppID:       uint64(rawReport.Index),
 		})
 		if err != nil {
 			slog.Error("fail to create report", "err", err)

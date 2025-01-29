@@ -7,3 +7,6 @@ TODO
 sqlite3
 .idea/
 .direnv/
+/rollups-graphql
+/rollups-node
+/rollups-espresso-reader
