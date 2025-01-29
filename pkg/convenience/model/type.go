@@ -34,6 +34,24 @@ const (
 	CompletionStatusPayloadLengthLimitExceeded
 )
 
+type ConvenienceApplication struct {
+	ID                   uint64         `db:"id"`
+	Name                 string         `db:"name"`
+	ApplicationAddress   common.Address `db:"application_address"`
+	ConsensusAddress     common.Address `db:"consensus_address"`
+	TemplateHash         []byte         `db:"template_hash"`
+	TemplateURI          string         `db:"template_uri"`
+	EpochLength          uint64         `db:"epoch_length"`
+	State                string         `db:"state"`
+	Reason               string         `db:"reason,omitempty"`
+	LastProcessedBlock   uint64         `db:"last_processed_block"`
+	LastClaimCheckBlock  uint64         `db:"last_claim_check_block"`
+	LastOutputCheckBlock uint64         `db:"last_output_check_block"`
+	ProcessedInputs      uint64         `db:"processed_inputs"`
+	CreatedAt            time.Time      `db:"created_at"`
+	UpdatedAt            time.Time      `db:"updated_at"`
+}
+
 type ConvenienceNotice struct {
 	AppContract          string `db:"app_contract"`
 	Payload              string `db:"payload"`
