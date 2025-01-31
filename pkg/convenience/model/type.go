@@ -135,6 +135,8 @@ type SynchronizerFetch struct {
 	EndInputCursorAfter  string `db:"end_input_cursor_after"`
 	IniReportCursorAfter string `db:"ini_report_cursor_after"`
 	EndReportCursorAfter string `db:"end_report_cursor_after"`
+	IniAppCursorAfter    string `db:"ini_app_cursor_after"`
+	EndAppCursorAfter    string `db:"end_app_cursor_after"`
 }
 
 // Rollups input, which can be advance or inspect.
