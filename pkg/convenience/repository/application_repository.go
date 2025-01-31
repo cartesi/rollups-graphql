@@ -137,6 +137,28 @@ func transformToApplicationQuery(filter []*model.ConvenienceFilter) (string, []a
 	return query, args, count, nil
 }
 
+func (a *ApplicationRepository) FindAll(ctx context.Context, filter []*model.ConvenienceFilter) ([]*model.ConvenienceApplication, error) {
+	query := `SELECT * FROM convenience_application `
+	where, args, _, err := transformToApplicationQuery(filter)
+	if err != nil {
+		return nil, err
+	}
+	query += where
+	slog.Debug("Query", "query", query, "args", args)
+	stmt, err := a.Db.Preparex(query)
+	if err != nil {
+		slog.Error("query error")
+		return nil, err
+	}
+	defer stmt.Close()
+	var applications []*model.ConvenienceApplication
+	err = stmt.SelectContext(ctx, &applications)
+	if err != nil {
+		return nil, err
+	}
+	return applications, nil
+}
+
 func (a *ApplicationRepository) Count(ctx context.Context, filter []*model.ConvenienceFilter) (uint64, error) {
 	query := `SELECT COUNT(*) FROM convenience_application `
 	where, args, _, err := transformToApplicationQuery(filter)
@@ -152,7 +174,7 @@ func (a *ApplicationRepository) Count(ctx context.Context, filter []*model.Conve
 	}
 	defer stmt.Close()
 	var countApplication uint64
-	err = stmt.GetContext(ctx, &countApplication)
+	err = stmt.GetContext(ctx, &countApplication, args...)
 	if err != nil {
 		return 0, err
 	}
