@@ -145,14 +145,14 @@ func (a *ApplicationRepository) FindAll(ctx context.Context, filter []*model.Con
 	}
 	query += where
 	slog.Debug("Query", "query", query, "args", args)
-	stmt, err := a.Db.Preparex(query)
+	stmt, err := a.Db.PreparexContext(ctx, query)
 	if err != nil {
 		slog.Error("query error")
 		return nil, err
 	}
 	defer stmt.Close()
 	var applications []*model.ConvenienceApplication
-	err = stmt.SelectContext(ctx, &applications)
+	err = stmt.SelectContext(ctx, &applications, args...)
 	if err != nil {
 		return nil, err
 	}
