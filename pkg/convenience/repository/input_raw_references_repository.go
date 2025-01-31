@@ -84,7 +84,7 @@ func (r *RawInputRefRepository) Create(ctx context.Context, rawInput RawInputRef
 	}
 
 	_, err = exec.ExecContext(ctx, `INSERT INTO convenience_input_raw_references (
-		id, app_id, input_index, app_contract, status, chain_id, created_at) 
+		id, app_id, input_index, app_contract, status, chain_id, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 		rawInput.ID, rawInput.AppID, rawInput.InputIndex,
 		rawInput.AppContract, rawInput.Status, rawInput.ChainID,
@@ -103,9 +103,9 @@ func (r *RawInputRefRepository) Create(ctx context.Context, rawInput RawInputRef
 func (r *RawInputRefRepository) GetLatestInputRef(ctx context.Context) (*RawInputRef, error) {
 	var inputRef RawInputRef
 	err := r.Db.GetContext(ctx, &inputRef, `
-		SELECT * FROM convenience_input_raw_references 
-		ORDER BY 
-			created_at DESC, input_index DESC, app_id DESC 
+		SELECT * FROM convenience_input_raw_references
+		ORDER BY
+			created_at DESC, input_index DESC, app_id DESC
 		LIMIT 1
 	`)
 
@@ -114,8 +114,8 @@ func (r *RawInputRefRepository) GetLatestInputRef(ctx context.Context) (*RawInpu
 			slog.Warn("No raw input references found")
 			return nil, nil
 		}
-		slog.Error("Failed to get latest raw input ref", "err", err)
-		return nil, err
+			slog.Error("Failed to get latest raw input ref", "err", err)
+			return nil, err
 	}
 
 	slog.Debug("Latest InputRef fetched",
@@ -157,7 +157,7 @@ func (r *RawInputRefRepository) FindFirstInputByStatusNone(ctx context.Context) 
 func (r *RawInputRefRepository) FindByInputIndexAndAppContract(ctx context.Context, inputIndex uint64, appContract *common.Address) (*RawInputRef, error) {
 	var inputRef RawInputRef
 	err := r.Db.GetContext(ctx, &inputRef, `
-		SELECT * FROM convenience_input_raw_references 
+		SELECT * FROM convenience_input_raw_references
 		WHERE input_index = $1 and app_contract = $2
 		LIMIT 1`, inputIndex, appContract.Hex())
 	if err != nil {

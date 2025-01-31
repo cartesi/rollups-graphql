@@ -104,6 +104,9 @@ func (s *SynchronizerNodeSuite) SetupTest() {
 		&rawRepository,
 		abiDecoder,
 	)
+
+	synchronizerAppCreate := NewSynchronizerAppCreator(container.GetApplicationRepository(), &rawRepository)
+
 	wr := NewSynchronizerCreateWorker(
 		s.inputRepository,
 		s.inputRefRepository,
@@ -111,6 +114,7 @@ func (s *SynchronizerNodeSuite) SetupTest() {
 		&rawRepository,
 		&synchronizerUpdate,
 		container.GetOutputDecoder(),
+		synchronizerAppCreate,
 		synchronizerReport,
 		synchronizerOutputUpdate,
 		container.GetRawOutputRefRepository(),

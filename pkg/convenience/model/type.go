@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"database/sql"
 	"math/big"
 	"time"
 
@@ -67,7 +68,7 @@ type ConvenienceApplication struct {
 	TemplateURI          string         `db:"template_uri"`
 	EpochLength          uint64         `db:"epoch_length"`
 	State                string         `db:"state"`
-	Reason               string         `db:"reason,omitempty"`
+	Reason               sql.NullString `db:"reason,omitempty"`
 	LastProcessedBlock   uint64         `db:"last_processed_block"`
 	LastClaimCheckBlock  uint64         `db:"last_claim_check_block"`
 	LastOutputCheckBlock uint64         `db:"last_output_check_block"`

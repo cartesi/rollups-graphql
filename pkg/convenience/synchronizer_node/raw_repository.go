@@ -91,6 +91,138 @@ func NewRawRepository(connectionURL string, db *sqlx.DB) *RawRepository {
 	return &RawRepository{connectionURL, db}
 }
 
+func (s *RawRepository) GetApplicationRef(ctx context.Context, appID uint64) ([]model.ConvenienceApplication, error) {
+	apps := []model.ConvenienceApplication{}
+	query := `
+		SELECT
+			id,
+			name,
+			iapplication_address as application_address,
+			iconsensus_address as consensus_address,
+			template_hash,
+			template_uri,
+			epoch_length,
+			state,
+			reason,
+			last_processed_block,
+			last_claim_check_block,
+			last_output_check_block,
+			processed_inputs,
+			created_at,
+			updated_at
+		FROM
+			application
+		WHERE
+			id >= $1
+		ORDER BY id ASC
+		LIMIT $2
+	`
+	res, err := s.Db.QueryxContext(ctx, query, appID, LIMIT)
+
+	if err != nil {
+		slog.Error("Failed to execute query in CheckStatusApplicationRef", "error", err)
+		return nil, err
+	}
+
+	for res.Next() {
+		var app model.ConvenienceApplication
+		err := res.StructScan(&app)
+		if err != nil {
+			slog.Error("Failed to scan row into Application struct", "error", err)
+			return nil, err
+		}
+		apps = append(apps, app)
+	}
+
+	return apps, nil
+}
+
+func (s *RawRepository) GetLatestApp(ctx context.Context) (*model.ConvenienceApplication, error) {
+	var output *model.ConvenienceApplication
+	query := `
+		SELECT
+			id,
+			name,
+			iapplication_address as application_address,
+			iconsensus_address as consensus_address,
+			template_hash,
+			template_uri,
+			epoch_length,
+			state,
+			reason,
+			last_processed_block,
+			last_claim_check_block,
+			last_output_check_block,
+			processed_inputs,
+			created_at,
+			updated_at
+		FROM
+			application
+		ORDER BY
+			id ASC
+		LIMIT 1
+	`
+	err := s.Db.GetContext(ctx, &output, query)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			slog.Warn("No application found")
+			return nil, nil
+		}
+		slog.Error("Failed to get latest application ref", "error", err)
+		return nil, err
+	}
+
+	slog.Debug("Latest App fetched", "id", output.ID, "name", output.Name, "address", output.ApplicationAddress)
+
+	return output, nil
+}
+
+func (s *RawRepository) FindAllAppsRef(ctx context.Context) ([]model.ConvenienceApplication, error) {
+	query := `
+	SELECT
+		id,
+		name,
+		iapplication_address as application_address,
+		iconsensus_address as consensus_address,
+		template_hash,
+		template_uri,
+		epoch_length,
+		state,
+		reason,
+		last_processed_block,
+		last_claim_check_block,
+		last_output_check_block,
+		processed_inputs,
+		created_at,
+		updated_at
+	FROM
+		application
+	ORDER BY
+		id ASC
+	LIMIT $1
+	`
+
+	apps := []model.ConvenienceApplication{}
+	result, err := s.Db.QueryxContext(ctx, query, LIMIT)
+	if err != nil {
+		slog.Error("Failed to execute query in FindAllAppsRef", "error", err)
+		return nil, err
+	}
+
+	for result.Next() {
+		var app model.ConvenienceApplication
+		err := result.StructScan(&app)
+		if err != nil {
+			slog.Error("Failed to scan row into Application struct", "error", err)
+			return nil, err
+		}
+		apps = append(apps, app)
+	}
+
+	return apps, nil
+}
+
 func (s *RawRepository) First50RawInputsGteRefWithStatus(ctx context.Context, inputRef repository.RawInputRef, status string) ([]RawInput, error) {
 	query := `
 		SELECT

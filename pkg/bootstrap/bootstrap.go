@@ -142,6 +142,8 @@ func NewSupervisorGraphQL(opts BootstrapOpts) supervisor.SupervisorWorker {
 			inputAbiDecoder,
 		)
 
+		synchronizerAppCreate := synchronizernode.NewSynchronizerAppCreator(container.GetApplicationRepository(), rawRepository)
+
 		synchronizerWorker := synchronizernode.NewSynchronizerCreateWorker(
 			container.GetInputRepository(),
 			container.GetRawInputRepository(),
@@ -149,6 +151,7 @@ func NewSupervisorGraphQL(opts BootstrapOpts) supervisor.SupervisorWorker {
 			rawRepository,
 			&synchronizerUpdate,
 			container.GetOutputDecoder(),
+			synchronizerAppCreate,
 			synchronizerReport,
 			synchronizerOutputUpdate,
 			container.GetRawOutputRefRepository(),
