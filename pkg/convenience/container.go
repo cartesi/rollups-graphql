@@ -27,6 +27,7 @@ type Container struct {
 	AutoCount              bool
 	rawInputRefRepository  *repository.RawInputRefRepository
 	rawOutputRefRepository *repository.RawOutputRefRepository
+	appRepository          *repository.ApplicationRepository
 }
 
 func NewContainer(db sqlx.DB, autoCount bool) *Container {
@@ -34,6 +35,20 @@ func NewContainer(db sqlx.DB, autoCount bool) *Container {
 		db:        &db,
 		AutoCount: autoCount,
 	}
+}
+
+func (c *Container) GetApplicationRepository() *repository.ApplicationRepository {
+	if c.appRepository != nil {
+		return c.appRepository
+	}
+	c.appRepository = &repository.ApplicationRepository{
+		Db: *c.db,
+	}
+	err := c.appRepository.CreateTables()
+	if err != nil {
+		panic(err)
+	}
+	return c.appRepository
 }
 
 func (c *Container) GetOutputDecoder() *decoder.OutputDecoder {
