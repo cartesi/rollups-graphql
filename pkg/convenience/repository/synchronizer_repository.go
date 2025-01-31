@@ -60,9 +60,9 @@ func (c *SynchronizerRepository) Create(
 		end_input_cursor_after,
 		ini_report_cursor_after,
 		end_report_cursor_after,
-		ini_app_cursor_after text,
-		end_app_cursor_after text
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9. $10)`
+		ini_app_cursor_after,
+		end_app_cursor_after
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
 	exec := DBExecutor{&c.Db}
 	_, err := exec.ExecContext(ctx, insertSql,
