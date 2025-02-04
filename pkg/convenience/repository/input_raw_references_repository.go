@@ -114,8 +114,8 @@ func (r *RawInputRefRepository) GetLatestInputRef(ctx context.Context) (*RawInpu
 			slog.Warn("No raw input references found")
 			return nil, nil
 		}
-			slog.Error("Failed to get latest raw input ref", "err", err)
-			return nil, err
+		slog.Error("Failed to get latest raw input ref", "err", err)
+		return nil, err
 	}
 
 	slog.Debug("Latest InputRef fetched",
