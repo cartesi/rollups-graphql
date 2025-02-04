@@ -138,7 +138,7 @@ func (s *RawRepository) GetApplicationRef(ctx context.Context, appID uint64) ([]
 }
 
 func (s *RawRepository) GetLatestApp(ctx context.Context) (*model.ConvenienceApplication, error) {
-	var output *model.ConvenienceApplication
+	var output model.ConvenienceApplication
 	query := `
 		SELECT
 			id,
@@ -175,7 +175,7 @@ func (s *RawRepository) GetLatestApp(ctx context.Context) (*model.ConvenienceApp
 
 	slog.Debug("Latest App fetched", "id", output.ID, "name", output.Name, "address", output.ApplicationAddress)
 
-	return output, nil
+	return &output, nil
 }
 
 func (s *RawRepository) FindAllAppsRef(ctx context.Context) ([]model.ConvenienceApplication, error) {

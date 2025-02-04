@@ -79,5 +79,5 @@ func (s *SynchronizerAppCreate) TestAppCreate() {
 	s.Require().NoError(err)
 	count, err := s.appRepository.Count(s.ctx, nil)
 	s.Require().NoError(err)
-	s.Require().Equal(1, count)
+	s.Require().Equal(1, int(count))
 }
