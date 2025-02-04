@@ -73,11 +73,12 @@ func (s *SynchronizerAppCreate) TestAppCreate() {
 	apps, err := s.rawNodeV2Repository.FindAllAppsRef(s.ctx)
 	s.Require().NoError(err)
 	s.Require().NotEmpty(apps)
+	size := min(LIMIT, uint64(len(apps)))
 	firstApp := apps[0]
 	s.Equal("echo-dapp", firstApp.Name)
 	err = s.synchronizerAppCreator.SyncApps(s.ctx)
 	s.Require().NoError(err)
 	count, err := s.appRepository.Count(s.ctx, nil)
 	s.Require().NoError(err)
-	s.Require().Equal(1, int(count))
+	s.Require().Equal(size, count)
 }
