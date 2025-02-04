@@ -9,6 +9,7 @@ import (
 
 	"github.com/cartesi/rollups-graphql/pkg/commons"
 	"github.com/cartesi/rollups-graphql/pkg/convenience"
+	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
 	"github.com/cartesi/rollups-graphql/postgres/raw"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/suite"
@@ -21,6 +22,7 @@ type SynchronizerAppCreate struct {
 	tempDir                    string
 	container                  *convenience.Container
 	synchronizerAppCreator     *SynchronizerAppCreator
+	appRepository              *repository.ApplicationRepository
 	rawNodeV2Repository        *RawRepository
 }
 
@@ -51,8 +53,10 @@ func (s *SynchronizerAppCreate) SetupTest() {
 	dbNodeV2 := sqlx.MustConnect("postgres", RAW_DB_URL)
 	s.rawNodeV2Repository = NewRawRepository(RAW_DB_URL, dbNodeV2)
 
+	s.appRepository = s.container.GetApplicationRepository()
+
 	s.synchronizerAppCreator = NewSynchronizerAppCreator(
-		s.container.GetApplicationRepository(),
+		s.appRepository,
 		s.rawNodeV2Repository,
 	)
 }
@@ -71,4 +75,9 @@ func (s *SynchronizerAppCreate) TestAppCreate() {
 	s.Require().NotEmpty(apps)
 	firstApp := apps[0]
 	s.Equal("echo-dapp", firstApp.Name)
+	err = s.synchronizerAppCreator.SyncApps(s.ctx)
+	s.Require().NoError(err)
+	count, err := s.appRepository.Count(s.ctx, nil)
+	s.Require().NoError(err)
+	s.Require().Equal(1, count)
 }
