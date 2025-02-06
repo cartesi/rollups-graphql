@@ -18,19 +18,7 @@ func (a *ApplicationRepository) CreateTables() error {
 	schema := `CREATE TABLE IF NOT EXISTS convenience_application (
 		id INTEGER NOT NULL,
 		name text NOT NULL,
-		application_address text NOT NULL,
-		consensus_address text NOT NULL,
-		template_hash text NOT NULL,
-		template_uri text NOT NULL,
-		epoch_length text NOT NULL,
-		state text NOT NULL,
-		reason text,
-		last_processed_block BIGINT NOT NULL,
-		last_claim_check_block BIGINT NOT NULL,
-		last_output_check_block BIGINT NOT NULL,
-		processed_inputs BIGINT NOT NULL,
-		created_at TIMESTAMP NOT NULL,
-		updated_at TIMESTAMP NOT NULL
+		application_address text NOT NULL
 	);
 	CREATE INDEX IF NOT EXISTS convenience_application_id ON convenience_application (id);
 	CREATE INDEX IF NOT EXISTS convenience_application_application_address ON convenience_application (application_address);
@@ -50,35 +38,11 @@ func (a *ApplicationRepository) Create(ctx context.Context, rawApp *model.Conven
 	insertSql := `INSERT INTO convenience_application (
 		id,
 		name,
-		application_address,
-		consensus_address,
-		template_hash,
-		template_uri,
-		epoch_length,
-		state,
-		reason,
-		last_processed_block,
-		last_claim_check_block,
-		last_output_check_block,
-		processed_inputs,
-		created_at,
-		updated_at
+		application_address
 		) VALUES (
 		 $1,
 		 $2,
-		 $3,
-		 $4,
-		 $5,
-		 $6,
-		 $7,
-		 $8,
-		 $9,
-		 $10,
-		 $11,
-		 $12,
-		 $13,
-		 $14,
-		 $15
+		 $3
 		);`
 
 	exec := DBExecutor{db: &a.Db}
@@ -87,18 +51,6 @@ func (a *ApplicationRepository) Create(ctx context.Context, rawApp *model.Conven
 		rawApp.ID,
 		rawApp.Name,
 		rawApp.ApplicationAddress,
-		rawApp.ConsensusAddress,
-		rawApp.TemplateHash,
-		rawApp.TemplateURI,
-		rawApp.EpochLength,
-		rawApp.State,
-		rawApp.Reason,
-		rawApp.LastProcessedBlock,
-		rawApp.LastClaimCheckBlock,
-		rawApp.LastOutputCheckBlock,
-		rawApp.ProcessedInputs,
-		rawApp.CreatedAt,
-		rawApp.UpdatedAt,
 	)
 
 	if err != nil {
@@ -117,11 +69,11 @@ func transformToApplicationQuery(filter []*model.ConvenienceFilter) (string, []a
 	where := []string{}
 	count := 1
 	for _, filter := range filter {
-		if *filter.Field == model.STATE {
+		if *filter.Field == model.APP_CONTRACT {
 			if filter.Eq != nil {
 				where = append(
 					where,
-					fmt.Sprintf("state = $%d", count),
+					fmt.Sprintf("application_address = $%d", count),
 				)
 				args = append(args, *filter.Eq)
 				count++
@@ -182,28 +134,5 @@ func (a *ApplicationRepository) Count(ctx context.Context, filter []*model.Conve
 }
 
 func (a *ApplicationRepository) Update(ctx context.Context, data *model.ConvenienceApplication) error {
-	query := `UPDATE convenience_application SET
-		reason = $1,
-		updated_at = $2,
-		state = $3,
-		last_processed_block = $4,
-		last_claim_check_block = $5,
-		last_output_check_block = $6,
-		processed_inputs = $7
-		WHERE application_address = $8;`
-
-	exec := DBExecutor{db: &a.Db}
-
-	_, err := exec.ExecContext(ctx, query,
-		data.Reason,
-		data.UpdatedAt,
-		data.State,
-		data.LastProcessedBlock,
-		data.LastClaimCheckBlock,
-		data.LastOutputCheckBlock,
-		data.ProcessedInputs,
-		data.ApplicationAddress,
-	)
-
-	return err
+	return fmt.Errorf("not implemented")
 }

@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/cartesi/rollups-graphql/pkg/commons"
 	configtest "github.com/cartesi/rollups-graphql/pkg/convenience/config_test"
@@ -49,20 +48,9 @@ func TestApplicationRepositorySuite(t *testing.T) {
 
 func newApp() *model.ConvenienceApplication {
 	return &model.ConvenienceApplication{
-		ID:                   1,
-		Name:                 "app1",
-		TemplateHash:         []byte("0x1234"),
-		TemplateURI:          "http://template.com",
-		EpochLength:          100,
-		State:                *model.ApplicationStateEnabled.String(),
-		LastProcessedBlock:   0,
-		LastClaimCheckBlock:  0,
-		LastOutputCheckBlock: 0,
-		CreatedAt:            time.Now(),
-		UpdatedAt:            time.Now(),
-		ProcessedInputs:      0,
-		ApplicationAddress:   common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT),
-		ConsensusAddress:     common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT),
+		ID:                 1,
+		Name:               "app1",
+		ApplicationAddress: common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT),
 	}
 }
 
@@ -76,70 +64,46 @@ func (s *ApplicationRepositorySuite) TestCreateApplication() {
 	s.Equal(1, int(count))
 }
 
-func (s *ApplicationRepositorySuite) TestUpdateApplication() {
-	ctx := context.Background()
-	app := newApp()
-	_, err := s.repository.Create(ctx, app)
-	s.NoError(err)
-	app.State = *model.ApplicationStateDisabled.String()
-	err = s.repository.Update(ctx, app)
-	s.NoError(err)
-	key := model.STATE
-	filter := []*model.ConvenienceFilter{
-		{
-			Field: &key,
-			Eq:    model.ApplicationStateDisabled.String(),
-		},
-	}
-	count, err := s.repository.Count(ctx, filter)
-	s.NoError(err)
-	s.Equal(1, int(count))
-}
-
 func (s *ApplicationRepositorySuite) TestFindApplication() {
 	ctx := context.Background()
+	counter := 10
+	add := configtest.DEFAULT_TEST_APP_CONTRACT
 
-	be_enabled := 5
-	be_disabled := 3
-	counter := 0
-
-	for ; counter < be_enabled; counter++ {
+	for i := 0; i < counter; i++ {
 		app := newApp()
-		app.Name = fmt.Sprintf("app%d", counter)
+		app.Name = fmt.Sprintf("app%d", i)
 		_, err := s.repository.Create(ctx, app)
 		s.NoError(err)
 	}
 
-	key := model.STATE
+	key := model.APP_CONTRACT
 	filter := []*model.ConvenienceFilter{
 		{
 			Field: &key,
-			Eq:    model.ApplicationStateEnabled.String(),
+			Eq:    &add,
 		},
 	}
 	count, err := s.repository.Count(ctx, filter)
 	s.NoError(err)
-	s.Equal(be_enabled, int(count))
+	s.Equal(counter, int(count))
 
-	for i := 0; i < be_disabled; i++ {
+	add = "0xdeadbeef"
+
+	for i := 0; i < counter; i++ {
 		app := newApp()
-		app.Name = fmt.Sprintf("app%d", counter)
-		app.State = *model.ApplicationStateDisabled.String()
+		app.Name = fmt.Sprintf("app%d", i)
+		app.ApplicationAddress = common.HexToAddress(add)
 		_, err := s.repository.Create(ctx, app)
 		s.NoError(err)
-		counter++
 	}
 
 	filter = []*model.ConvenienceFilter{
 		{
 			Field: &key,
-			Eq:    model.ApplicationStateDisabled.String(),
+			Eq:    &add,
 		},
 	}
-	disabled, err := s.repository.FindAll(ctx, filter)
+	count, err = s.repository.Count(ctx, filter)
 	s.NoError(err)
-	s.Equal(be_disabled, len(disabled))
-	for _, app := range disabled {
-		s.Equal(*model.ApplicationStateDisabled.String(), app.State)
-	}
+	s.Equal(counter, int(count))
 }
