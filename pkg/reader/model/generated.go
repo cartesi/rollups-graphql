@@ -17,6 +17,43 @@ type AddressFilterInput struct {
 	Or  []*ConvenientFilter `json:"or,omitempty"`
 }
 
+type AppConnection struct {
+	// Total number of entries that match the query
+	TotalCount int `json:"totalCount"`
+	// Pagination entries returned for the current page
+	Edges []*AppEdge `json:"edges"`
+	// Pagination metadata
+	PageInfo *PageInfo `json:"pageInfo"`
+}
+
+type AppEdge struct {
+	// Node instance
+	Node *Application `json:"node"`
+	// Pagination cursor
+	Cursor string `json:"cursor"`
+}
+
+// Filter object to restrict results depending on input properties
+type AppFilter struct {
+	// Filter only inputs with index lower than a given value
+	IndexLowerThan *int `json:"indexLowerThan,omitempty"`
+	// Filter only inputs with index greater than a given value
+	IndexGreaterThan *int `json:"indexGreaterThan,omitempty"`
+	// Filter only apps with name
+	Name *string `json:"name,omitempty"`
+	// Filter only apps with address
+	Address *string `json:"address,omitempty"`
+}
+
+type Application struct {
+	// Application ID
+	ID string `json:"id"`
+	// Application name
+	Name string `json:"name"`
+	// Application Address
+	Address string `json:"address"`
+}
+
 type BooleanFilterInput struct {
 	Eq  *bool               `json:"eq,omitempty"`
 	Ne  *bool               `json:"ne,omitempty"`
