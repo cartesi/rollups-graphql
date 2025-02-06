@@ -61,7 +61,7 @@ func (r *inputResolver) Application(ctx context.Context, obj *model.Input) (*mod
 }
 
 // Applications is the resolver for the applications field.
-func (r *inputResolver) Applications(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.AppConnection, error) {
+func (r *inputResolver) Applications(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.Connection[*model.Application], error) {
 	panic(fmt.Errorf("not implemented: Applications - applications"))
 }
 

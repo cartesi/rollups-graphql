@@ -117,3 +117,6 @@ type NoticeEdge = Edge[*Notice]
 
 type ReportConnection = Connection[*Report]
 type ReportEdge = Edge[*Report]
+
+type AppConnection = Connection[*Application]
+type AppEdge = Edge[*Application]

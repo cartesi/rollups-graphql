@@ -21,6 +21,11 @@ type AdapterV1 struct {
 	convenienceService *services.ConvenienceService
 }
 
+// GetApplications implements Adapter.
+func (a *AdapterV1) GetApplications(ctx context.Context, first *int, last *int, after *string, before *string, filter *graphql.AppFilter) (*graphql.AppConnection, error) {
+	panic("unimplemented")
+}
+
 func NewAdapterV1(
 	db *sqlx.DB,
 	convenienceService *services.ConvenienceService,

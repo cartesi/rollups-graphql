@@ -220,7 +220,7 @@ type InputResolver interface {
 	Reports(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.Connection[*model.Report], error)
 
 	Application(ctx context.Context, obj *model.Input) (*model.Application, error)
-	Applications(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.AppConnection, error)
+	Applications(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.Connection[*model.Application], error)
 }
 type NoticeResolver interface {
 	Input(ctx context.Context, obj *model.Notice) (*model.Input, error)
@@ -2110,7 +2110,7 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _AppConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.AppConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _AppConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.Connection[*model.Application]) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_AppConnection_totalCount(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -2154,7 +2154,7 @@ func (ec *executionContext) fieldContext_AppConnection_totalCount(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _AppConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.AppConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _AppConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.Connection[*model.Application]) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_AppConnection_edges(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -2180,9 +2180,9 @@ func (ec *executionContext) _AppConnection_edges(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.AppEdge)
+	res := resTmp.([]*model.Edge[*model.Application])
 	fc.Result = res
-	return ec.marshalNAppEdge2ᚕᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐAppEdgeᚄ(ctx, field.Selections, res)
+	return ec.marshalNAppEdge2ᚕᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐEdgeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AppConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2204,7 +2204,7 @@ func (ec *executionContext) fieldContext_AppConnection_edges(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _AppConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.AppConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _AppConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.Connection[*model.Application]) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_AppConnection_pageInfo(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -2258,7 +2258,7 @@ func (ec *executionContext) fieldContext_AppConnection_pageInfo(ctx context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _AppEdge_node(ctx context.Context, field graphql.CollectedField, obj *model.AppEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _AppEdge_node(ctx context.Context, field graphql.CollectedField, obj *model.Edge[*model.Application]) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_AppEdge_node(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -2310,7 +2310,7 @@ func (ec *executionContext) fieldContext_AppEdge_node(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _AppEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *model.AppEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _AppEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *model.Edge[*model.Application]) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_AppEdge_cursor(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -2324,7 +2324,7 @@ func (ec *executionContext) _AppEdge_cursor(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Cursor, nil
+		return obj.Cursor(), nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2345,7 +2345,7 @@ func (ec *executionContext) fieldContext_AppEdge_cursor(ctx context.Context, fie
 	fc = &graphql.FieldContext{
 		Object:     "AppEdge",
 		Field:      field,
-		IsMethod:   false,
+		IsMethod:   true,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
@@ -3978,9 +3978,9 @@ func (ec *executionContext) _Input_applications(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.AppConnection)
+	res := resTmp.(*model.Connection[*model.Application])
 	fc.Result = res
-	return ec.marshalNAppConnection2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐAppConnection(ctx, field.Selections, res)
+	return ec.marshalNAppConnection2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Input_applications(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9141,7 +9141,7 @@ func (ec *executionContext) unmarshalInputInputFilter(ctx context.Context, obj i
 
 var appConnectionImplementors = []string{"AppConnection"}
 
-func (ec *executionContext) _AppConnection(ctx context.Context, sel ast.SelectionSet, obj *model.AppConnection) graphql.Marshaler {
+func (ec *executionContext) _AppConnection(ctx context.Context, sel ast.SelectionSet, obj *model.Connection[*model.Application]) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, appConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -9190,7 +9190,7 @@ func (ec *executionContext) _AppConnection(ctx context.Context, sel ast.Selectio
 
 var appEdgeImplementors = []string{"AppEdge"}
 
-func (ec *executionContext) _AppEdge(ctx context.Context, sel ast.SelectionSet, obj *model.AppEdge) graphql.Marshaler {
+func (ec *executionContext) _AppEdge(ctx context.Context, sel ast.SelectionSet, obj *model.Edge[*model.Application]) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, appEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -11241,11 +11241,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAppConnection2githubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐAppConnection(ctx context.Context, sel ast.SelectionSet, v model.AppConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNAppConnection2githubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐConnection(ctx context.Context, sel ast.SelectionSet, v model.Connection[*model.Application]) graphql.Marshaler {
 	return ec._AppConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAppConnection2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐAppConnection(ctx context.Context, sel ast.SelectionSet, v *model.AppConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNAppConnection2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐConnection(ctx context.Context, sel ast.SelectionSet, v *model.Connection[*model.Application]) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -11255,7 +11255,7 @@ func (ec *executionContext) marshalNAppConnection2ᚖgithubᚗcomᚋcartesiᚋro
 	return ec._AppConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNAppEdge2ᚕᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐAppEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AppEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNAppEdge2ᚕᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Edge[*model.Application]) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -11279,7 +11279,7 @@ func (ec *executionContext) marshalNAppEdge2ᚕᚖgithubᚗcomᚋcartesiᚋrollu
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAppEdge2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐAppEdge(ctx, sel, v[i])
+			ret[i] = ec.marshalNAppEdge2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐEdge(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -11299,7 +11299,7 @@ func (ec *executionContext) marshalNAppEdge2ᚕᚖgithubᚗcomᚋcartesiᚋrollu
 	return ret
 }
 
-func (ec *executionContext) marshalNAppEdge2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐAppEdge(ctx context.Context, sel ast.SelectionSet, v *model.AppEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNAppEdge2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐEdge(ctx context.Context, sel ast.SelectionSet, v *model.Edge[*model.Application]) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
