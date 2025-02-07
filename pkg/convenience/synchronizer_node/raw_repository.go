@@ -97,19 +97,7 @@ func (s *RawRepository) GetApplicationRef(ctx context.Context, appID uint64) ([]
 		SELECT
 			id,
 			name,
-			iapplication_address as application_address,
-			iconsensus_address as consensus_address,
-			template_hash,
-			template_uri,
-			epoch_length,
-			state,
-			reason,
-			last_processed_block,
-			last_claim_check_block,
-			last_output_check_block,
-			processed_inputs,
-			created_at,
-			updated_at
+			iapplication_address as application_address
 		FROM
 			application
 		WHERE
@@ -143,19 +131,7 @@ func (s *RawRepository) GetLatestApp(ctx context.Context) (*model.ConvenienceApp
 		SELECT
 			id,
 			name,
-			iapplication_address as application_address,
-			iconsensus_address as consensus_address,
-			template_hash,
-			template_uri,
-			epoch_length,
-			state,
-			reason,
-			last_processed_block,
-			last_claim_check_block,
-			last_output_check_block,
-			processed_inputs,
-			created_at,
-			updated_at
+			iapplication_address as application_address
 		FROM
 			application
 		ORDER BY
@@ -183,19 +159,7 @@ func (s *RawRepository) FindAllAppsRef(ctx context.Context) ([]model.Convenience
 	SELECT
 		id,
 		name,
-		iapplication_address as application_address,
-		iconsensus_address as consensus_address,
-		template_hash,
-		template_uri,
-		epoch_length,
-		state,
-		reason,
-		last_processed_block,
-		last_claim_check_block,
-		last_output_check_block,
-		processed_inputs,
-		created_at,
-		updated_at
+		iapplication_address as application_address
 	FROM
 		application
 	ORDER BY
