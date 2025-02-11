@@ -35,9 +35,7 @@ func (c *SynchronizerRepository) CreateTables() error {
 		ini_input_cursor_after text,
 		end_input_cursor_after text,
 		ini_report_cursor_after text,
-		end_report_cursor_after text,
-		ini_app_cursor_after text,
-		end_app_cursor_after text
+		end_report_cursor_after text
 		);
 
 		CREATE INDEX IF NOT EXISTS idx_last_fetched_id ON synchronizer_fetch(id DESC);
@@ -59,10 +57,8 @@ func (c *SynchronizerRepository) Create(
 		ini_input_cursor_after,
 		end_input_cursor_after,
 		ini_report_cursor_after,
-		end_report_cursor_after,
-		ini_app_cursor_after,
-		end_app_cursor_after
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+		end_report_cursor_after
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
 	exec := DBExecutor{&c.Db}
 	_, err := exec.ExecContext(ctx, insertSql,
@@ -74,8 +70,7 @@ func (c *SynchronizerRepository) Create(
 		data.EndInputCursorAfter,
 		data.IniReportCursorAfter,
 		data.EndReportCursorAfter,
-		data.IniAppCursorAfter,
-		data.EndAppCursorAfter)
+	)
 
 	if err != nil {
 		return nil, err

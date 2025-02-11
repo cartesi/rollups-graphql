@@ -57,9 +57,6 @@ type Input {
 
   "The application that produced the input"
   application: Application!
-
-  "Get applications associated with the input with support for pagination"
-  applications(first: Int, last: Int, after: String, before: String): AppConnection!
 }
 
 type Application {
@@ -139,7 +136,7 @@ type Query {
   "Get reports with support for pagination"
   reports(first: Int, last: Int, after: String, before: String): ReportConnection!
   "Get apps with support for pagination"
-  applications(first: Int, last: Int, after: String, before: String, where: AppFilter): InputConnection!
+  applications(first: Int, last: Int, after: String, before: String, where: AppFilter): AppConnection!
 }
 
 "Pagination entry"

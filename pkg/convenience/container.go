@@ -184,6 +184,7 @@ func (c *Container) GetConvenienceService() *services.ConvenienceService {
 		c.GetNoticeRepository(),
 		c.GetInputRepository(),
 		c.GetReportRepository(),
+		c.GetApplicationRepository(),
 	)
 	return c.convenienceService
 }

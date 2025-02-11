@@ -18,6 +18,8 @@ const DELEGATED_CALL_VOUCHER_SELECTOR = "10321e8b"
 const NOTICE_SELECTOR = "c258d6e5"
 const INPUT_INDEX = "InputIndex"
 const APP_CONTRACT = "AppContract"
+const APP_NAME = "AppName"
+const APP_ID = "AppID"
 const DELEGATED_CALL_VOUCHER = "DelegatedCallVoucher"
 
 // Completion status for inputs.
@@ -101,8 +103,6 @@ type SynchronizerFetch struct {
 	EndInputCursorAfter  string `db:"end_input_cursor_after"`
 	IniReportCursorAfter string `db:"ini_report_cursor_after"`
 	EndReportCursorAfter string `db:"end_report_cursor_after"`
-	IniAppCursorAfter    string `db:"ini_app_cursor_after"`
-	EndAppCursorAfter    string `db:"end_app_cursor_after"`
 }
 
 // Rollups input, which can be advance or inspect.
