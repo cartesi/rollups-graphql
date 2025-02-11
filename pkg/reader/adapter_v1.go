@@ -22,7 +22,7 @@ type AdapterV1 struct {
 }
 
 // GetAllApplications implements Adapter.
-func (a *AdapterV1) GetAllApplications(ctx context.Context, where *graphql.AppFilter) (*graphql.Connection[*graphql.Application], error) {
+func (a AdapterV1) GetAllApplications(ctx context.Context, where *graphql.AppFilter) (*graphql.Connection[*graphql.Application], error) {
 	return a.GetApplications(ctx, nil, nil, nil, nil, where)
 }
 
@@ -62,7 +62,7 @@ func (a AdapterV1) GetApplications(ctx context.Context, first *int, last *int, a
 	if err != nil {
 		return nil, err
 	}
-	return graphql.ConvertToAppConnectionV1(apps, int(apps.Offset), int(apps.Total))
+	return graphql.ConvertToAppConnectionV1(apps.Rows, int(apps.Offset), int(apps.Total))
 }
 
 func NewAdapterV1(

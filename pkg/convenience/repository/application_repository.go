@@ -160,7 +160,7 @@ func transformToApplicationQuery(filter []*model.ConvenienceFilter) (string, []a
 	return query, args, count, nil
 }
 
-func (a *ApplicationRepository) FindAll(ctx context.Context, first *int, last *int, after *string, before *string, filter []*model.ConvenienceFilter) ([]*model.ConvenienceApplication, error) {
+func (a *ApplicationRepository) FindAll(ctx context.Context, first *int, last *int, after *string, before *string, filter []*model.ConvenienceFilter) (*commons.PageResult[model.ConvenienceApplication], error) {
 	total, err := a.Count(ctx, filter)
 	if err != nil {
 		return nil, err
@@ -191,12 +191,18 @@ func (a *ApplicationRepository) FindAll(ctx context.Context, first *int, last *i
 		return nil, err
 	}
 	defer stmt.Close()
-	var applications []*model.ConvenienceApplication
+	var applications []model.ConvenienceApplication
 	err = stmt.SelectContext(ctx, &applications, args...)
 	if err != nil {
 		return nil, err
 	}
-	return applications, nil
+	pagination := &commons.PageResult[model.ConvenienceApplication]{
+		Rows:   applications,
+		Total:  total,
+		Offset: uint64(offset),
+	}
+
+	return pagination, nil
 }
 
 func (a *ApplicationRepository) Count(ctx context.Context, filter []*model.ConvenienceFilter) (uint64, error) {

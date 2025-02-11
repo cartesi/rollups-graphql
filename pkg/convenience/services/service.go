@@ -109,7 +109,7 @@ func (c *ConvenienceService) UpdateExecuted(
 	)
 }
 
-func (c *ConvenienceService) FindAllApps(ctx context.Context, first *int, last *int, after *string, before *string, filters []*model.ConvenienceFilter) ([]*model.ConvenienceApplication, error) {
+func (c *ConvenienceService) FindAllApps(ctx context.Context, first *int, last *int, after *string, before *string, filters []*model.ConvenienceFilter) (*commons.PageResult[model.ConvenienceApplication], error) {
 	return c.ApplicationRepository.FindAll(ctx, first, last, after, before, filters)
 }
 
