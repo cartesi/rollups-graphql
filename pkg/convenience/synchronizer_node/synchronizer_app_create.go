@@ -68,15 +68,16 @@ func (s SynchronizerAppCreator) SyncApps(ctx context.Context) error {
 }
 
 func (s *SynchronizerAppCreator) syncApps(ctx context.Context) error {
-	lastAppRef, err := s.RawRepository.GetLatestApp(ctx)
+	lastAppRef, err := s.AppRepository.GetLatestApp(ctx)
 	if err != nil {
 		return err
 	}
-	apps, err := s.RawRepository.GetApplicationRef(ctx, lastAppRef.ID)
+	apps, err := s.RawRepository.GetApplicationRef(ctx, lastAppRef)
 	if err != nil {
 		return err
 	}
-	for _, app := range apps {
+	for _, rawApp := range apps {
+		app := rawApp.ToConvenience()
 		_, err = s.AppRepository.Create(ctx, &app)
 		if err != nil {
 			return err

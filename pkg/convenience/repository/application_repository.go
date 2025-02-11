@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -34,6 +36,25 @@ func (a *ApplicationRepository) CreateTables() error {
 	return err
 }
 
+func (a *ApplicationRepository) GetLatestApp(ctx context.Context) (*model.ConvenienceApplication, error) {
+	query := `SELECT * FROM convenience_application ORDER BY id DESC LIMIT 1`
+	stmt, err := a.Db.PreparexContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	var app model.ConvenienceApplication
+	err = stmt.GetContext(ctx, &app)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+	return &app, nil
+}
+
 func (a *ApplicationRepository) Create(ctx context.Context, rawApp *model.ConvenienceApplication) (*model.ConvenienceApplication, error) {
 	insertSql := `INSERT INTO convenience_application (
 		id,
@@ -50,7 +71,7 @@ func (a *ApplicationRepository) Create(ctx context.Context, rawApp *model.Conven
 	_, err := exec.ExecContext(ctx, insertSql,
 		rawApp.ID,
 		rawApp.Name,
-		rawApp.ApplicationAddress.Hex(),
+		rawApp.ApplicationAddress,
 	)
 
 	if err != nil {

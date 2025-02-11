@@ -73,12 +73,18 @@ func (s *SynchronizerAppCreate) TestAppCreate() {
 	apps, err := s.rawNodeV2Repository.FindAllAppsRef(s.ctx)
 	s.Require().NoError(err)
 	s.Require().NotEmpty(apps)
-	size := min(LIMIT, uint64(len(apps)))
+	// size := min(LIMIT, uint64(len(apps)))
+	size := 1
+
 	firstApp := apps[0]
 	s.Equal("echo-dapp", firstApp.Name)
-	err = s.synchronizerAppCreator.SyncApps(s.ctx)
-	s.Require().NoError(err)
-	count, err := s.appRepository.Count(s.ctx, nil)
-	s.Require().NoError(err)
-	s.Require().Equal(size, count)
+	s.Equal("0x36B9E60ACb181da458aa8870646395CD27cD0E6E", firstApp.ApplicationAddress.Hex())
+
+	for i := 0; i < 2; i++ {
+		err = s.synchronizerAppCreator.SyncApps(s.ctx)
+		s.Require().NoError(err)
+		count, err := s.appRepository.Count(s.ctx, nil)
+		s.Require().NoError(err)
+		s.Require().Equal(size, int(count))
+	}
 }

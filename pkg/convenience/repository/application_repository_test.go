@@ -11,7 +11,6 @@ import (
 	"github.com/cartesi/rollups-graphql/pkg/commons"
 	configtest "github.com/cartesi/rollups-graphql/pkg/convenience/config_test"
 	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/suite"
 )
@@ -54,10 +53,11 @@ func TestApplicationRepositorySuite(t *testing.T) {
 }
 
 func newApp() *model.ConvenienceApplication {
+	address := configtest.DEFAULT_TEST_APP_CONTRACT
 	return &model.ConvenienceApplication{
 		ID:                 1,
 		Name:               "app1",
-		ApplicationAddress: common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT),
+		ApplicationAddress: address,
 	}
 }
 
@@ -74,12 +74,12 @@ func (s *ApplicationRepositorySuite) TestCreateApplication() {
 func (s *ApplicationRepositorySuite) TestFindApplication() {
 	ctx := context.Background()
 	counter := 10
-	add := configtest.DEFAULT_TEST_APP_CONTRACT
+	anotherAppContract := configtest.DEFAULT_TEST_APP_CONTRACT
 
 	for i := 0; i < counter; i++ {
 		app := newApp()
 		app.Name = fmt.Sprintf("app%d", i)
-		app.ApplicationAddress = common.HexToAddress(add)
+		app.ApplicationAddress = anotherAppContract
 		_, err := s.repository.Create(ctx, app)
 		s.NoError(err)
 	}
@@ -88,19 +88,19 @@ func (s *ApplicationRepositorySuite) TestFindApplication() {
 	filter := []*model.ConvenienceFilter{
 		{
 			Field: &key,
-			Eq:    &add,
+			Eq:    &anotherAppContract,
 		},
 	}
 	count, err := s.repository.Count(ctx, filter)
 	s.NoError(err)
 	s.Equal(counter, int(count))
 
-	add = "0x544a3B76B84b1E98c13437A1591E713Dd314387F"
+	anotherAppContract = "0x544a3B76B84b1E98c13437A1591E713Dd314387F"
 
 	for i := 0; i < counter; i++ {
 		app := newApp()
 		app.Name = fmt.Sprintf("app%d", i)
-		app.ApplicationAddress = common.HexToAddress(add)
+		app.ApplicationAddress = anotherAppContract
 		_, err := s.repository.Create(ctx, app)
 		s.NoError(err)
 	}
@@ -108,7 +108,7 @@ func (s *ApplicationRepositorySuite) TestFindApplication() {
 	filter = []*model.ConvenienceFilter{
 		{
 			Field: &key,
-			Eq:    &add,
+			Eq:    &anotherAppContract,
 		},
 	}
 	count, err = s.repository.Count(ctx, filter)

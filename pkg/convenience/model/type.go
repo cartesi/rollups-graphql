@@ -37,9 +37,9 @@ const (
 type ApplicationState uint8
 
 type ConvenienceApplication struct {
-	ID                 uint64         `db:"id"`
-	Name               string         `db:"name"`
-	ApplicationAddress common.Address `db:"application_address"`
+	ID                 uint64 `db:"id"`
+	Name               string `db:"name"`
+	ApplicationAddress string `db:"application_address"`
 }
 
 type ConvenienceNotice struct {
