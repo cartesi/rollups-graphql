@@ -50,7 +50,7 @@ func (a *ApplicationRepository) Create(ctx context.Context, rawApp *model.Conven
 	_, err := exec.ExecContext(ctx, insertSql,
 		rawApp.ID,
 		rawApp.Name,
-		rawApp.ApplicationAddress,
+		rawApp.ApplicationAddress.Hex(),
 	)
 
 	if err != nil {
@@ -73,7 +73,7 @@ func transformToApplicationQuery(filter []*model.ConvenienceFilter) (string, []a
 			if filter.Eq != nil {
 				where = append(
 					where,
-					fmt.Sprintf("application_address = $%d", count),
+					fmt.Sprintf("application_address = $%d ", count),
 				)
 				args = append(args, *filter.Eq)
 				count++

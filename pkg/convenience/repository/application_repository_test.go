@@ -22,24 +22,31 @@ type ApplicationRepositorySuite struct {
 	tempDir    string
 }
 
-func (s *ApplicationRepositorySuite) SetupTest() {
+func (a *ApplicationRepositorySuite) SetupTest() {
 	commons.ConfigureLog(slog.LevelDebug)
 
 	// Temp
 	tempDir, err := os.MkdirTemp("", "")
-	s.NoError(err)
-	s.tempDir = tempDir
+	a.NoError(err)
+	a.tempDir = tempDir
 
 	// Database
 	sqliteFileName := filepath.Join(tempDir, "application.sqlite3")
 
 	db := sqlx.MustConnect("sqlite3", sqliteFileName)
 
-	s.repository = &ApplicationRepository{
+	a.repository = &ApplicationRepository{
 		Db: *db,
 	}
-	err = s.repository.CreateTables()
-	s.NoError(err)
+	err = a.repository.CreateTables()
+	a.NoError(err)
+}
+
+func (a *ApplicationRepositorySuite) TearDownTest() {
+	err := a.repository.Db.Close()
+	a.NoError(err)
+	err = os.RemoveAll(a.tempDir)
+	a.NoError(err)
 }
 
 func TestApplicationRepositorySuite(t *testing.T) {
@@ -72,6 +79,7 @@ func (s *ApplicationRepositorySuite) TestFindApplication() {
 	for i := 0; i < counter; i++ {
 		app := newApp()
 		app.Name = fmt.Sprintf("app%d", i)
+		app.ApplicationAddress = common.HexToAddress(add)
 		_, err := s.repository.Create(ctx, app)
 		s.NoError(err)
 	}
@@ -87,7 +95,7 @@ func (s *ApplicationRepositorySuite) TestFindApplication() {
 	s.NoError(err)
 	s.Equal(counter, int(count))
 
-	add = "0xdeadbeef"
+	add = "0x544a3B76B84b1E98c13437A1591E713Dd314387F"
 
 	for i := 0; i < counter; i++ {
 		app := newApp()
