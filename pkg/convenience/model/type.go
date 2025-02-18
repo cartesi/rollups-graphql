@@ -41,7 +41,7 @@ type ApplicationState uint8
 type ConvenienceApplication struct {
 	ID                 uint64 `db:"id"`
 	Name               string `db:"name"`
-	ApplicationAddress string `db:"application_address"`
+	ApplicationAddress string `db:"app_contract"`
 }
 
 type ConvenienceNotice struct {

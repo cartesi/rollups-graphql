@@ -20,7 +20,7 @@ type ApplicationRepository struct {
 }
 
 func (a *ApplicationRepository) FindAppByAppContract(ctx context.Context, appContract *common.Address) (*model.ConvenienceApplication, error) {
-	query := `SELECT id, name, application_address FROM convenience_application WHERE application_address = $1`
+	query := `SELECT id, name, app_contract FROM convenience_application WHERE app_contract = $1`
 	stmt, err := a.Db.PreparexContext(ctx, query)
 	if err != nil {
 		return nil, err
@@ -41,10 +41,10 @@ func (a *ApplicationRepository) CreateTables() error {
 	schema := `CREATE TABLE IF NOT EXISTS convenience_application (
 		id INTEGER NOT NULL,
 		name text NOT NULL,
-		application_address text NOT NULL
+		app_contract text NOT NULL
 	);
 	CREATE INDEX IF NOT EXISTS convenience_application_id ON convenience_application (id);
-	CREATE INDEX IF NOT EXISTS convenience_application_application_address ON convenience_application (application_address);
+	CREATE INDEX IF NOT EXISTS convenience_application_app_contract ON convenience_application (app_contract);
 	CREATE INDEX IF NOT EXISTS convenience_application_name ON convenience_application (name);
 	`
 
@@ -80,7 +80,7 @@ func (a *ApplicationRepository) Create(ctx context.Context, rawApp *model.Conven
 	insertSql := `INSERT INTO convenience_application (
 		id,
 		name,
-		application_address
+		app_contract
 		) VALUES (
 		 $1,
 		 $2,
@@ -115,7 +115,7 @@ func transformToApplicationQuery(filter []*model.ConvenienceFilter) (string, []a
 			if filter.Eq != nil {
 				where = append(
 					where,
-					fmt.Sprintf("application_address = $%d ", count),
+					fmt.Sprintf("app_contract = $%d ", count),
 				)
 				args = append(args, *filter.Eq)
 				count++
