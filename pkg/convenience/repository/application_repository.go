@@ -20,14 +20,14 @@ type ApplicationRepository struct {
 }
 
 func (a *ApplicationRepository) FindAppByAppContract(ctx context.Context, appContract *common.Address) (*model.ConvenienceApplication, error) {
-	query := `SELECT * FROM convenience_application WHERE application_address = $1`
+	query := `SELECT id, name, application_address FROM convenience_application WHERE application_address = $1`
 	stmt, err := a.Db.PreparexContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 	defer stmt.Close()
 	var app model.ConvenienceApplication
-	err = stmt.GetContext(ctx, &app, appContract)
+	err = stmt.GetContext(ctx, &app, appContract.String())
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil

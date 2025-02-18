@@ -88,7 +88,7 @@ type Adapter interface {
 
 	GetApplicationByAppContract(
 		ctx context.Context,
-		// appContract string,
+		inputBoxIndex int,
 	) (*graphql.Application, error)
 
 	GetAllApplications(

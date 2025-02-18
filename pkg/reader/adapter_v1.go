@@ -27,17 +27,27 @@ func (a AdapterV1) GetAllApplications(ctx context.Context, where *graphql.AppFil
 }
 
 // GetApplicationByAppContract implements Adapter.
-func (a AdapterV1) GetApplicationByAppContract(ctx context.Context) (*graphql.Application, error) {
-	appContractParam := ctx.Value(cModel.AppContractKey)
-	if appContractParam == nil {
-		return nil, fmt.Errorf("app contract not found in context")
+func (a AdapterV1) GetApplicationByAppContract(ctx context.Context, inputBoxIndex int) (*graphql.Application, error) {
+	input, err := a.convenienceService.InputRepository.FindByIndexAndAppContract(ctx, inputBoxIndex, nil)
+
+	if err != nil {
+		return nil, err
 	}
-	appContract, ok := appContractParam.(string)
-	if !ok {
-		return nil, fmt.Errorf("invalid app contract type")
+	if input == nil {
+		return nil, fmt.Errorf("application not found")
 	}
 
-	address := common.HexToAddress(appContract)
+	// Trying get inside context
+	// appContractParam := ctx.Value(cModel.AppContractKey)
+	// if appContractParam == nil {
+	// 	return nil, fmt.Errorf("app contract not found in context")
+	// }
+	// appContract, ok := appContractParam.(string)
+	// if !ok {
+	// 	return nil, fmt.Errorf("invalid app contract type")
+	// }
+
+	address := input.AppContract
 
 	app, err := a.convenienceService.FindAppByAppContract(ctx, &address)
 

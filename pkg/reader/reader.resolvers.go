@@ -7,6 +7,7 @@ package reader
 import (
 	"context"
 	"log/slog"
+	"strconv"
 
 	"github.com/cartesi/rollups-graphql/pkg/reader/graph"
 	"github.com/cartesi/rollups-graphql/pkg/reader/model"
@@ -19,7 +20,7 @@ func (r *delegateCallVoucherResolver) Input(ctx context.Context, obj *model.Dele
 
 // Application is the resolver for the application field.
 func (r *delegateCallVoucherResolver) Application(ctx context.Context, obj *model.DelegateCallVoucher) (*model.Application, error) {
-	return r.adapter.GetApplicationByAppContract(ctx)
+	return r.adapter.GetApplicationByAppContract(ctx, obj.InputIndex)
 }
 
 // Vouchers is the resolver for the vouchers field.
@@ -56,7 +57,11 @@ func (r *inputResolver) Reports(ctx context.Context, obj *model.Input, first *in
 
 // Application is the resolver for the application field.
 func (r *inputResolver) Application(ctx context.Context, obj *model.Input) (*model.Application, error) {
-	return r.adapter.GetApplicationByAppContract(ctx)
+	inputBoxIndex, err := strconv.Atoi(obj.InputBoxIndex)
+	if err != nil {
+		return nil, err
+	}
+	return r.adapter.GetApplicationByAppContract(ctx, inputBoxIndex)
 }
 
 // Input is the resolver for the input field.
@@ -72,7 +77,7 @@ func (r *noticeResolver) Input(ctx context.Context, obj *model.Notice) (*model.I
 
 // Application is the resolver for the application field.
 func (r *noticeResolver) Application(ctx context.Context, obj *model.Notice) (*model.Application, error) {
-	return r.adapter.GetApplicationByAppContract(ctx)
+	return r.adapter.GetApplicationByAppContract(ctx, obj.InputIndex)
 }
 
 // Input is the resolver for the input field.
@@ -142,7 +147,7 @@ func (r *reportResolver) Input(ctx context.Context, obj *model.Report) (*model.I
 
 // Application is the resolver for the application field.
 func (r *reportResolver) Application(ctx context.Context, obj *model.Report) (*model.Application, error) {
-	return r.adapter.GetApplicationByAppContract(ctx)
+	return r.adapter.GetApplicationByAppContract(ctx, obj.InputIndex)
 }
 
 // Input is the resolver for the input field.
@@ -152,7 +157,7 @@ func (r *voucherResolver) Input(ctx context.Context, obj *model.Voucher) (*model
 
 // Application is the resolver for the application field.
 func (r *voucherResolver) Application(ctx context.Context, obj *model.Voucher) (*model.Application, error) {
-	return r.adapter.GetApplicationByAppContract(ctx)
+	return r.adapter.GetApplicationByAppContract(ctx, obj.InputIndex)
 }
 
 // DelegateCallVoucher returns graph.DelegateCallVoucherResolver implementation.
