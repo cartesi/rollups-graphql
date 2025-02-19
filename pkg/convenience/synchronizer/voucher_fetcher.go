@@ -7,6 +7,8 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
+	"os"
 	"strings"
 )
 
@@ -55,15 +57,29 @@ GRAPH_QL_URL
 const DefaultBatchSize = 10
 
 type VoucherFetcher struct {
-	Url         string
+	Url         *url.URL
 	CursorAfter string
 	BatchSize   int
 	Query       string
 }
 
+func getEnvWithDefault(key, defaultValue string) string {
+	value, ok := os.LookupEnv(key)
+	if !ok {
+		return defaultValue
+	}
+	return value
+}
+
 func NewVoucherFetcher() *VoucherFetcher {
+	urlStr := getEnvWithDefault("GRAPH_QL_URL", "http://localhost:8080/graphql")
+	location, err := url.Parse(urlStr)
+	if err != nil {
+		slog.Error("Error parsing URL:", "error", err)
+		return nil
+	}
 	return &VoucherFetcher{
-		Url:         "http://localhost:8080/graphql",
+		Url:         location,
 		CursorAfter: "",
 		BatchSize:   DefaultBatchSize,
 		Query:       query,
@@ -90,8 +106,10 @@ func (v *VoucherFetcher) Fetch() (*VoucherResponse, error) {
 		return nil, err
 	}
 
+	url := v.Url.String()
+
 	// Make a POST request to the GraphQL endpoint
-	req, err := http.NewRequest("POST", v.Url, bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
 		slog.Error("Error creating request:", "error", err)
 		return nil, err

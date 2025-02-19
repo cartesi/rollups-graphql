@@ -21,6 +21,60 @@ type AdapterV1 struct {
 	convenienceService *services.ConvenienceService
 }
 
+// GetAllApplications implements Adapter.
+func (a AdapterV1) GetAllApplications(ctx context.Context, where *graphql.AppFilter) (*graphql.Connection[*graphql.Application], error) {
+	return a.GetApplications(ctx, nil, nil, nil, nil, where)
+}
+
+// GetApplicationByAppContract implements Adapter.
+func (a AdapterV1) GetApplicationByAppContract(ctx context.Context, inputBoxIndex int) (*graphql.Application, error) {
+	input, err := a.convenienceService.InputRepository.FindByIndexAndAppContract(ctx, inputBoxIndex, nil)
+
+	if err != nil {
+		return nil, err
+	}
+	if input == nil {
+		return nil, fmt.Errorf("application not found")
+	}
+
+	// Trying get inside context
+	// appContractParam := ctx.Value(cModel.AppContractKey)
+	// if appContractParam == nil {
+	// 	return nil, fmt.Errorf("app contract not found in context")
+	// }
+	// appContract, ok := appContractParam.(string)
+	// if !ok {
+	// 	return nil, fmt.Errorf("invalid app contract type")
+	// }
+
+	address := input.AppContract
+
+	app, err := a.convenienceService.FindAppByAppContract(ctx, &address)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if app == nil {
+		return nil, fmt.Errorf("application not found")
+	}
+
+	return graphql.ConvertToApplicationV1(*app), nil
+}
+
+// GetApplications implements Adapter.
+func (a AdapterV1) GetApplications(ctx context.Context, first *int, last *int, after *string, before *string, filter *graphql.AppFilter) (*graphql.AppConnection, error) {
+	filters, err := graphql.ConvertToAppFilter(filter)
+	if err != nil {
+		return nil, err
+	}
+	apps, err := a.convenienceService.FindAllApps(ctx, first, last, after, before, filters)
+	if err != nil {
+		return nil, err
+	}
+	return graphql.ConvertToAppConnectionV1(apps.Rows, int(apps.Offset), int(apps.Total))
+}
+
 func NewAdapterV1(
 	db *sqlx.DB,
 	convenienceService *services.ConvenienceService,

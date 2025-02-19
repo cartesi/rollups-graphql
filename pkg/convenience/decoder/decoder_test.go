@@ -23,11 +23,12 @@ var Token = common.HexToAddress("0xc6e7DF5E7b4f2A278906862b61205850344D4e7d")
 
 type OutputDecoderSuite struct {
 	suite.Suite
-	decoder           *OutputDecoder
-	voucherRepository *repository.VoucherRepository
-	noticeRepository  *repository.NoticeRepository
-	inputRepository   *repository.InputRepository
-	reportRepository  *repository.ReportRepository
+	decoder               *OutputDecoder
+	voucherRepository     *repository.VoucherRepository
+	noticeRepository      *repository.NoticeRepository
+	inputRepository       *repository.InputRepository
+	reportRepository      *repository.ReportRepository
+	applicationRepository *repository.ApplicationRepository
 }
 
 func (s *OutputDecoderSuite) SetupTest() {
@@ -60,12 +61,17 @@ func (s *OutputDecoderSuite) SetupTest() {
 		panic(err)
 	}
 
+	s.applicationRepository = &repository.ApplicationRepository{
+		Db: *db,
+	}
+
 	s.decoder = &OutputDecoder{
 		convenienceService: *services.NewConvenienceService(
 			s.voucherRepository,
 			s.noticeRepository,
 			s.inputRepository,
 			s.reportRepository,
+			s.applicationRepository,
 		),
 	}
 }

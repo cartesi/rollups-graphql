@@ -80,4 +80,19 @@ type Adapter interface {
 		ctx context.Context,
 		inputIndex *int,
 	) (*graphql.Connection[*graphql.Notice], error)
+
+	GetApplications(
+		ctx context.Context,
+		first *int, last *int, after *string, before *string, filter *graphql.AppFilter,
+	) (*graphql.Connection[*graphql.Application], error)
+
+	GetApplicationByAppContract(
+		ctx context.Context,
+		inputBoxIndex int,
+	) (*graphql.Application, error)
+
+	GetAllApplications(
+		ctx context.Context,
+		where *graphql.AppFilter,
+	) (*graphql.Connection[*graphql.Application], error)
 }

@@ -15,10 +15,16 @@ docker buildx prune --all --force && docker system prune --volumes --force
 
 docker run -d --rm --name postgres -p 5432:5432 -e POSTGRES_PASSWORD=password -e POSTGRES_DB=rollupsdb postgres:16-alpine
 
+IS_WSL=false
+if [[ $(grep -i Microsoft /proc/version) ]]; then
+WSL=true;
+fi
+
 echo "Migrate DB node v2"
 cd rollups-node
-# WSL2
-# export PATH=$(printf '%q' $(printenv PATH))
+if [ "$WSL" = true ]; then
+    export PATH=$(printf '%q' $(printenv PATH))
+fi
 eval $(make env)
 export CGO_CFLAGS="-D_GNU_SOURCE -D__USE_MISC"
 go run dev/migrate/main.go

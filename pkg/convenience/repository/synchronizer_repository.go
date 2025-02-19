@@ -69,7 +69,8 @@ func (c *SynchronizerRepository) Create(
 		data.IniInputCursorAfter,
 		data.EndInputCursorAfter,
 		data.IniReportCursorAfter,
-		data.EndReportCursorAfter)
+		data.EndReportCursorAfter,
+	)
 
 	if err != nil {
 		return nil, err

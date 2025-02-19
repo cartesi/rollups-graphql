@@ -67,3 +67,9 @@ models:
   ReportEdge:
     model:
       - github.com/cartesi/rollups-graphql/pkg/reader/model.ReportEdge
+  AppConnection:
+    model:
+      - github.com/cartesi/rollups-graphql/pkg/reader/model.AppConnection
+  AppEdge:
+    model:
+      - github.com/cartesi/rollups-graphql/pkg/reader/model.AppEdge

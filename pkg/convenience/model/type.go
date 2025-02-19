@@ -18,6 +18,8 @@ const DELEGATED_CALL_VOUCHER_SELECTOR = "10321e8b"
 const NOTICE_SELECTOR = "c258d6e5"
 const INPUT_INDEX = "InputIndex"
 const APP_CONTRACT = "AppContract"
+const APP_NAME = "AppName"
+const APP_ID = "AppID"
 const DELEGATED_CALL_VOUCHER = "DelegatedCallVoucher"
 
 // Completion status for inputs.
@@ -33,6 +35,14 @@ const (
 	CompletionStatusTimeLimitExceeded
 	CompletionStatusPayloadLengthLimitExceeded
 )
+
+type ApplicationState uint8
+
+type ConvenienceApplication struct {
+	ID                 uint64 `db:"id"`
+	Name               string `db:"name"`
+	ApplicationAddress string `db:"app_contract"`
+}
 
 type ConvenienceNotice struct {
 	AppContract          string `db:"app_contract"`

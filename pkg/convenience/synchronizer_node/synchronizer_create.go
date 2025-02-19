@@ -24,6 +24,7 @@ type SynchronizerCreateWorker struct {
 	RawRepository              *RawRepository
 	SynchronizerUpdate         *SynchronizerUpdate
 	Decoder                    *decoder.OutputDecoder
+	SynchronizerAppCreate      *SynchronizerAppCreator
 	SynchronizerOutputUpdate   *SynchronizerOutputUpdate
 	SynchronizerOutputCreate   *SynchronizerOutputCreate
 	SynchronizerCreateInput    *SynchronizerInputCreator
@@ -112,6 +113,12 @@ func (s SynchronizerCreateWorker) WatchNewInputs(stdCtx context.Context) error {
 						return
 					}
 
+					err = s.SynchronizerAppCreate.SyncApps(ctx)
+					if err != nil {
+						errCh <- err
+						return
+					}
+
 					<-time.After(DEFAULT_DELAY)
 				}
 			}
@@ -139,6 +146,7 @@ func NewSynchronizerCreateWorker(
 	rawRepository *RawRepository,
 	synchronizerUpdate *SynchronizerUpdate,
 	decoder *decoder.OutputDecoder,
+	synchronizerAppCreate *SynchronizerAppCreator,
 	synchronizerReport *SynchronizerReport,
 	synchronizerOutputUpdate *SynchronizerOutputUpdate,
 	outputRefRepository *repository.RawOutputRefRepository,
@@ -153,6 +161,7 @@ func NewSynchronizerCreateWorker(
 		RawRepository:              rawRepository,
 		SynchronizerUpdate:         synchronizerUpdate,
 		Decoder:                    decoder,
+		SynchronizerAppCreate:      synchronizerAppCreate,
 		SynchronizerReport:         synchronizerReport,
 		SynchronizerOutputUpdate:   synchronizerOutputUpdate,
 		outputRefRepository:        outputRefRepository,

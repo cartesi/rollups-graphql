@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"strconv"
 
+	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
 	cModel "github.com/cartesi/rollups-graphql/pkg/convenience/model"
 )
 
@@ -99,6 +100,14 @@ func ConvertConvenientDelegateCallVoucherV1(cVoucher cModel.ConvenienceVoucher) 
 	}
 }
 
+func ConvertToApplicationV1(app cModel.ConvenienceApplication) *Application {
+	return &Application{
+		ID:      fmt.Sprint(app.ID),
+		Name:    app.Name,
+		Address: app.ApplicationAddress,
+	}
+}
+
 func ConvertConvenientVoucherV1(cVoucher cModel.ConvenienceVoucher) *Voucher {
 	var outputHashesSiblings []string
 	err := json.Unmarshal([]byte(cVoucher.OutputHashesSiblings), &outputHashesSiblings)
@@ -118,6 +127,52 @@ func ConvertConvenientVoucherV1(cVoucher cModel.ConvenienceVoucher) *Voucher {
 			OutputHashesSiblings: outputHashesSiblings,
 		},
 	}
+}
+
+func ConvertToAppFilter(
+	filter *AppFilter,
+) ([]*cModel.ConvenienceFilter, error) {
+	filters := []*cModel.ConvenienceFilter{}
+
+	if filter == nil {
+		return filters, nil
+	}
+
+	if filter.Address != nil {
+		key := model.APP_CONTRACT
+		filters = append(filters, &cModel.ConvenienceFilter{
+			Field: &key,
+			Eq:    filter.Address,
+		})
+	}
+
+	if filter.Name != nil {
+		key := model.APP_NAME
+		filters = append(filters, &cModel.ConvenienceFilter{
+			Field: &key,
+			Eq:    filter.Name,
+		})
+	}
+
+	if filter.IndexGreaterThan != nil {
+		key := model.APP_ID
+		val := strconv.Itoa(*filter.IndexGreaterThan)
+		filters = append(filters, &cModel.ConvenienceFilter{
+			Field: &key,
+			Gt:    &val,
+		})
+	}
+
+	if filter.IndexLowerThan != nil {
+		key := model.APP_ID
+		val := strconv.Itoa(*filter.IndexLowerThan)
+		filters = append(filters, &cModel.ConvenienceFilter{
+			Field: &key,
+			Lt:    &val,
+		})
+	}
+
+	return filters, nil
 }
 
 func ConvertToConvenienceFilter(
@@ -255,6 +310,15 @@ func ConvertToNoticeConnectionV1(
 	convNodes := make([]*Notice, len(notices))
 	for i := range notices {
 		convNodes[i] = ConvertConvenientNoticeV1(notices[i])
+	}
+	return NewConnection(offset, total, convNodes), nil
+}
+
+func ConvertToAppConnectionV1(apps []cModel.ConvenienceApplication, offset int, total int) (*AppConnection, error) {
+	convNodes := []*Application{}
+	for _, rawApp := range apps {
+		app := ConvertToApplicationV1(rawApp)
+		convNodes = append(convNodes, app)
 	}
 	return NewConnection(offset, total, convNodes), nil
 }

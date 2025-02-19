@@ -54,6 +54,18 @@ type Input {
   blockTimestamp: BigInt
 
   prevRandao: String
+
+  "The application that produced the input"
+  application: Application!
+}
+
+type Application {
+  "Application ID"
+  id: String!
+  "Application name"
+  name: String!
+  "Application Address"
+  address: String!
 }
 
 "Representation of a transaction that can be carried out on the base layer blockchain, such as a transfer of assets"
@@ -76,6 +88,9 @@ type Voucher {
 
   "The hash of executed transaction"
   transactionHash: String
+
+  "The application that produced the voucher"
+  application: Application!
 }
 
 type DelegateCallVoucher {
@@ -95,6 +110,9 @@ type DelegateCallVoucher {
 
   "The hash of executed transaction"
   transactionHash: String
+
+  "The application that produced the delegateed voucher"
+  application: Application!
 }
 
 "Top level queries"
@@ -117,6 +135,8 @@ type Query {
   notices(first: Int, last: Int, after: String, before: String): NoticeConnection!
   "Get reports with support for pagination"
   reports(first: Int, last: Int, after: String, before: String): ReportConnection!
+  "Get apps with support for pagination"
+  applications(first: Int, last: Int, after: String, before: String, where: AppFilter): AppConnection!
 }
 
 "Pagination entry"
@@ -135,6 +155,22 @@ type InputConnection {
   edges: [InputEdge!]!
   "Pagination metadata"
   pageInfo: PageInfo!
+}
+
+type AppConnection {
+  "Total number of entries that match the query"
+  totalCount: Int!
+  "Pagination entries returned for the current page"
+  edges: [AppEdge!]!
+  "Pagination metadata"
+  pageInfo: PageInfo!
+}
+
+type AppEdge {
+  "Node instance"
+  node: Application!
+  "Pagination cursor"
+  cursor: String!
 }
 
 "Pagination result"
@@ -167,6 +203,9 @@ type Notice {
   payload: String!
   "Proof object that allows this notice to be validated by the base layer blockchain"
   proof: Proof
+
+  "The application that produced the notice"
+  application: Application!
 }
 
 "Pagination entry"
@@ -185,6 +224,20 @@ type ReportConnection {
   edges: [ReportEdge!]!
   "Pagination metadata"
   pageInfo: PageInfo!
+}
+
+"Filter object to restrict results depending on input properties"
+input AppFilter {
+  "Filter only inputs with index lower than a given value"
+  indexLowerThan: Int
+  "Filter only inputs with index greater than a given value"
+  indexGreaterThan: Int
+
+  "Filter only apps with name"
+  name: String
+
+  "Filter only apps with address"
+  address: String
 }
 
 "Filter object to restrict results depending on input properties"
@@ -241,6 +294,9 @@ type Report {
   input: Input!
   "Report data as a payload in Ethereum hex binary format, starting with '0x'"
   payload: String!
+
+  "The application that produced the report"
+  application: Application!
 }
 
 "Pagination entry"

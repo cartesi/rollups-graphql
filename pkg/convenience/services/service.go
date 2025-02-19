@@ -10,10 +10,11 @@ import (
 )
 
 type ConvenienceService struct {
-	VoucherRepository *repository.VoucherRepository
-	NoticeRepository  *repository.NoticeRepository
-	InputRepository   *repository.InputRepository
-	ReportRepository  *repository.ReportRepository
+	VoucherRepository     *repository.VoucherRepository
+	NoticeRepository      *repository.NoticeRepository
+	InputRepository       *repository.InputRepository
+	ReportRepository      *repository.ReportRepository
+	ApplicationRepository *repository.ApplicationRepository
 }
 
 func NewConvenienceService(
@@ -21,12 +22,14 @@ func NewConvenienceService(
 	noticeRepository *repository.NoticeRepository,
 	inputRepository *repository.InputRepository,
 	reportRepository *repository.ReportRepository,
+	applicationRepository *repository.ApplicationRepository,
 ) *ConvenienceService {
 	return &ConvenienceService{
-		VoucherRepository: voucherRepository,
-		NoticeRepository:  noticeRepository,
-		InputRepository:   inputRepository,
-		ReportRepository:  reportRepository,
+		VoucherRepository:     voucherRepository,
+		NoticeRepository:      noticeRepository,
+		InputRepository:       inputRepository,
+		ReportRepository:      reportRepository,
+		ApplicationRepository: applicationRepository,
 	}
 }
 
@@ -104,6 +107,10 @@ func (c *ConvenienceService) UpdateExecuted(
 		outputIndex,
 		executedValue,
 	)
+}
+
+func (c *ConvenienceService) FindAllApps(ctx context.Context, first *int, last *int, after *string, before *string, filters []*model.ConvenienceFilter) (*commons.PageResult[model.ConvenienceApplication], error) {
+	return c.ApplicationRepository.FindAll(ctx, first, last, after, before, filters)
 }
 
 func (c *ConvenienceService) FindAllDelegateCalls(
@@ -228,4 +235,11 @@ func (c *ConvenienceService) FindNoticeByInputAndOutputIndex(
 	return c.NoticeRepository.FindByInputAndOutputIndex(
 		ctx, inputIndex, outputIndex,
 	)
+}
+
+func (c *ConvenienceService) FindAppByAppContract(
+	ctx context.Context,
+	appContract *common.Address,
+) (*model.ConvenienceApplication, error) {
+	return c.ApplicationRepository.FindAppByAppContract(ctx, appContract)
 }

@@ -50,7 +50,25 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	AppConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	AppEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
+	Application struct {
+		Address func(childComplexity int) int
+		ID      func(childComplexity int) int
+		Name    func(childComplexity int) int
+	}
+
 	DelegateCallVoucher struct {
+		Application     func(childComplexity int) int
 		Destination     func(childComplexity int) int
 		Executed        func(childComplexity int) int
 		Index           func(childComplexity int) int
@@ -72,6 +90,7 @@ type ComplexityRoot struct {
 	}
 
 	Input struct {
+		Application          func(childComplexity int) int
 		BlockNumber          func(childComplexity int) int
 		BlockTimestamp       func(childComplexity int) int
 		DelegateCallVouchers func(childComplexity int, first *int, last *int, after *string, before *string) int
@@ -102,10 +121,11 @@ type ComplexityRoot struct {
 	}
 
 	Notice struct {
-		Index   func(childComplexity int) int
-		Input   func(childComplexity int) int
-		Payload func(childComplexity int) int
-		Proof   func(childComplexity int) int
+		Application func(childComplexity int) int
+		Index       func(childComplexity int) int
+		Input       func(childComplexity int) int
+		Payload     func(childComplexity int) int
+		Proof       func(childComplexity int) int
 	}
 
 	NoticeConnection struct {
@@ -132,6 +152,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		Applications         func(childComplexity int, first *int, last *int, after *string, before *string, where *model.AppFilter) int
 		DelegateCallVoucher  func(childComplexity int, outputIndex int) int
 		DelegateCallVouchers func(childComplexity int, first *int, last *int, after *string, before *string, filter []*model.ConvenientFilter) int
 		Input                func(childComplexity int, id string) int
@@ -145,9 +166,10 @@ type ComplexityRoot struct {
 	}
 
 	Report struct {
-		Index   func(childComplexity int) int
-		Input   func(childComplexity int) int
-		Payload func(childComplexity int) int
+		Application func(childComplexity int) int
+		Index       func(childComplexity int) int
+		Input       func(childComplexity int) int
+		Payload     func(childComplexity int) int
 	}
 
 	ReportConnection struct {
@@ -162,6 +184,7 @@ type ComplexityRoot struct {
 	}
 
 	Voucher struct {
+		Application     func(childComplexity int) int
 		Destination     func(childComplexity int) int
 		Executed        func(childComplexity int) int
 		Index           func(childComplexity int) int
@@ -186,15 +209,21 @@ type ComplexityRoot struct {
 
 type DelegateCallVoucherResolver interface {
 	Input(ctx context.Context, obj *model.DelegateCallVoucher) (*model.Input, error)
+
+	Application(ctx context.Context, obj *model.DelegateCallVoucher) (*model.Application, error)
 }
 type InputResolver interface {
 	Vouchers(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.Connection[*model.Voucher], error)
 	DelegateCallVouchers(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.Connection[*model.DelegateCallVoucher], error)
 	Notices(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.Connection[*model.Notice], error)
 	Reports(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.Connection[*model.Report], error)
+
+	Application(ctx context.Context, obj *model.Input) (*model.Application, error)
 }
 type NoticeResolver interface {
 	Input(ctx context.Context, obj *model.Notice) (*model.Input, error)
+
+	Application(ctx context.Context, obj *model.Notice) (*model.Application, error)
 }
 type QueryResolver interface {
 	Input(ctx context.Context, id string) (*model.Input, error)
@@ -207,12 +236,17 @@ type QueryResolver interface {
 	DelegateCallVouchers(ctx context.Context, first *int, last *int, after *string, before *string, filter []*model.ConvenientFilter) (*model.Connection[*model.DelegateCallVoucher], error)
 	Notices(ctx context.Context, first *int, last *int, after *string, before *string) (*model.Connection[*model.Notice], error)
 	Reports(ctx context.Context, first *int, last *int, after *string, before *string) (*model.Connection[*model.Report], error)
+	Applications(ctx context.Context, first *int, last *int, after *string, before *string, where *model.AppFilter) (*model.Connection[*model.Application], error)
 }
 type ReportResolver interface {
 	Input(ctx context.Context, obj *model.Report) (*model.Input, error)
+
+	Application(ctx context.Context, obj *model.Report) (*model.Application, error)
 }
 type VoucherResolver interface {
 	Input(ctx context.Context, obj *model.Voucher) (*model.Input, error)
+
+	Application(ctx context.Context, obj *model.Voucher) (*model.Application, error)
 }
 
 type executableSchema struct {
@@ -233,6 +267,69 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "AppConnection.edges":
+		if e.complexity.AppConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.AppConnection.Edges(childComplexity), true
+
+	case "AppConnection.pageInfo":
+		if e.complexity.AppConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.AppConnection.PageInfo(childComplexity), true
+
+	case "AppConnection.totalCount":
+		if e.complexity.AppConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.AppConnection.TotalCount(childComplexity), true
+
+	case "AppEdge.cursor":
+		if e.complexity.AppEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.AppEdge.Cursor(childComplexity), true
+
+	case "AppEdge.node":
+		if e.complexity.AppEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.AppEdge.Node(childComplexity), true
+
+	case "Application.address":
+		if e.complexity.Application.Address == nil {
+			break
+		}
+
+		return e.complexity.Application.Address(childComplexity), true
+
+	case "Application.id":
+		if e.complexity.Application.ID == nil {
+			break
+		}
+
+		return e.complexity.Application.ID(childComplexity), true
+
+	case "Application.name":
+		if e.complexity.Application.Name == nil {
+			break
+		}
+
+		return e.complexity.Application.Name(childComplexity), true
+
+	case "DelegateCallVoucher.application":
+		if e.complexity.DelegateCallVoucher.Application == nil {
+			break
+		}
+
+		return e.complexity.DelegateCallVoucher.Application(childComplexity), true
 
 	case "DelegateCallVoucher.destination":
 		if e.complexity.DelegateCallVoucher.Destination == nil {
@@ -317,6 +414,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DelegateCallVoucherEdge.Node(childComplexity), true
+
+	case "Input.application":
+		if e.complexity.Input.Application == nil {
+			break
+		}
+
+		return e.complexity.Input.Application(childComplexity), true
 
 	case "Input.blockNumber":
 		if e.complexity.Input.BlockNumber == nil {
@@ -485,6 +589,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.InputEdge.Node(childComplexity), true
 
+	case "Notice.application":
+		if e.complexity.Notice.Application == nil {
+			break
+		}
+
+		return e.complexity.Notice.Application(childComplexity), true
+
 	case "Notice.index":
 		if e.complexity.Notice.Index == nil {
 			break
@@ -589,6 +700,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Proof.OutputIndex(childComplexity), true
+
+	case "Query.applications":
+		if e.complexity.Query.Applications == nil {
+			break
+		}
+
+		args, err := ec.field_Query_applications_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Applications(childComplexity, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string), args["where"].(*model.AppFilter)), true
 
 	case "Query.delegateCallVoucher":
 		if e.complexity.Query.DelegateCallVoucher == nil {
@@ -710,6 +833,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Vouchers(childComplexity, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string), args["filter"].([]*model.ConvenientFilter)), true
 
+	case "Report.application":
+		if e.complexity.Report.Application == nil {
+			break
+		}
+
+		return e.complexity.Report.Application(childComplexity), true
+
 	case "Report.index":
 		if e.complexity.Report.Index == nil {
 			break
@@ -765,6 +895,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ReportEdge.Node(childComplexity), true
+
+	case "Voucher.application":
+		if e.complexity.Voucher.Application == nil {
+			break
+		}
+
+		return e.complexity.Voucher.Application(childComplexity), true
 
 	case "Voucher.destination":
 		if e.complexity.Voucher.Destination == nil {
@@ -866,6 +1003,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputAddressFilterInput,
+		ec.unmarshalInputAppFilter,
 		ec.unmarshalInputBooleanFilterInput,
 		ec.unmarshalInputConvenientFilter,
 		ec.unmarshalInputInputFilter,
@@ -1007,6 +1145,18 @@ type Input {
   blockTimestamp: BigInt
 
   prevRandao: String
+
+  "The application that produced the input"
+  application: Application!
+}
+
+type Application {
+  "Application ID"
+  id: String!
+  "Application name"
+  name: String!
+  "Application Address"
+  address: String!
 }
 
 "Representation of a transaction that can be carried out on the base layer blockchain, such as a transfer of assets"
@@ -1029,6 +1179,9 @@ type Voucher {
 
   "The hash of executed transaction"
   transactionHash: String
+
+  "The application that produced the voucher"
+  application: Application!
 }
 
 type DelegateCallVoucher {
@@ -1048,6 +1201,9 @@ type DelegateCallVoucher {
 
   "The hash of executed transaction"
   transactionHash: String
+
+  "The application that produced the delegateed voucher"
+  application: Application!
 }
 
 "Top level queries"
@@ -1070,6 +1226,8 @@ type Query {
   notices(first: Int, last: Int, after: String, before: String): NoticeConnection!
   "Get reports with support for pagination"
   reports(first: Int, last: Int, after: String, before: String): ReportConnection!
+  "Get apps with support for pagination"
+  applications(first: Int, last: Int, after: String, before: String, where: AppFilter): AppConnection!
 }
 
 "Pagination entry"
@@ -1088,6 +1246,22 @@ type InputConnection {
   edges: [InputEdge!]!
   "Pagination metadata"
   pageInfo: PageInfo!
+}
+
+type AppConnection {
+  "Total number of entries that match the query"
+  totalCount: Int!
+  "Pagination entries returned for the current page"
+  edges: [AppEdge!]!
+  "Pagination metadata"
+  pageInfo: PageInfo!
+}
+
+type AppEdge {
+  "Node instance"
+  node: Application!
+  "Pagination cursor"
+  cursor: String!
 }
 
 "Pagination result"
@@ -1120,6 +1294,9 @@ type Notice {
   payload: String!
   "Proof object that allows this notice to be validated by the base layer blockchain"
   proof: Proof
+
+  "The application that produced the notice"
+  application: Application!
 }
 
 "Pagination entry"
@@ -1138,6 +1315,20 @@ type ReportConnection {
   edges: [ReportEdge!]!
   "Pagination metadata"
   pageInfo: PageInfo!
+}
+
+"Filter object to restrict results depending on input properties"
+input AppFilter {
+  "Filter only inputs with index lower than a given value"
+  indexLowerThan: Int
+  "Filter only inputs with index greater than a given value"
+  indexGreaterThan: Int
+
+  "Filter only apps with name"
+  name: String
+
+  "Filter only apps with address"
+  address: String
 }
 
 "Filter object to restrict results depending on input properties"
@@ -1194,6 +1385,9 @@ type Report {
   input: Input!
   "Report data as a payload in Ethereum hex binary format, starting with '0x'"
   payload: String!
+
+  "The application that produced the report"
+  application: Application!
 }
 
 "Pagination entry"
@@ -1453,6 +1647,57 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_applications_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg3
+	var arg4 *model.AppFilter
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg4, err = ec.unmarshalOAppFilter2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐAppFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg4
 	return args, nil
 }
 
@@ -1806,6 +2051,382 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
+func (ec *executionContext) _AppConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.Connection[*model.Application]) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AppConnection_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AppConnection_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AppConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AppConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.Connection[*model.Application]) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AppConnection_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Edge[*model.Application])
+	fc.Result = res
+	return ec.marshalNAppEdge2ᚕᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AppConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AppConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_AppEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_AppEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AppEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AppConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.Connection[*model.Application]) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AppConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AppConnection_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AppConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "startCursor":
+				return ec.fieldContext_PageInfo_startCursor(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			case "hasPreviousPage":
+				return ec.fieldContext_PageInfo_hasPreviousPage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AppEdge_node(ctx context.Context, field graphql.CollectedField, obj *model.Edge[*model.Application]) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AppEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Application)
+	fc.Result = res
+	return ec.marshalNApplication2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐApplication(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AppEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AppEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Application_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Application_name(ctx, field)
+			case "address":
+				return ec.fieldContext_Application_address(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AppEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *model.Edge[*model.Application]) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AppEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor(), nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AppEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AppEdge",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Application_id(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Application_name(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Application_address(ctx context.Context, field graphql.CollectedField, obj *model.Application) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Application_address(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Address, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Application_address(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Application",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _DelegateCallVoucher_index(ctx context.Context, field graphql.CollectedField, obj *model.DelegateCallVoucher) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DelegateCallVoucher_index(ctx, field)
 	if err != nil {
@@ -1921,6 +2542,8 @@ func (ec *executionContext) fieldContext_DelegateCallVoucher_input(ctx context.C
 				return ec.fieldContext_Input_blockTimestamp(ctx, field)
 			case "prevRandao":
 				return ec.fieldContext_Input_prevRandao(ctx, field)
+			case "application":
+				return ec.fieldContext_Input_application(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Input", field.Name)
 		},
@@ -2145,6 +2768,58 @@ func (ec *executionContext) fieldContext_DelegateCallVoucher_transactionHash(ctx
 	return fc, nil
 }
 
+func (ec *executionContext) _DelegateCallVoucher_application(ctx context.Context, field graphql.CollectedField, obj *model.DelegateCallVoucher) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DelegateCallVoucher_application(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.DelegateCallVoucher().Application(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Application)
+	fc.Result = res
+	return ec.marshalNApplication2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐApplication(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DelegateCallVoucher_application(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DelegateCallVoucher",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Application_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Application_name(ctx, field)
+			case "address":
+				return ec.fieldContext_Application_address(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _DelegateCallVoucherConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.Connection[*model.DelegateCallVoucher]) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DelegateCallVoucherConnection_totalCount(ctx, field)
 	if err != nil {
@@ -2346,6 +3021,8 @@ func (ec *executionContext) fieldContext_DelegateCallVoucherEdge_node(ctx contex
 				return ec.fieldContext_DelegateCallVoucher_executed(ctx, field)
 			case "transactionHash":
 				return ec.fieldContext_DelegateCallVoucher_transactionHash(ctx, field)
+			case "application":
+				return ec.fieldContext_DelegateCallVoucher_application(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DelegateCallVoucher", field.Name)
 		},
@@ -3162,6 +3839,58 @@ func (ec *executionContext) fieldContext_Input_prevRandao(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Input_application(ctx context.Context, field graphql.CollectedField, obj *model.Input) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Input_application(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Input().Application(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Application)
+	fc.Result = res
+	return ec.marshalNApplication2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐApplication(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Input_application(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Input",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Application_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Application_name(ctx, field)
+			case "address":
+				return ec.fieldContext_Application_address(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _InputConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.Connection[*model.Input]) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_InputConnection_totalCount(ctx, field)
 	if err != nil {
@@ -3381,6 +4110,8 @@ func (ec *executionContext) fieldContext_InputEdge_node(ctx context.Context, fie
 				return ec.fieldContext_Input_blockTimestamp(ctx, field)
 			case "prevRandao":
 				return ec.fieldContext_Input_prevRandao(ctx, field)
+			case "application":
+				return ec.fieldContext_Input_application(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Input", field.Name)
 		},
@@ -3547,6 +4278,8 @@ func (ec *executionContext) fieldContext_Notice_input(ctx context.Context, field
 				return ec.fieldContext_Input_blockTimestamp(ctx, field)
 			case "prevRandao":
 				return ec.fieldContext_Input_prevRandao(ctx, field)
+			case "application":
+				return ec.fieldContext_Input_application(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Input", field.Name)
 		},
@@ -3640,6 +4373,58 @@ func (ec *executionContext) fieldContext_Notice_proof(ctx context.Context, field
 				return ec.fieldContext_Proof_outputHashesSiblings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Proof", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Notice_application(ctx context.Context, field graphql.CollectedField, obj *model.Notice) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Notice_application(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Notice().Application(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Application)
+	fc.Result = res
+	return ec.marshalNApplication2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐApplication(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Notice_application(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Notice",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Application_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Application_name(ctx, field)
+			case "address":
+				return ec.fieldContext_Application_address(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
 	}
 	return fc, nil
@@ -3840,6 +4625,8 @@ func (ec *executionContext) fieldContext_NoticeEdge_node(ctx context.Context, fi
 				return ec.fieldContext_Notice_payload(ctx, field)
 			case "proof":
 				return ec.fieldContext_Notice_proof(ctx, field)
+			case "application":
+				return ec.fieldContext_Notice_application(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Notice", field.Name)
 		},
@@ -4220,6 +5007,8 @@ func (ec *executionContext) fieldContext_Query_input(ctx context.Context, field 
 				return ec.fieldContext_Input_blockTimestamp(ctx, field)
 			case "prevRandao":
 				return ec.fieldContext_Input_prevRandao(ctx, field)
+			case "application":
+				return ec.fieldContext_Input_application(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Input", field.Name)
 		},
@@ -4293,6 +5082,8 @@ func (ec *executionContext) fieldContext_Query_voucher(ctx context.Context, fiel
 				return ec.fieldContext_Voucher_executed(ctx, field)
 			case "transactionHash":
 				return ec.fieldContext_Voucher_transactionHash(ctx, field)
+			case "application":
+				return ec.fieldContext_Voucher_application(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Voucher", field.Name)
 		},
@@ -4364,6 +5155,8 @@ func (ec *executionContext) fieldContext_Query_delegateCallVoucher(ctx context.C
 				return ec.fieldContext_DelegateCallVoucher_executed(ctx, field)
 			case "transactionHash":
 				return ec.fieldContext_DelegateCallVoucher_transactionHash(ctx, field)
+			case "application":
+				return ec.fieldContext_DelegateCallVoucher_application(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DelegateCallVoucher", field.Name)
 		},
@@ -4429,6 +5222,8 @@ func (ec *executionContext) fieldContext_Query_notice(ctx context.Context, field
 				return ec.fieldContext_Notice_payload(ctx, field)
 			case "proof":
 				return ec.fieldContext_Notice_proof(ctx, field)
+			case "application":
+				return ec.fieldContext_Notice_application(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Notice", field.Name)
 		},
@@ -4492,6 +5287,8 @@ func (ec *executionContext) fieldContext_Query_report(ctx context.Context, field
 				return ec.fieldContext_Report_input(ctx, field)
 			case "payload":
 				return ec.fieldContext_Report_payload(ctx, field)
+			case "application":
+				return ec.fieldContext_Report_application(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Report", field.Name)
 		},
@@ -4825,6 +5622,69 @@ func (ec *executionContext) fieldContext_Query_reports(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_applications(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_applications(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Applications(rctx, fc.Args["first"].(*int), fc.Args["last"].(*int), fc.Args["after"].(*string), fc.Args["before"].(*string), fc.Args["where"].(*model.AppFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Connection[*model.Application])
+	fc.Result = res
+	return ec.marshalNAppConnection2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_applications(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "totalCount":
+				return ec.fieldContext_AppConnection_totalCount(ctx, field)
+			case "edges":
+				return ec.fieldContext_AppConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_AppConnection_pageInfo(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AppConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_applications_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -5069,6 +5929,8 @@ func (ec *executionContext) fieldContext_Report_input(ctx context.Context, field
 				return ec.fieldContext_Input_blockTimestamp(ctx, field)
 			case "prevRandao":
 				return ec.fieldContext_Input_prevRandao(ctx, field)
+			case "application":
+				return ec.fieldContext_Input_application(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Input", field.Name)
 		},
@@ -5115,6 +5977,58 @@ func (ec *executionContext) fieldContext_Report_payload(ctx context.Context, fie
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Report_application(ctx context.Context, field graphql.CollectedField, obj *model.Report) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Report_application(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Report().Application(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Application)
+	fc.Result = res
+	return ec.marshalNApplication2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐApplication(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Report_application(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Report",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Application_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Application_name(ctx, field)
+			case "address":
+				return ec.fieldContext_Application_address(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
 		},
 	}
 	return fc, nil
@@ -5313,6 +6227,8 @@ func (ec *executionContext) fieldContext_ReportEdge_node(ctx context.Context, fi
 				return ec.fieldContext_Report_input(ctx, field)
 			case "payload":
 				return ec.fieldContext_Report_payload(ctx, field)
+			case "application":
+				return ec.fieldContext_Report_application(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Report", field.Name)
 		},
@@ -5479,6 +6395,8 @@ func (ec *executionContext) fieldContext_Voucher_input(ctx context.Context, fiel
 				return ec.fieldContext_Input_blockTimestamp(ctx, field)
 			case "prevRandao":
 				return ec.fieldContext_Input_prevRandao(ctx, field)
+			case "application":
+				return ec.fieldContext_Input_application(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Input", field.Name)
 		},
@@ -5744,6 +6662,58 @@ func (ec *executionContext) fieldContext_Voucher_transactionHash(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Voucher_application(ctx context.Context, field graphql.CollectedField, obj *model.Voucher) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Voucher_application(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Voucher().Application(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Application)
+	fc.Result = res
+	return ec.marshalNApplication2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐApplication(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Voucher_application(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Voucher",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Application_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Application_name(ctx, field)
+			case "address":
+				return ec.fieldContext_Application_address(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _VoucherConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.Connection[*model.Voucher]) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_VoucherConnection_totalCount(ctx, field)
 	if err != nil {
@@ -5947,6 +6917,8 @@ func (ec *executionContext) fieldContext_VoucherEdge_node(ctx context.Context, f
 				return ec.fieldContext_Voucher_executed(ctx, field)
 			case "transactionHash":
 				return ec.fieldContext_Voucher_transactionHash(ctx, field)
+			case "application":
+				return ec.fieldContext_Voucher_application(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Voucher", field.Name)
 		},
@@ -7833,6 +8805,54 @@ func (ec *executionContext) unmarshalInputAddressFilterInput(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputAppFilter(ctx context.Context, obj interface{}) (model.AppFilter, error) {
+	var it model.AppFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"indexLowerThan", "indexGreaterThan", "name", "address"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "indexLowerThan":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("indexLowerThan"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IndexLowerThan = data
+		case "indexGreaterThan":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("indexGreaterThan"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IndexGreaterThan = data
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "address":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("address"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Address = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputBooleanFilterInput(ctx context.Context, obj interface{}) (model.BooleanFilterInput, error) {
 	var it model.BooleanFilterInput
 	asMap := map[string]interface{}{}
@@ -7985,6 +9005,148 @@ func (ec *executionContext) unmarshalInputInputFilter(ctx context.Context, obj i
 
 // region    **************************** object.gotpl ****************************
 
+var appConnectionImplementors = []string{"AppConnection"}
+
+func (ec *executionContext) _AppConnection(ctx context.Context, sel ast.SelectionSet, obj *model.Connection[*model.Application]) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, appConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AppConnection")
+		case "totalCount":
+			out.Values[i] = ec._AppConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "edges":
+			out.Values[i] = ec._AppConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._AppConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var appEdgeImplementors = []string{"AppEdge"}
+
+func (ec *executionContext) _AppEdge(ctx context.Context, sel ast.SelectionSet, obj *model.Edge[*model.Application]) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, appEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AppEdge")
+		case "node":
+			out.Values[i] = ec._AppEdge_node(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cursor":
+			out.Values[i] = ec._AppEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var applicationImplementors = []string{"Application"}
+
+func (ec *executionContext) _Application(ctx context.Context, sel ast.SelectionSet, obj *model.Application) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, applicationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Application")
+		case "id":
+			out.Values[i] = ec._Application_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._Application_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "address":
+			out.Values[i] = ec._Application_address(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var delegateCallVoucherImplementors = []string{"DelegateCallVoucher"}
 
 func (ec *executionContext) _DelegateCallVoucher(ctx context.Context, sel ast.SelectionSet, obj *model.DelegateCallVoucher) graphql.Marshaler {
@@ -8053,6 +9215,42 @@ func (ec *executionContext) _DelegateCallVoucher(ctx context.Context, sel ast.Se
 			out.Values[i] = ec._DelegateCallVoucher_executed(ctx, field, obj)
 		case "transactionHash":
 			out.Values[i] = ec._DelegateCallVoucher_transactionHash(ctx, field, obj)
+		case "application":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._DelegateCallVoucher_application(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8369,6 +9567,42 @@ func (ec *executionContext) _Input(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Input_blockTimestamp(ctx, field, obj)
 		case "prevRandao":
 			out.Values[i] = ec._Input_prevRandao(ctx, field, obj)
+		case "application":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Input_application(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8544,6 +9778,42 @@ func (ec *executionContext) _Notice(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "proof":
 			out.Values[i] = ec._Notice_proof(ctx, field, obj)
+		case "application":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Notice_application(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8991,6 +10261,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "applications":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_applications(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -9079,6 +10371,42 @@ func (ec *executionContext) _Report(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "application":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Report_application(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9265,6 +10593,42 @@ func (ec *executionContext) _Voucher(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Voucher_executed(ctx, field, obj)
 		case "transactionHash":
 			out.Values[i] = ec._Voucher_transactionHash(ctx, field, obj)
+		case "application":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Voucher_application(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9706,6 +11070,88 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) marshalNAppConnection2githubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐConnection(ctx context.Context, sel ast.SelectionSet, v model.Connection[*model.Application]) graphql.Marshaler {
+	return ec._AppConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAppConnection2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐConnection(ctx context.Context, sel ast.SelectionSet, v *model.Connection[*model.Application]) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AppConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNAppEdge2ᚕᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Edge[*model.Application]) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAppEdge2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAppEdge2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐEdge(ctx context.Context, sel ast.SelectionSet, v *model.Edge[*model.Application]) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AppEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNApplication2githubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐApplication(ctx context.Context, sel ast.SelectionSet, v model.Application) graphql.Marshaler {
+	return ec._Application(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNApplication2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐApplication(ctx context.Context, sel ast.SelectionSet, v *model.Application) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Application(ctx, sel, v)
+}
 
 func (ec *executionContext) unmarshalNBigInt2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalID(v)
@@ -10481,6 +11927,14 @@ func (ec *executionContext) unmarshalOAddressFilterInput2ᚖgithubᚗcomᚋcarte
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputAddressFilterInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOAppFilter2ᚖgithubᚗcomᚋcartesiᚋrollupsᚑgraphqlᚋpkgᚋreaderᚋmodelᚐAppFilter(ctx context.Context, v interface{}) (*model.AppFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputAppFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

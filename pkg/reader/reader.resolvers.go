@@ -7,6 +7,7 @@ package reader
 import (
 	"context"
 	"log/slog"
+	"strconv"
 
 	"github.com/cartesi/rollups-graphql/pkg/reader/graph"
 	"github.com/cartesi/rollups-graphql/pkg/reader/model"
@@ -15,6 +16,11 @@ import (
 // Input is the resolver for the input field.
 func (r *delegateCallVoucherResolver) Input(ctx context.Context, obj *model.DelegateCallVoucher) (*model.Input, error) {
 	return r.adapter.GetInputByIndex(ctx, obj.InputIndex)
+}
+
+// Application is the resolver for the application field.
+func (r *delegateCallVoucherResolver) Application(ctx context.Context, obj *model.DelegateCallVoucher) (*model.Application, error) {
+	return r.adapter.GetApplicationByAppContract(ctx, obj.InputIndex)
 }
 
 // Vouchers is the resolver for the vouchers field.
@@ -49,6 +55,15 @@ func (r *inputResolver) Reports(ctx context.Context, obj *model.Input, first *in
 	return r.adapter.GetReports(ctx, first, last, after, before, &obj.Index)
 }
 
+// Application is the resolver for the application field.
+func (r *inputResolver) Application(ctx context.Context, obj *model.Input) (*model.Application, error) {
+	inputBoxIndex, err := strconv.Atoi(obj.InputBoxIndex)
+	if err != nil {
+		return nil, err
+	}
+	return r.adapter.GetApplicationByAppContract(ctx, inputBoxIndex)
+}
+
 // Input is the resolver for the input field.
 func (r *noticeResolver) Input(ctx context.Context, obj *model.Notice) (*model.Input, error) {
 	slog.Debug("Find input by index", "inputIndex", obj.InputIndex)
@@ -58,6 +73,11 @@ func (r *noticeResolver) Input(ctx context.Context, obj *model.Notice) (*model.I
 		return nil, err
 	}
 	return input, nil
+}
+
+// Application is the resolver for the application field.
+func (r *noticeResolver) Application(ctx context.Context, obj *model.Notice) (*model.Application, error) {
+	return r.adapter.GetApplicationByAppContract(ctx, obj.InputIndex)
 }
 
 // Input is the resolver for the input field.
@@ -111,14 +131,33 @@ func (r *queryResolver) Reports(ctx context.Context, first *int, last *int, afte
 	return r.adapter.GetReports(ctx, first, last, after, before, nil)
 }
 
+// Applications is the resolver for the applications field.
+func (r *queryResolver) Applications(ctx context.Context, first *int, last *int, after *string, before *string, where *model.AppFilter) (*model.Connection[*model.Application], error) {
+	if first == nil && last == nil && after == nil && before == nil {
+		return r.adapter.GetAllApplications(ctx, where)
+	}
+
+	return r.adapter.GetApplications(ctx, first, last, after, before, where)
+}
+
 // Input is the resolver for the input field.
 func (r *reportResolver) Input(ctx context.Context, obj *model.Report) (*model.Input, error) {
 	return r.adapter.GetInputByIndex(ctx, obj.InputIndex)
 }
 
+// Application is the resolver for the application field.
+func (r *reportResolver) Application(ctx context.Context, obj *model.Report) (*model.Application, error) {
+	return r.adapter.GetApplicationByAppContract(ctx, obj.InputIndex)
+}
+
 // Input is the resolver for the input field.
 func (r *voucherResolver) Input(ctx context.Context, obj *model.Voucher) (*model.Input, error) {
 	return r.adapter.GetInputByIndex(ctx, obj.InputIndex)
+}
+
+// Application is the resolver for the application field.
+func (r *voucherResolver) Application(ctx context.Context, obj *model.Voucher) (*model.Application, error) {
+	return r.adapter.GetApplicationByAppContract(ctx, obj.InputIndex)
 }
 
 // DelegateCallVoucher returns graph.DelegateCallVoucherResolver implementation.
@@ -147,17 +186,3 @@ type noticeResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type reportResolver struct{ *Resolver }
 type voucherResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *inputResolver) DelegateCallVoucher(ctx context.Context, obj *model.Input, first *int, last *int, after *string, before *string) (*model.DelegateCallVoucherConnection, error) {
-	if first == nil && last == nil && after == nil && before == nil {
-		return r.adapter.GetAllDelegateCallVouchersByInputIndex(ctx, &obj.Index)
-	}
-
-	return r.adapter.GetDelegateCallVouchers(ctx, first, last, after, before, &obj.Index, nil)
-}

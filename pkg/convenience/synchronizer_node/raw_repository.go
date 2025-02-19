@@ -9,6 +9,7 @@ import (
 
 	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
 	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -20,6 +21,20 @@ type RawRepository struct {
 
 type RawInputAppAddress struct {
 	Address []byte `db:"iapplication_address"`
+}
+
+type RawApplication struct {
+	ID                 uint64         `db:"id"`
+	Name               string         `db:"name"`
+	ApplicationAddress common.Address `db:"application_address"`
+}
+
+func (r *RawApplication) ToConvenience() model.ConvenienceApplication {
+	return model.ConvenienceApplication{
+		ID:                 r.ID,
+		Name:               r.Name,
+		ApplicationAddress: r.ApplicationAddress.Hex(),
+	}
 }
 
 type RawInput struct {
@@ -89,6 +104,77 @@ type FilterID struct {
 
 func NewRawRepository(connectionURL string, db *sqlx.DB) *RawRepository {
 	return &RawRepository{connectionURL, db}
+}
+
+func (s *RawRepository) GetApplicationRef(ctx context.Context, app *model.ConvenienceApplication) ([]RawApplication, error) {
+	if app == nil {
+		return s.FindAllAppsRef(ctx)
+	}
+
+	apps := []RawApplication{}
+	query := `
+		SELECT
+			id,
+			name,
+			iapplication_address as application_address
+		FROM
+			application
+		WHERE
+			id > $1
+		ORDER BY id ASC
+		LIMIT $2
+	`
+	res, err := s.Db.QueryxContext(ctx, query, app.ID, LIMIT)
+
+	if err != nil {
+		slog.Error("Failed to execute query in GetApplicationRef", "error", err)
+		return nil, err
+	}
+
+	for res.Next() {
+		var app RawApplication
+		err := res.StructScan(&app)
+		if err != nil {
+			slog.Error("Failed to scan row into Application struct", "error", err)
+			return nil, err
+		}
+		apps = append(apps, app)
+	}
+
+	return apps, nil
+}
+
+func (s *RawRepository) FindAllAppsRef(ctx context.Context) ([]RawApplication, error) {
+	query := `
+	SELECT
+		id,
+		name,
+		iapplication_address as application_address
+	FROM
+		application
+	ORDER BY
+		id ASC
+	LIMIT $1
+	`
+
+	apps := []RawApplication{}
+	result, err := s.Db.QueryxContext(ctx, query, LIMIT)
+	if err != nil {
+		slog.Error("Failed to execute query in FindAllAppsRef", "error", err)
+		return nil, err
+	}
+
+	for result.Next() {
+		var app RawApplication
+		err := result.StructScan(&app)
+		if err != nil {
+			slog.Error("Failed to scan row into Application struct", "error", err)
+			return nil, err
+		}
+		apps = append(apps, app)
+	}
+
+	return apps, nil
 }
 
 func (s *RawRepository) First50RawInputsGteRefWithStatus(ctx context.Context, inputRef repository.RawInputRef, status string) ([]RawInput, error) {
