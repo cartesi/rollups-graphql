@@ -26,37 +26,60 @@ func (a AdapterV1) GetAllApplications(ctx context.Context, where *graphql.AppFil
 	return a.GetApplications(ctx, nil, nil, nil, nil, where)
 }
 
+func GetAppContractInsideCtx(ctx context.Context) (*common.Address, error) {
+	appContractParam := ctx.Value(cModel.AppContractKey)
+	if appContractParam == nil {
+		return nil, fmt.Errorf("app contract not found in context")
+	}
+	appContract, ok := appContractParam.(string)
+	if !ok {
+		return nil, fmt.Errorf("invalid app contract type")
+	}
+	value := common.HexToAddress(appContract)
+	return &value, nil
+}
+
 // GetApplicationByAppContract implements Adapter.
 func (a AdapterV1) GetApplicationByAppContract(ctx context.Context, inputBoxIndex int) (*graphql.Application, error) {
-	input, err := a.convenienceService.InputRepository.FindByIndexAndAppContract(ctx, inputBoxIndex, nil)
+	var address *common.Address
 
+	// Trying to get app contract from context
+	ctxAddress, err := GetAppContractInsideCtx(ctx)
 	if err != nil {
-		return nil, err
-	}
-	if input == nil {
-		return nil, fmt.Errorf("application not found")
+		slog.Debug("app contract not found in context", "error", err)
 	}
 
-	// Trying get inside context
-	// appContractParam := ctx.Value(cModel.AppContractKey)
-	// if appContractParam == nil {
-	// 	return nil, fmt.Errorf("app contract not found in context")
-	// }
-	// appContract, ok := appContractParam.(string)
-	// if !ok {
-	// 	return nil, fmt.Errorf("invalid app contract type")
-	// }
+	if ctxAddress != nil {
+		address = ctxAddress
+	} else {
+		// Trying to get app contract from inputBoxIndex
+		input, err := a.convenienceService.InputRepository.FindByIndexAndAppContract(ctx, inputBoxIndex, nil)
 
-	address := input.AppContract
+		if err != nil {
+			return nil, err
+		}
+		if input == nil {
+			slog.Debug("input not found", "inputBoxIndex", inputBoxIndex)
+			return nil, fmt.Errorf("input from inputBoxIndex not found")
+		}
+		address = &input.AppContract
+	}
 
-	app, err := a.convenienceService.FindAppByAppContract(ctx, &address)
+	app, err := a.convenienceService.FindAppByAppContract(ctx, address)
 
 	if err != nil {
 		return nil, err
 	}
 
 	if app == nil {
-		return nil, fmt.Errorf("application not found")
+		slog.Debug("application not found", "appContract", address.Hex())
+		defaultApplication := &graphql.Application{
+			ID:      "0",
+			Name:    "MAIN",
+			Address: address.Hex(),
+		}
+		slog.Debug("Generate default application", "defaultApplication", defaultApplication)
+		return defaultApplication, nil
 	}
 
 	return graphql.ConvertToApplicationV1(*app), nil
