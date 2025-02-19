@@ -146,6 +146,43 @@ func (r *ReportRepository) FindLastReport(ctx context.Context) (*cModel.FastRepo
 	return &report, err
 }
 
+func (r *ReportRepository) FindByInputAndOutputIndex(
+	ctx context.Context,
+	inputIndex uint64,
+	outputIndex uint64,
+) (*cModel.Report, error) {
+	rows, err := r.Db.QueryxContext(ctx, `
+			SELECT payload FROM convenience_reports
+			WHERE input_index = $1 AND output_index = $2
+			LIMIT 1`,
+		inputIndex, outputIndex,
+	)
+	if err != nil {
+		slog.Error("database error", "err", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		var payload string
+		if err := rows.Scan(&payload); err != nil {
+			return nil, err
+		}
+		report := &cModel.Report{
+			InputIndex: int(inputIndex),
+			Index:      int(outputIndex),
+			Payload:    payload,
+		}
+		return report, nil
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
 func (r *ReportRepository) FindByOutputIndexAndAppContract(
 	ctx context.Context,
 	outputIndex uint64,
