@@ -1,6 +1,6 @@
 -- DROP SCHEMA public;
 
-CREATE SCHEMA public AUTHORIZATION pg_database_owner;
+CREATE SCHEMA IF NOT EXISTS public AUTHORIZATION pg_database_owner;
 
 -- DROP SEQUENCE public.synchronizer_fetch_id_seq;
 
