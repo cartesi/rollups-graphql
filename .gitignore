@@ -10,3 +10,4 @@ sqlite3
 /rollups-graphql
 /rollups-node
 /rollups-espresso-reader
+graphql-db-migration
