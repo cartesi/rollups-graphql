@@ -124,6 +124,8 @@ func main() {
 	}
 
 	maxRetry := 5
+
+	// nolint
 	retrySleep := 5 * time.Second
 
 	for i := 0; i < maxRetry; i++ {
