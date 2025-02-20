@@ -123,13 +123,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	for i := 0; i < 5; i++ {
+	maxRetry := 5
+
+	for i := 0; i < maxRetry; i++ {
 		s, err = New(postgresEndpoint)
 		if err == nil {
 			break
 		}
 		slog.Warn("Connection to database failed. Trying again.", "PostgresEndpoint", uri.String())
-		if i == 4 {
+		if i == maxRetry-1 {
 			slog.Error("Failed to connect to database.", "error", err)
 			os.Exit(1)
 		}
