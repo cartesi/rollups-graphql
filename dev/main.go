@@ -124,6 +124,7 @@ func main() {
 	}
 
 	maxRetry := 5
+	retrySleep := 5 * time.Second
 
 	for i := 0; i < maxRetry; i++ {
 		s, err = New(postgresEndpoint)
@@ -135,7 +136,7 @@ func main() {
 			slog.Error("Failed to connect to database.", "error", err)
 			os.Exit(1)
 		}
-		time.Sleep(5 * time.Second) // wait before retrying
+		time.Sleep(retrySleep)
 	}
 	defer s.Close()
 
