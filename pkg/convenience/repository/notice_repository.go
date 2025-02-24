@@ -21,7 +21,7 @@ type NoticeRepository struct {
 }
 
 func (c *NoticeRepository) CreateTables() error {
-	schema := `CREATE TABLE IF NOT EXISTS notices (
+	schema := `CREATE TABLE IF NOT EXISTS convenience_notices (
 		payload 		text,
 		input_index		integer,
 		output_index	integer,
@@ -31,9 +31,9 @@ func (c *NoticeRepository) CreateTables() error {
 		PRIMARY KEY (input_index, output_index, app_contract)
 	);
 
-	CREATE INDEX IF NOT EXISTS idx_app_contract_input_index ON notices(app_contract, input_index);
-	CREATE INDEX IF NOT EXISTS idx_app_contract_output_index ON notices(app_contract, output_index);
-	CREATE INDEX IF NOT EXISTS idx_input_index_output_index ON notices(input_index, output_index);`
+	CREATE INDEX IF NOT EXISTS idx_app_contract_input_index ON convenience_notices(app_contract, input_index);
+	CREATE INDEX IF NOT EXISTS idx_app_contract_output_index ON convenience_notices(app_contract, output_index);
+	CREATE INDEX IF NOT EXISTS idx_input_index_output_index ON convenience_notices(input_index, output_index);`
 	// execute a query on the server
 	_, err := c.Db.Exec(schema)
 	return err
@@ -51,7 +51,7 @@ func (c *NoticeRepository) Create(
 		data.OutputIndex = count
 		data.ProofOutputIndex = count
 	}
-	insertSql := `INSERT INTO notices (
+	insertSql := `INSERT INTO convenience_notices (
 		payload,
 		input_index,
 		output_index,
@@ -79,7 +79,7 @@ func (c *NoticeRepository) Create(
 func (c *NoticeRepository) Update(
 	ctx context.Context, data *model.ConvenienceNotice,
 ) (*model.ConvenienceNotice, error) {
-	sqlUpdate := `UPDATE notices SET
+	sqlUpdate := `UPDATE convenience_notices SET
 		payload = $1
 		WHERE input_index = $2 and output_index = $3`
 	exec := DBExecutor{&c.Db}
@@ -100,7 +100,7 @@ func (c *NoticeRepository) Update(
 func (c *NoticeRepository) SetProof(
 	ctx context.Context, notice *model.ConvenienceNotice,
 ) error {
-	updateVoucher := `UPDATE notices SET
+	updateVoucher := `UPDATE convenience_notices SET
 		output_hashes_siblings = $1,
 		proof_output_index = $2
 		WHERE app_contract = $3 and output_index = $4`
@@ -132,7 +132,7 @@ func (c *NoticeRepository) Count(
 	ctx context.Context,
 	filter []*model.ConvenienceFilter,
 ) (uint64, error) {
-	query := `SELECT count(*) FROM notices `
+	query := `SELECT count(*) FROM convenience_notices `
 	where, args, _, err := transformToNoticeQuery(filter)
 	if err != nil {
 		return 0, err
@@ -164,7 +164,7 @@ func (c *NoticeRepository) FindAllNotices(
 	if err != nil {
 		return nil, err
 	}
-	query := `SELECT * FROM notices `
+	query := `SELECT * FROM convenience_notices `
 	where, args, argsCount, err := transformToNoticeQuery(filter)
 	if err != nil {
 		return nil, err
@@ -211,7 +211,7 @@ func (c *NoticeRepository) FindAllNoticesByBlockNumber(
 			n.app_contract,
 			n.output_hashes_siblings,
 			n.proof_output_index
-		FROM notices n
+		FROM convenience_notices n
 			INNER JOIN convenience_inputs i
 				ON i.app_contract = n.app_contract AND i.input_index = n.input_index
 		WHERE i.block_number >= $1 and i.block_number < $2`)
@@ -262,7 +262,7 @@ func (c *NoticeRepository) queryByOutputIndexAndAppContract(
 ) (*sqlx.Rows, error) {
 	if appContract != nil {
 		return c.Db.QueryxContext(ctx, `
-			SELECT * FROM notices
+			SELECT * FROM convenience_notices
 			WHERE output_index = $1 and app_contract = $2
 			LIMIT 1`,
 			outputIndex,
@@ -270,7 +270,7 @@ func (c *NoticeRepository) queryByOutputIndexAndAppContract(
 		)
 	} else {
 		return c.Db.QueryxContext(ctx, `
-			SELECT * FROM notices
+			SELECT * FROM convenience_notices
 			WHERE output_index = $1
 			LIMIT 1`,
 			outputIndex,
@@ -281,7 +281,7 @@ func (c *NoticeRepository) queryByOutputIndexAndAppContract(
 func (c *NoticeRepository) FindByInputAndOutputIndex(
 	ctx context.Context, inputIndex uint64, outputIndex uint64,
 ) (*model.ConvenienceNotice, error) {
-	query := `SELECT * FROM notices WHERE input_index = $1 and output_index = $2 LIMIT 1`
+	query := `SELECT * FROM convenience_notices WHERE input_index = $1 and output_index = $2 LIMIT 1`
 	stmt, err := c.Db.Preparex(query)
 	if err != nil {
 		return nil, err
@@ -350,7 +350,7 @@ func (c *NoticeRepository) BatchFindAllNoticesByInputIndexAndAppContract(
 ) ([]*commons.PageResult[model.ConvenienceNotice], []error) {
 	slog.Debug("BatchFindAllNoticesByInputIndexAndAppContract", "len", len(filters))
 
-	query := `SELECT * FROM notices WHERE `
+	query := `SELECT * FROM convenience_notices WHERE `
 
 	args := []interface{}{}
 	where := []string{}
