@@ -93,12 +93,3 @@ func (s *RawNodeSuite) TestDecodeChainIDFromInputbox() {
 	slog.Info("DataDecoded", "dataDecoded", dataDecoded)
 	// s.NotNil(nil)
 }
-
-// deprecated
-func (s *RawNodeSuite) TestSynchronizerNodeFindInputByOutput() {
-	ctx := context.Background()
-
-	input, err := s.rawRepository.FindInputByOutput(ctx, FilterID{IDgt: 1})
-	s.NoError(err)
-	s.Equal(uint64(1), input.Index)
-}

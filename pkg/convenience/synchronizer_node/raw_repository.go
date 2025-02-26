@@ -2,8 +2,6 @@ package synchronizernode
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"log/slog"
 	"time"
 
@@ -386,50 +384,6 @@ func (s *RawRepository) FindAllReportsGt(ctx context.Context, ourReport *model.F
 	}
 
 	return reports, nil
-}
-
-func (s *RawRepository) FindInputByOutput(ctx context.Context, filter FilterID) (*RawInput, error) {
-	query := `
-		SELECT
-			i.index,
-			i.raw_data,
-			i.block_number,
-			i.status,
-			i.machine_hash,
-			i.outputs_hash,
-			i.epoch_index,
-			i.epoch_application_id,
-			i.transaction_reference,
-			i.created_at,
-			i.updated_at,
-			i.snapshot_uri,
-			a.iapplication_address as application_address
-		FROM input i
-		INNER JOIN
-			application a ON a.id = i.epoch_application_id
-		WHERE i.index = $1
-		LIMIT 1`
-	stmt, err := s.Db.Preparex(query)
-	if err != nil {
-		slog.Error("Failed to prepare statement in FindInputByOutput", "query", query, "error", err)
-		return nil, err
-	}
-	defer stmt.Close()
-
-	var input RawInput
-	err = stmt.GetContext(ctx, &input, filter.IDgt)
-
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			slog.Warn("No input found for given output", "input_id", filter.IDgt)
-			return nil, nil
-		}
-		slog.Error("Failed to get context for input in FindInputByOutput", "error", err)
-		return nil, err
-	}
-	// input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress))
-
-	return &input, nil
 }
 
 func (s *RawRepository) findAllOutputsLimited(ctx context.Context) ([]Output, error) {
