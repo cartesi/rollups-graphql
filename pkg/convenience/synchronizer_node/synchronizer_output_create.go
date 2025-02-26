@@ -57,7 +57,13 @@ func (s *SynchronizerOutputCreate) syncOutputs(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	slog.Debug("SyncOutputs", "latestOutputRef", latestOutputRef)
+	if latestOutputRef != nil {
+		slog.Debug("SyncOutputs",
+			"CreatedAt", latestOutputRef.CreatedAt,
+			"AppID", latestOutputRef.AppID,
+			"OutputIndex", latestOutputRef.OutputIndex,
+		)
+	}
 	outputs, err := s.RawNodeV2Repository.FindAllOutputsGtRefLimited(ctx, latestOutputRef)
 	if err != nil {
 		return err
@@ -71,7 +77,6 @@ func (s *SynchronizerOutputCreate) syncOutputs(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-
 		err = s.CreateOutput(ctx, rawOutputRef, rawOutput)
 		if err != nil {
 			return err

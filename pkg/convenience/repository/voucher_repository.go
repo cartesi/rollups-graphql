@@ -63,6 +63,31 @@ func (c *VoucherRepository) CreateTables() error {
 	return err
 }
 
+func (c *VoucherRepository) FindVoucherByAppContractAndOutputIndex(
+	ctx context.Context, appContract common.Address, outputIndex uint64,
+) (*model.ConvenienceVoucher, error) {
+
+	query := `SELECT * FROM convenience_vouchers WHERE app_contract = $1 and output_index = $2 LIMIT 1`
+
+	stmt, err := c.Db.Preparex(query)
+	if err != nil {
+		return nil, err
+	}
+	var row voucherRow
+	err = stmt.GetContext(ctx, &row, appContract.Hex(), outputIndex)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	defer stmt.Close()
+
+	p := convertToConvenienceVoucher(row)
+
+	return &p, nil
+}
+
 func (c *VoucherRepository) CreateVoucher(
 	ctx context.Context, voucher *model.ConvenienceVoucher,
 ) (*model.ConvenienceVoucher, error) {
@@ -74,6 +99,13 @@ func (c *VoucherRepository) CreateVoucher(
 		}
 		voucher.OutputIndex = count
 		voucher.ProofOutputIndex = count
+	}
+	dbInstance, err := c.FindVoucherByAppContractAndOutputIndex(ctx, voucher.AppContract, voucher.OutputIndex)
+	if err != nil {
+		return nil, err
+	}
+	if dbInstance != nil {
+		return dbInstance, nil
 	}
 	insertVoucher := `INSERT INTO convenience_vouchers (
 		destination,
@@ -90,7 +122,7 @@ func (c *VoucherRepository) CreateVoucher(
 
 	exec := DBExecutor{&c.Db}
 
-	_, err := exec.ExecContext(
+	_, err = exec.ExecContext(
 		ctx,
 		insertVoucher,
 		voucher.Destination.Hex(),
@@ -105,7 +137,13 @@ func (c *VoucherRepository) CreateVoucher(
 		voucher.IsDelegatedCall,
 	)
 	if err != nil {
-		slog.Error("Error creating vouchers", "Error", err)
+		slog.Error("Error creating vouchers",
+			"Error", err,
+			"app_contract", voucher.AppContract.Hex(),
+			"input_index", voucher.InputIndex,
+			"output_index", voucher.OutputIndex,
+			"AutoCount", c.AutoCount,
+		)
 		return nil, err
 	}
 	return voucher, nil

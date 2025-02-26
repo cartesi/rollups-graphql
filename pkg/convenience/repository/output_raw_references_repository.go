@@ -58,9 +58,22 @@ func (r *RawOutputRefRepository) CreateTable() error {
 }
 
 func (r *RawOutputRefRepository) Create(ctx context.Context, rawOutput RawOutputRef) error {
+	dbInstance, err := r.FindByAppIDAndOutputIndex(ctx, rawOutput.AppID, rawOutput.OutputIndex)
+	if err != nil {
+		slog.Error("Error finding output reference", "error", err,
+			"app_id", rawOutput.AppID,
+			"app_contract", rawOutput.AppContract,
+			"output_index", rawOutput.OutputIndex,
+			"input_index", rawOutput.InputIndex,
+		)
+		return err
+	}
+	if dbInstance != nil {
+		return nil
+	}
 	exec := DBExecutor{r.Db}
 
-	_, err := exec.ExecContext(ctx, `INSERT INTO convenience_output_raw_references (
+	_, err = exec.ExecContext(ctx, `INSERT INTO convenience_output_raw_references (
 		input_index,
 		app_contract,
 		output_index,
@@ -87,6 +100,7 @@ func (r *RawOutputRefRepository) Create(ctx context.Context, rawOutput RawOutput
 	if err != nil {
 		slog.Error("Error creating output reference", "error", err,
 			"app_id", rawOutput.AppID,
+			"app_contract", rawOutput.AppContract,
 			"output_index", rawOutput.OutputIndex,
 			"input_index", rawOutput.InputIndex,
 		)

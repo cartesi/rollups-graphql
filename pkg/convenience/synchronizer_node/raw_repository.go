@@ -56,7 +56,7 @@ type RawInput struct {
 type RawReport struct {
 	Index         uint64 `db:"index"`
 	InputIndex    uint64 `db:"input_index"`
-	ApplicationId int    `db:"input_epoch_application_id"`
+	ApplicationId uint64 `db:"input_epoch_application_id"`
 	RawData       []byte `db:"raw_data"`
 	AppContract   []byte `db:"app_contract"`
 }
@@ -346,10 +346,9 @@ func (s *RawRepository) FindAllReportsGt(ctx context.Context, ourReport *model.F
 			a.iapplication_address as app_contract
 		FROM
 			report r
-		INNER JOIN
-			input i
-		ON
-			i.index = r.input_index
+		INNER JOIN input i
+			ON i.index = r.input_index
+			AND i.epoch_application_id = r.input_epoch_application_id
 		INNER JOIN
 			application a
 		ON
@@ -451,6 +450,7 @@ func (s *RawRepository) findAllOutputsLimited(ctx context.Context) ([]Output, er
 			output o
 		INNER JOIN input i
 			ON i.index = o.input_index
+			AND i.epoch_application_id = o.input_epoch_application_id
 		INNER JOIN application a
 			ON a.id = o.input_epoch_application_id
 		ORDER BY
@@ -499,6 +499,7 @@ func (s *RawRepository) FindAllOutputsGtRefLimited(ctx context.Context, outputRe
 			output o
 		INNER JOIN input i
 			ON i.index = o.input_index
+			AND i.epoch_application_id = o.input_epoch_application_id
 		INNER JOIN application a
 			ON a.id = o.input_epoch_application_id
 		WHERE
@@ -546,8 +547,7 @@ func (s *RawRepository) FindAllOutputsWithProofGte(ctx context.Context, filter *
 		FROM
 			output o
 		INNER JOIN application a
-		ON
-			a.id = o.input_epoch_application_id
+			ON a.id = o.input_epoch_application_id
 		WHERE
 			output_hashes_siblings IS NOT NULL
 				AND
