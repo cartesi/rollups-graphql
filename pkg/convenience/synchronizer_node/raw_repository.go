@@ -2,8 +2,6 @@ package synchronizernode
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"log/slog"
 	"time"
 
@@ -56,7 +54,7 @@ type RawInput struct {
 type RawReport struct {
 	Index         uint64 `db:"index"`
 	InputIndex    uint64 `db:"input_index"`
-	ApplicationId int    `db:"input_epoch_application_id"`
+	ApplicationId uint64 `db:"input_epoch_application_id"`
 	RawData       []byte `db:"raw_data"`
 	AppContract   []byte `db:"app_contract"`
 }
@@ -346,10 +344,9 @@ func (s *RawRepository) FindAllReportsGt(ctx context.Context, ourReport *model.F
 			a.iapplication_address as app_contract
 		FROM
 			report r
-		INNER JOIN
-			input i
-		ON
-			i.index = r.input_index
+		INNER JOIN input i
+			ON i.index = r.input_index
+			AND i.epoch_application_id = r.input_epoch_application_id
 		INNER JOIN
 			application a
 		ON
@@ -389,50 +386,6 @@ func (s *RawRepository) FindAllReportsGt(ctx context.Context, ourReport *model.F
 	return reports, nil
 }
 
-func (s *RawRepository) FindInputByOutput(ctx context.Context, filter FilterID) (*RawInput, error) {
-	query := `
-		SELECT
-			i.index,
-			i.raw_data,
-			i.block_number,
-			i.status,
-			i.machine_hash,
-			i.outputs_hash,
-			i.epoch_index,
-			i.epoch_application_id,
-			i.transaction_reference,
-			i.created_at,
-			i.updated_at,
-			i.snapshot_uri,
-			a.iapplication_address as application_address
-		FROM input i
-		INNER JOIN
-			application a ON a.id = i.epoch_application_id
-		WHERE i.index = $1
-		LIMIT 1`
-	stmt, err := s.Db.Preparex(query)
-	if err != nil {
-		slog.Error("Failed to prepare statement in FindInputByOutput", "query", query, "error", err)
-		return nil, err
-	}
-	defer stmt.Close()
-
-	var input RawInput
-	err = stmt.GetContext(ctx, &input, filter.IDgt)
-
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			slog.Warn("No input found for given output", "input_id", filter.IDgt)
-			return nil, nil
-		}
-		slog.Error("Failed to get context for input in FindInputByOutput", "error", err)
-		return nil, err
-	}
-	// input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress))
-
-	return &input, nil
-}
-
 func (s *RawRepository) findAllOutputsLimited(ctx context.Context) ([]Output, error) {
 	outputs := []Output{}
 	query := `
@@ -451,6 +404,7 @@ func (s *RawRepository) findAllOutputsLimited(ctx context.Context) ([]Output, er
 			output o
 		INNER JOIN input i
 			ON i.index = o.input_index
+			AND i.epoch_application_id = o.input_epoch_application_id
 		INNER JOIN application a
 			ON a.id = o.input_epoch_application_id
 		ORDER BY
@@ -499,6 +453,7 @@ func (s *RawRepository) FindAllOutputsGtRefLimited(ctx context.Context, outputRe
 			output o
 		INNER JOIN input i
 			ON i.index = o.input_index
+			AND i.epoch_application_id = o.input_epoch_application_id
 		INNER JOIN application a
 			ON a.id = o.input_epoch_application_id
 		WHERE
@@ -546,8 +501,7 @@ func (s *RawRepository) FindAllOutputsWithProofGte(ctx context.Context, filter *
 		FROM
 			output o
 		INNER JOIN application a
-		ON
-			a.id = o.input_epoch_application_id
+			ON a.id = o.input_epoch_application_id
 		WHERE
 			output_hashes_siblings IS NOT NULL
 				AND

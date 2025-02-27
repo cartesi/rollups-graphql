@@ -59,7 +59,7 @@ func (s *SynchronizerReport) syncReports(ctx context.Context) error {
 			Index:       int(rawReport.Index),
 			InputIndex:  int(rawReport.InputIndex),
 			Payload:     common.Bytes2Hex(rawReport.RawData),
-			AppID:       uint64(rawReport.Index),
+			AppID:       rawReport.ApplicationId,
 		})
 		if err != nil {
 			slog.Error("fail to create report", "err", err)

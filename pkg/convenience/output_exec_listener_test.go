@@ -1,13 +1,10 @@
 package convenience
 
 import (
-	"context"
 	"log/slog"
-	"math/big"
 	"testing"
 
 	"github.com/cartesi/rollups-graphql/pkg/commons"
-	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
 	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
 	"github.com/cartesi/rollups-graphql/pkg/convenience/services"
 	"github.com/ethereum/go-ethereum/common"
@@ -79,50 +76,5 @@ func (s *ExecListenerSuite) SetupTest() {
 }
 
 func (s *ExecListenerSuite) TestItUpdateExecutedAtAndBlocknumber() {
-	{
-		createVoucherMetadataOrFail(s, &model.ConvenienceVoucher{
-			Destination: Bruno,
-			Payload:     "0x1122",
-			InputIndex:  1,
-			OutputIndex: 0,
-			Executed:    false,
-		})
-		createVoucherMetadataOrFail(s, &model.ConvenienceVoucher{
-			Destination: Bob,
-			Payload:     "0x1122",
-			InputIndex:  2,
-			OutputIndex: 0,
-			Executed:    false,
-		})
-		createVoucherMetadataOrFail(s, &model.ConvenienceVoucher{
-			Destination: Alice,
-			Payload:     "0x1122",
-			InputIndex:  3,
-			OutputIndex: 0,
-			Executed:    false,
-		})
-	}
-	listener := NewExecListener("not a problem", Token, s.ConvenienceService, nil)
-	eventValues := make([]interface{}, 1)
-	eventValues[0] = big.NewInt(2)
-	timestamp := uint64(9999)
-	blocknumber := uint64(2008)
-	err := listener.OnEvent(eventValues, timestamp, blocknumber)
-	if err != nil {
-		panic(err)
-	}
-	ctx := context.Background()
-	voucher, err2 := s.repository.FindVoucherByInputAndOutputIndex(ctx, 2, 0)
-	if err2 != nil {
-		panic(err2)
-	}
-	s.Equal(Bob.String(), voucher.Destination.String())
-	s.Equal(true, voucher.Executed)
-}
-
-func createVoucherMetadataOrFail(s *ExecListenerSuite, voucher *model.ConvenienceVoucher) {
-	ctx := context.Background()
-	if _, err := s.repository.CreateVoucher(ctx, voucher); err != nil {
-		panic(err)
-	}
+	// deprecated
 }

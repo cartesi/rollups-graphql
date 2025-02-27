@@ -138,13 +138,15 @@ func (s *VoucherRepositorySuite) TestCountVoucher() {
 
 func (s *VoucherRepositorySuite) TestPagination() {
 	destination := common.HexToAddress("0x26A61aF89053c847B4bd5084E2caFe7211874a29")
+	appContract := common.HexToAddress(ApplicationAddress)
 	ctx := context.Background()
 	for i := 0; i < 30; i++ {
 		_, err := s.voucherRepository.CreateVoucher(ctx, &model.ConvenienceVoucher{
+			AppContract: appContract,
 			Destination: destination,
 			Payload:     "0x0011",
 			InputIndex:  uint64(i),
-			OutputIndex: 0,
+			OutputIndex: uint64(i),
 			Executed:    false,
 		})
 		s.NoError(err)

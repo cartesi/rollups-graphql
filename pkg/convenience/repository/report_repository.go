@@ -76,13 +76,15 @@ func (r *ReportRepository) CreateReport(ctx context.Context, report cModel.Repor
 	)
 
 	if err != nil {
-		slog.Error("database error", "err", err)
+		slog.Error("database error",
+			"err", err,
+			"index", report.Index,
+			"input_index", report.InputIndex,
+			"app_id", report.AppID,
+			"app_contract", report.AppContract.Hex(),
+		)
 		return cModel.Report{}, err
 	}
-	// slog.Debug("Report created",
-	// 	"outputIndex", report.Index,
-	// 	"inputIndex", report.InputIndex,
-	// )
 	return report, nil
 }
 
