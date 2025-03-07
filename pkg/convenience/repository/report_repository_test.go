@@ -45,10 +45,12 @@ func (s *ReportRepositorySuite) TestCreateTables() {
 
 func (s *ReportRepositorySuite) TestCreateReport() {
 	ctx := context.Background()
+	appContract := common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT[2:])
 	_, err := s.reportRepository.CreateReport(ctx, cModel.Report{
-		Index:      1,
-		InputIndex: 2,
-		Payload:    "1122",
+		Index:       1,
+		InputIndex:  2,
+		Payload:     "1122",
+		AppContract: appContract,
 	})
 	s.NoError(err)
 }
@@ -86,14 +88,16 @@ func (s *ReportRepositorySuite) TestReportNotFound() {
 
 func (s *ReportRepositorySuite) TestCreateReportAndFindAll() {
 	ctx := context.Background()
+	appContract := common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT[2:])
 	for i := 0; i < 3; i++ {
 		for j := 0; j < 4; j++ {
 			_, err := s.reportRepository.CreateReport(
 				ctx,
 				cModel.Report{
-					InputIndex: i,
-					Index:      j,
-					Payload:    "1122",
+					InputIndex:  i,
+					Index:       i * j,
+					Payload:     "1122",
+					AppContract: appContract,
 				})
 			s.NoError(err)
 		}
