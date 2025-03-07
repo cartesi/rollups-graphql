@@ -51,6 +51,16 @@ func (c *NoticeRepository) Create(
 		data.OutputIndex = count
 		data.ProofOutputIndex = count
 	}
+	address := common.HexToAddress(data.AppContract)
+	dbInstance, err := c.FindNoticeByOutputIndexAndAppContract(ctx, data.OutputIndex, &address)
+	if err != nil {
+		return nil, err
+	}
+	if dbInstance != nil {
+		slog.Debug("Notice already exists", "output_index", data.OutputIndex, "app_contract", data.AppContract)
+		return dbInstance, nil
+	}
+
 	insertSql := `INSERT INTO convenience_notices (
 		payload,
 		input_index,
@@ -60,7 +70,7 @@ func (c *NoticeRepository) Create(
 		proof_output_index) VALUES ($1, $2, $3, $4, $5, $6)`
 
 	exec := DBExecutor{&c.Db}
-	_, err := exec.ExecContext(ctx,
+	_, err = exec.ExecContext(ctx,
 		insertSql,
 		data.Payload,
 		data.InputIndex,
