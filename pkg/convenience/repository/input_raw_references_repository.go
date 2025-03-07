@@ -79,7 +79,7 @@ func (r *RawInputRefRepository) Create(ctx context.Context, rawInput RawInputRef
 		return err
 	}
 	if exist != nil {
-		slog.Warn("Raw input already exists. Skipping creation")
+		slog.Debug("Raw input already exists. Skipping creation")
 		return nil
 	}
 

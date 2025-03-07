@@ -50,6 +50,14 @@ func (r *ReportRepository) CreateReport(ctx context.Context, report cModel.Repor
 		}
 		report.Index = int(count)
 	}
+	dbInstance, err := r.FindByOutputIndexAndAppContract(ctx, uint64(report.Index), &report.AppContract)
+	if err != nil {
+		return cModel.Report{}, err
+	}
+	if dbInstance != nil {
+		slog.Debug("Report already exists", "index", report.Index, "app_contract", report.AppContract.Hex())
+		return *dbInstance, nil
+	}
 	insertSql := `INSERT INTO convenience_reports (
 		output_index,
 		payload,
@@ -65,7 +73,7 @@ func (r *ReportRepository) CreateReport(ctx context.Context, report cModel.Repor
 	}
 
 	exec := DBExecutor{r.Db}
-	_, err := exec.ExecContext(
+	_, err = exec.ExecContext(
 		ctx,
 		insertSql,
 		report.Index,

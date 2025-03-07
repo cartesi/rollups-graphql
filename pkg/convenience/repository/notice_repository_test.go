@@ -94,11 +94,13 @@ func (s *NoticeRepositorySuite) TestCountNotices() {
 
 func (s *NoticeRepositorySuite) TestNoticePagination() {
 	ctx := context.Background()
+	appContract := common.HexToAddress(ApplicationAddress)
 	for i := 0; i < 30; i++ {
 		_, err := s.repository.Create(ctx, &model.ConvenienceNotice{
 			Payload:     "0x0011",
 			InputIndex:  uint64(i),
-			OutputIndex: 0,
+			OutputIndex: uint64(i),
+			AppContract: appContract.Hex(),
 		})
 		s.NoError(err)
 	}

@@ -45,10 +45,12 @@ func (s *ReportRepositorySuite) TestCreateTables() {
 
 func (s *ReportRepositorySuite) TestCreateReport() {
 	ctx := context.Background()
+	appContract := common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT[2:])
 	_, err := s.reportRepository.CreateReport(ctx, cModel.Report{
-		Index:      1,
-		InputIndex: 2,
-		Payload:    "1122",
+		Index:       1,
+		InputIndex:  2,
+		Payload:     "1122",
+		AppContract: appContract,
 	})
 	s.NoError(err)
 }
@@ -86,23 +88,23 @@ func (s *ReportRepositorySuite) TestReportNotFound() {
 
 func (s *ReportRepositorySuite) TestCreateReportAndFindAll() {
 	ctx := context.Background()
-	for i := 0; i < 3; i++ {
-		for j := 0; j < 4; j++ {
-			_, err := s.reportRepository.CreateReport(
-				ctx,
-				cModel.Report{
-					InputIndex: i,
-					Index:      j,
-					Payload:    "1122",
-				})
-			s.NoError(err)
-		}
+	appContract := common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT[2:])
+	for i := 0; i < 12; i++ {
+		_, err := s.reportRepository.CreateReport(
+			ctx,
+			cModel.Report{
+				InputIndex:  i,
+				Index:       i,
+				Payload:     "1122",
+				AppContract: appContract,
+			})
+		s.NoError(err)
 	}
 	reports, err := s.reportRepository.FindAll(ctx, nil, nil, nil, nil, nil)
 	s.NoError(err)
 	s.Equal(12, int(reports.Total))
 	s.Equal(0, reports.Rows[0].InputIndex)
-	s.Equal(2, reports.Rows[len(reports.Rows)-1].InputIndex)
+	s.Equal(11, reports.Rows[len(reports.Rows)-1].InputIndex)
 
 	filter := []*cModel.ConvenienceFilter{}
 	{
@@ -115,11 +117,11 @@ func (s *ReportRepositorySuite) TestCreateReportAndFindAll() {
 	}
 	reports, err = s.reportRepository.FindAll(ctx, nil, nil, nil, nil, filter)
 	s.NoError(err)
-	s.Equal(4, int(reports.Total))
+	s.Equal(1, int(reports.Total))
 	s.Equal(1, reports.Rows[0].InputIndex)
-	s.Equal(0, reports.Rows[0].Index)
+	s.Equal(1, reports.Rows[0].Index)
 	s.Equal(1, reports.Rows[len(reports.Rows)-1].InputIndex)
-	s.Equal(3, reports.Rows[len(reports.Rows)-1].Index)
+	s.Equal(1, reports.Rows[len(reports.Rows)-1].Index)
 	s.Equal("0x1122", reports.Rows[0].Payload)
 }
 
