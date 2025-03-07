@@ -84,7 +84,7 @@ func (r *InputRepository) Create(ctx context.Context, input model.AdvanceInput) 
 		return nil, err
 	}
 	if exist != nil {
-		slog.Warn("Input already exists. Skipping creation")
+		slog.Debug("Input already exists. Skipping creation")
 		return exist, nil
 	}
 	return r.rawCreate(ctx, input)
