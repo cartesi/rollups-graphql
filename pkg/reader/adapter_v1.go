@@ -21,6 +21,23 @@ type AdapterV1 struct {
 	convenienceService *services.ConvenienceService
 }
 
+// GetApplicationByAppContract implements Adapter.
+func (a AdapterV1) GetApplicationByAppContract(ctx context.Context, appContract string) (*graphql.Application, error) {
+	apps, err := a.GetAllApplications(ctx, &graphql.AppFilter{Address: &appContract})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(apps.Edges) == 0 {
+		return nil, fmt.Errorf("application not found")
+	}
+
+	app := apps.Edges[0].Node
+
+	return app, nil
+}
+
 // GetAllApplications implements Adapter.
 func (a AdapterV1) GetAllApplications(ctx context.Context, where *graphql.AppFilter) (*graphql.Connection[*graphql.Application], error) {
 	return a.GetApplications(ctx, nil, nil, nil, nil, where)
@@ -39,50 +56,51 @@ func GetAppContractInsideCtx(ctx context.Context) (*common.Address, error) {
 	return &value, nil
 }
 
-// GetApplicationByAppContract implements Adapter.
-func (a AdapterV1) GetApplicationByAppContract(ctx context.Context, inputBoxIndex int) (*graphql.Application, error) {
-	var address *common.Address
+// GetApplicationByOutputIndex implements Adapter.
+func (a AdapterV1) GetApplicationByOutputIndex(ctx context.Context, outputIndex uint64) (*graphql.Application, error) {
+	panic("unimplemented")
+	// var address *common.Address
 
-	// Trying to get app contract from context
-	ctxAddress, err := GetAppContractInsideCtx(ctx)
-	if err != nil {
-		slog.Debug("app contract not found in context", "error", err)
-	}
+	// // Trying to get app contract from context
+	// ctxAddress, err := GetAppContractInsideCtx(ctx)
+	// if err != nil {
+	// 	slog.Debug("app contract not found in context", "error", err)
+	// }
 
-	if ctxAddress != nil {
-		address = ctxAddress
-	} else {
-		// Trying to get app contract from inputBoxIndex
-		input, err := a.convenienceService.InputRepository.FindByIndexAndAppContract(ctx, inputBoxIndex, nil)
+	// if ctxAddress != nil {
+	// 	address = ctxAddress
+	// } else {
+	// 	// Trying to get app contract from inputBoxIndex
+	// 	input, err := a.convenienceService.InputRepository.FindByIndexAndAppContract(ctx, outputIndex, nil)
 
-		if err != nil {
-			return nil, err
-		}
-		if input == nil {
-			slog.Debug("input not found", "inputBoxIndex", inputBoxIndex)
-			return nil, fmt.Errorf("input from inputBoxIndex not found")
-		}
-		address = &input.AppContract
-	}
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	if input == nil {
+	// 		slog.Debug("input not found", "inputBoxIndex", outputIndex)
+	// 		return nil, fmt.Errorf("input from inputBoxIndex not found")
+	// 	}
+	// 	address = &input.AppContract
+	// }
 
-	app, err := a.convenienceService.FindAppByAppContract(ctx, address)
+	// app, err := a.convenienceService.FindAppByAppContract(ctx, address)
 
-	if err != nil {
-		return nil, err
-	}
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	if app == nil {
-		slog.Debug("application not found", "appContract", address.Hex())
-		defaultApplication := &graphql.Application{
-			ID:      "0",
-			Name:    "MAIN",
-			Address: address.Hex(),
-		}
-		slog.Debug("Generate default application", "defaultApplication", defaultApplication)
-		return defaultApplication, nil
-	}
+	// if app == nil {
+	// 	slog.Debug("application not found", "appContract", address.Hex())
+	// 	defaultApplication := &graphql.Application{
+	// 		ID:      "0",
+	// 		Name:    "MAIN",
+	// 		Address: address.Hex(),
+	// 	}
+	// 	slog.Debug("Generate default application", "defaultApplication", defaultApplication)
+	// 	return defaultApplication, nil
+	// }
 
-	return graphql.ConvertToApplicationV1(*app), nil
+	// return graphql.ConvertToApplicationV1(*app), nil
 }
 
 // GetApplications implements Adapter.
@@ -497,6 +515,11 @@ func (a AdapterV1) convertToReport(
 		InputIndex: report.InputIndex,
 		Payload:    report.Payload,
 	}
+}
+
+// GetInputByOutputIndex implements Adapter.
+func (a AdapterV1) GetInputByOutputIndex(ctx context.Context, outputIndex uint64) (*graphql.Input, error) {
+	panic("unimplemented")
 }
 
 // GetInputByIndex implements Adapter.

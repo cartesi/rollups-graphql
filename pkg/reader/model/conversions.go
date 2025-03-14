@@ -77,6 +77,7 @@ func ConvertInput(input cModel.AdvanceInput) (*Input, error) {
 		InputBoxIndex:       inputBoxIndexStr,
 		BlockTimestamp:      timestamp,
 		PrevRandao:          input.PrevRandao,
+		AppContract:         input.AppContract.Hex(),
 	}, nil
 }
 
@@ -93,6 +94,7 @@ func ConvertConvenientDelegateCallVoucherV1(cVoucher cModel.ConvenienceVoucher) 
 		Payload:         cVoucher.Payload,
 		Executed:        cVoucher.Executed,
 		TransactionHash: cVoucher.TransactionHash,
+		OutputIndex:     cVoucher.OutputIndex,
 		Proof: Proof{
 			OutputIndex:          strconv.FormatUint(cVoucher.ProofOutputIndex, 10),
 			OutputHashesSiblings: outputHashesSiblings,
