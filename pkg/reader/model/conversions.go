@@ -88,13 +88,12 @@ func ConvertConvenientDelegateCallVoucherV1(cVoucher cModel.ConvenienceVoucher) 
 		outputHashesSiblings = []string{}
 	}
 	return &DelegateCallVoucher{
-		Index:           int(cVoucher.OutputIndex),
+		Index:           cVoucher.OutputIndex,
 		InputIndex:      int(cVoucher.InputIndex),
 		Destination:     cVoucher.Destination.String(),
 		Payload:         cVoucher.Payload,
 		Executed:        cVoucher.Executed,
 		TransactionHash: cVoucher.TransactionHash,
-		OutputIndex:     cVoucher.OutputIndex,
 		Proof: Proof{
 			OutputIndex:          strconv.FormatUint(cVoucher.ProofOutputIndex, 10),
 			OutputHashesSiblings: outputHashesSiblings,
@@ -117,7 +116,7 @@ func ConvertConvenientVoucherV1(cVoucher cModel.ConvenienceVoucher) *Voucher {
 		outputHashesSiblings = []string{}
 	}
 	return &Voucher{
-		Index:           int(cVoucher.OutputIndex),
+		Index:           cVoucher.OutputIndex,
 		InputIndex:      int(cVoucher.InputIndex),
 		Destination:     cVoucher.Destination.String(),
 		Payload:         cVoucher.Payload,
@@ -295,7 +294,7 @@ func ConvertConvenientNoticeV1(cNotice cModel.ConvenienceNotice) *Notice {
 		outputHashesSiblings = []string{}
 	}
 	return &Notice{
-		Index:      int(cNotice.OutputIndex),
+		Index:      cNotice.OutputIndex,
 		InputIndex: int(cNotice.InputIndex),
 		Payload:    cNotice.Payload,
 		Proof: Proof{

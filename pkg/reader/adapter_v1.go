@@ -511,9 +511,10 @@ func (a AdapterV1) convertToReport(
 	report cModel.Report,
 ) *graphql.Report {
 	return &graphql.Report{
-		Index:      report.Index,
-		InputIndex: report.InputIndex,
-		Payload:    report.Payload,
+		Index:       report.Index,
+		InputIndex:  report.InputIndex,
+		Payload:     report.Payload,
+		AppContract: report.AppContract.Hex(),
 	}
 }
 

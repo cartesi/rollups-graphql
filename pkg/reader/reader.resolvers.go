@@ -6,7 +6,6 @@ package reader
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/cartesi/rollups-graphql/pkg/reader/graph"
@@ -15,12 +14,12 @@ import (
 
 // Input is the resolver for the input field.
 func (r *delegateCallVoucherResolver) Input(ctx context.Context, obj *model.DelegateCallVoucher) (*model.Input, error) {
-	return r.adapter.GetInputByOutputIndex(ctx, obj.OutputIndex)
+	return r.adapter.GetInputByOutputIndex(ctx, obj.Index)
 }
 
 // Application is the resolver for the application field.
 func (r *delegateCallVoucherResolver) Application(ctx context.Context, obj *model.DelegateCallVoucher) (*model.Application, error) {
-	return r.adapter.GetApplicationByOutputIndex(ctx, obj.OutputIndex)
+	return r.adapter.GetApplicationByOutputIndex(ctx, obj.Index)
 }
 
 // Vouchers is the resolver for the vouchers field.
@@ -73,7 +72,7 @@ func (r *noticeResolver) Input(ctx context.Context, obj *model.Notice) (*model.I
 
 // Application is the resolver for the application field.
 func (r *noticeResolver) Application(ctx context.Context, obj *model.Notice) (*model.Application, error) {
-	panic(fmt.Errorf("not implemented: Application - application"))
+	return r.adapter.GetApplicationByOutputIndex(ctx, obj.Index)
 }
 
 // Input is the resolver for the input field.
@@ -143,7 +142,7 @@ func (r *reportResolver) Input(ctx context.Context, obj *model.Report) (*model.I
 
 // Application is the resolver for the application field.
 func (r *reportResolver) Application(ctx context.Context, obj *model.Report) (*model.Application, error) {
-	panic(fmt.Errorf("not implemented: Application - application"))
+	return r.adapter.GetApplicationByAppContract(ctx, obj.AppContract)
 }
 
 // Input is the resolver for the input field.
@@ -153,7 +152,7 @@ func (r *voucherResolver) Input(ctx context.Context, obj *model.Voucher) (*model
 
 // Application is the resolver for the application field.
 func (r *voucherResolver) Application(ctx context.Context, obj *model.Voucher) (*model.Application, error) {
-	panic("not implemented")
+	return r.adapter.GetApplicationByOutputIndex(ctx, obj.Index)
 }
 
 // DelegateCallVoucher returns graph.DelegateCallVoucherResolver implementation.

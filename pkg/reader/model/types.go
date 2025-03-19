@@ -38,7 +38,7 @@ type Input struct {
 // transfer of assets
 type Voucher struct {
 	// Voucher index within the context of the input that produced it
-	Index int `json:"index"`
+	Index uint64 `json:"index"`
 	// Index of the input
 	InputIndex int `json:"inputIndex"`
 	// Transaction destination address in Ethereum hex binary format (20 bytes), starting with
@@ -58,7 +58,7 @@ type Voucher struct {
 
 type DelegateCallVoucher struct {
 	// Voucher index within the context of the input that produced it
-	Index int `json:"index"`
+	Index uint64 `json:"index"`
 	// Index of the input
 	InputIndex int
 	// Transaction destination address in Ethereum hex binary format (20 bytes), starting with
@@ -66,8 +66,6 @@ type DelegateCallVoucher struct {
 	Destination string `json:"destination"`
 	// Transaction payload in Ethereum hex binary format, starting with '0x'
 	Payload string `json:"payload"`
-
-	OutputIndex uint64 `json:"outputIndex"`
 
 	Executed bool `json:"executed"`
 
@@ -89,12 +87,14 @@ type Report struct {
 	InputIndex int
 	// Report data as a payload in Ethereum hex binary format, starting with '0x'
 	Payload string `json:"payload"`
+
+	AppContract string `json:"appContract"`
 }
 
 // Informational statement that can be validated in the base layer blockchain
 type Notice struct {
 	// Notice index within the context of the input that produced it
-	Index int `json:"index"`
+	Index uint64 `json:"index"`
 	// Index of the input
 	InputIndex int
 	// Notice data as a payload in Ethereum hex binary format, starting with '0x'
