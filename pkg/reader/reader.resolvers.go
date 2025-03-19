@@ -14,7 +14,7 @@ import (
 
 // Input is the resolver for the input field.
 func (r *delegateCallVoucherResolver) Input(ctx context.Context, obj *model.DelegateCallVoucher) (*model.Input, error) {
-	return r.adapter.GetInputByIndexAppContract(ctx, obj.InputIndex, obj.AppContract)
+	return r.adapter.GetInputByIndex(ctx, obj.InputIndex)
 }
 
 // Application is the resolver for the application field.

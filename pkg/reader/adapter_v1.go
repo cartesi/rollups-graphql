@@ -501,7 +501,21 @@ func (a AdapterV1) GetInputByIndex(
 	if err != nil {
 		return nil, err
 	}
-	return a.GetInputByIndexAppContract(ctx, inputIndex, appContract.Hex())
+	loaders := loaders.For(ctx)
+	if loaders != nil {
+		key := cRepos.GenerateBatchInputKey(appContract.Hex(), uint64(inputIndex))
+		input, err := loaders.InputLoader.Load(ctx, key)
+		if err != nil {
+			return nil, err
+		}
+		return getConvertedInputFromGraphql(input)
+	} else {
+		input, err := a.inputRepository.FindByIndexAndAppContract(ctx, inputIndex, appContract)
+		if err != nil {
+			return nil, err
+		}
+		return getConvertedInputFromGraphql(input)
+	}
 }
 
 func getConvertedInputFromGraphql(input *cModel.AdvanceInput) (*graphql.Input, error) {
