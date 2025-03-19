@@ -32,14 +32,15 @@ type Adapter interface {
 		id string,
 	) (*graphql.Input, error)
 
-	GetInputByOutputIndex(
-		ctx context.Context,
-		outputIndex uint64,
-	) (*graphql.Input, error)
-
 	GetInputByIndex(
 		ctx context.Context,
 		inputIndex int,
+	) (*graphql.Input, error)
+
+	GetInputByIndexAppContract(
+		ctx context.Context,
+		inputIndex int,
+		appContract string,
 	) (*graphql.Input, error)
 
 	GetNotice(
@@ -91,11 +92,6 @@ type Adapter interface {
 		ctx context.Context,
 		first *int, last *int, after *string, before *string, filter *graphql.AppFilter,
 	) (*graphql.Connection[*graphql.Application], error)
-
-	GetApplicationByOutputIndex(
-		ctx context.Context,
-		outputIndex uint64,
-	) (*graphql.Application, error)
 
 	GetApplicationByAppContract(
 		ctx context.Context,

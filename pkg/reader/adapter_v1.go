@@ -56,53 +56,6 @@ func GetAppContractInsideCtx(ctx context.Context) (*common.Address, error) {
 	return &value, nil
 }
 
-// GetApplicationByOutputIndex implements Adapter.
-func (a AdapterV1) GetApplicationByOutputIndex(ctx context.Context, outputIndex uint64) (*graphql.Application, error) {
-	panic("unimplemented")
-	// var address *common.Address
-
-	// // Trying to get app contract from context
-	// ctxAddress, err := GetAppContractInsideCtx(ctx)
-	// if err != nil {
-	// 	slog.Debug("app contract not found in context", "error", err)
-	// }
-
-	// if ctxAddress != nil {
-	// 	address = ctxAddress
-	// } else {
-	// 	// Trying to get app contract from inputBoxIndex
-	// 	input, err := a.convenienceService.InputRepository.FindByIndexAndAppContract(ctx, outputIndex, nil)
-
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	if input == nil {
-	// 		slog.Debug("input not found", "inputBoxIndex", outputIndex)
-	// 		return nil, fmt.Errorf("input from inputBoxIndex not found")
-	// 	}
-	// 	address = &input.AppContract
-	// }
-
-	// app, err := a.convenienceService.FindAppByAppContract(ctx, address)
-
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// if app == nil {
-	// 	slog.Debug("application not found", "appContract", address.Hex())
-	// 	defaultApplication := &graphql.Application{
-	// 		ID:      "0",
-	// 		Name:    "MAIN",
-	// 		Address: address.Hex(),
-	// 	}
-	// 	slog.Debug("Generate default application", "defaultApplication", defaultApplication)
-	// 	return defaultApplication, nil
-	// }
-
-	// return graphql.ConvertToApplicationV1(*app), nil
-}
-
 // GetApplications implements Adapter.
 func (a AdapterV1) GetApplications(ctx context.Context, first *int, last *int, after *string, before *string, filter *graphql.AppFilter) (*graphql.AppConnection, error) {
 	filters, err := graphql.ConvertToAppFilter(filter)
@@ -518,9 +471,25 @@ func (a AdapterV1) convertToReport(
 	}
 }
 
-// GetInputByOutputIndex implements Adapter.
-func (a AdapterV1) GetInputByOutputIndex(ctx context.Context, outputIndex uint64) (*graphql.Input, error) {
-	panic("unimplemented")
+// GetInputByIndexAppContract implements Adapter.
+func (a AdapterV1) GetInputByIndexAppContract(ctx context.Context, inputIndex int, appContract string) (*graphql.Input, error) {
+	appAddress := common.HexToAddress(appContract)
+
+	loaders := loaders.For(ctx)
+	if loaders != nil {
+		key := cRepos.GenerateBatchInputKey(appAddress.Hex(), uint64(inputIndex))
+		input, err := loaders.InputLoader.Load(ctx, key)
+		if err != nil {
+			return nil, err
+		}
+		return getConvertedInputFromGraphql(input)
+	} else {
+		input, err := a.inputRepository.FindByIndexAndAppContract(ctx, inputIndex, &appAddress)
+		if err != nil {
+			return nil, err
+		}
+		return getConvertedInputFromGraphql(input)
+	}
 }
 
 // GetInputByIndex implements Adapter.
@@ -532,21 +501,7 @@ func (a AdapterV1) GetInputByIndex(
 	if err != nil {
 		return nil, err
 	}
-	loaders := loaders.For(ctx)
-	if loaders != nil {
-		key := cRepos.GenerateBatchInputKey(appContract.Hex(), uint64(inputIndex))
-		input, err := loaders.InputLoader.Load(ctx, key)
-		if err != nil {
-			return nil, err
-		}
-		return getConvertedInputFromGraphql(input)
-	} else {
-		input, err := a.inputRepository.FindByIndexAndAppContract(ctx, inputIndex, appContract)
-		if err != nil {
-			return nil, err
-		}
-		return getConvertedInputFromGraphql(input)
-	}
+	return a.GetInputByIndexAppContract(ctx, inputIndex, appContract.Hex())
 }
 
 func getConvertedInputFromGraphql(input *cModel.AdvanceInput) (*graphql.Input, error) {

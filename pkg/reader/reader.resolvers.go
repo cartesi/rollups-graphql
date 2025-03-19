@@ -14,12 +14,12 @@ import (
 
 // Input is the resolver for the input field.
 func (r *delegateCallVoucherResolver) Input(ctx context.Context, obj *model.DelegateCallVoucher) (*model.Input, error) {
-	return r.adapter.GetInputByOutputIndex(ctx, obj.Index)
+	return r.adapter.GetInputByIndexAppContract(ctx, obj.InputIndex, obj.AppContract)
 }
 
 // Application is the resolver for the application field.
 func (r *delegateCallVoucherResolver) Application(ctx context.Context, obj *model.DelegateCallVoucher) (*model.Application, error) {
-	return r.adapter.GetApplicationByOutputIndex(ctx, obj.Index)
+	return r.adapter.GetApplicationByAppContract(ctx, obj.AppContract)
 }
 
 // Vouchers is the resolver for the vouchers field.
@@ -72,7 +72,7 @@ func (r *noticeResolver) Input(ctx context.Context, obj *model.Notice) (*model.I
 
 // Application is the resolver for the application field.
 func (r *noticeResolver) Application(ctx context.Context, obj *model.Notice) (*model.Application, error) {
-	return r.adapter.GetApplicationByOutputIndex(ctx, obj.Index)
+	return r.adapter.GetApplicationByAppContract(ctx, obj.AppContract)
 }
 
 // Input is the resolver for the input field.
@@ -152,7 +152,7 @@ func (r *voucherResolver) Input(ctx context.Context, obj *model.Voucher) (*model
 
 // Application is the resolver for the application field.
 func (r *voucherResolver) Application(ctx context.Context, obj *model.Voucher) (*model.Application, error) {
-	return r.adapter.GetApplicationByOutputIndex(ctx, obj.Index)
+	return r.adapter.GetApplicationByAppContract(ctx, obj.AppContract)
 }
 
 // DelegateCallVoucher returns graph.DelegateCallVoucherResolver implementation.

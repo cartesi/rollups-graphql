@@ -88,12 +88,13 @@ func ConvertConvenientDelegateCallVoucherV1(cVoucher cModel.ConvenienceVoucher) 
 		outputHashesSiblings = []string{}
 	}
 	return &DelegateCallVoucher{
-		Index:           cVoucher.OutputIndex,
+		Index:           int(cVoucher.OutputIndex),
 		InputIndex:      int(cVoucher.InputIndex),
 		Destination:     cVoucher.Destination.String(),
 		Payload:         cVoucher.Payload,
 		Executed:        cVoucher.Executed,
 		TransactionHash: cVoucher.TransactionHash,
+		AppContract:     cVoucher.AppContract.Hex(),
 		Proof: Proof{
 			OutputIndex:          strconv.FormatUint(cVoucher.ProofOutputIndex, 10),
 			OutputHashesSiblings: outputHashesSiblings,
@@ -116,13 +117,14 @@ func ConvertConvenientVoucherV1(cVoucher cModel.ConvenienceVoucher) *Voucher {
 		outputHashesSiblings = []string{}
 	}
 	return &Voucher{
-		Index:           cVoucher.OutputIndex,
+		Index:           int(cVoucher.OutputIndex),
 		InputIndex:      int(cVoucher.InputIndex),
 		Destination:     cVoucher.Destination.String(),
 		Payload:         cVoucher.Payload,
 		Value:           cVoucher.Value,
 		Executed:        cVoucher.Executed,
 		TransactionHash: cVoucher.TransactionHash,
+		AppContract:     cVoucher.AppContract.Hex(),
 		Proof: Proof{
 			OutputIndex:          strconv.FormatUint(cVoucher.ProofOutputIndex, 10),
 			OutputHashesSiblings: outputHashesSiblings,
@@ -294,9 +296,10 @@ func ConvertConvenientNoticeV1(cNotice cModel.ConvenienceNotice) *Notice {
 		outputHashesSiblings = []string{}
 	}
 	return &Notice{
-		Index:      cNotice.OutputIndex,
-		InputIndex: int(cNotice.InputIndex),
-		Payload:    cNotice.Payload,
+		Index:       int(cNotice.OutputIndex),
+		InputIndex:  int(cNotice.InputIndex),
+		Payload:     cNotice.Payload,
+		AppContract: cNotice.AppContract,
 		Proof: Proof{
 			OutputIndex:          strconv.FormatUint(cNotice.ProofOutputIndex, 10),
 			OutputHashesSiblings: outputHashesSiblings,
