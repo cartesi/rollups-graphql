@@ -14,7 +14,7 @@ import (
 
 // Input is the resolver for the input field.
 func (r *delegateCallVoucherResolver) Input(ctx context.Context, obj *model.DelegateCallVoucher) (*model.Input, error) {
-	return r.adapter.GetInputByIndex(ctx, obj.InputIndex)
+	return r.adapter.GetInputByIndexAppContract(ctx, obj.InputIndex, obj.AppContract)
 }
 
 // Application is the resolver for the application field.
@@ -62,7 +62,7 @@ func (r *inputResolver) Application(ctx context.Context, obj *model.Input) (*mod
 // Input is the resolver for the input field.
 func (r *noticeResolver) Input(ctx context.Context, obj *model.Notice) (*model.Input, error) {
 	slog.Debug("Find input by index", "inputIndex", obj.InputIndex)
-	input, err := r.adapter.GetInputByIndex(ctx, obj.InputIndex)
+	input, err := r.adapter.GetInputByIndexAppContract(ctx, obj.InputIndex, obj.AppContract)
 	if err != nil {
 		slog.Error("Input not found")
 		return nil, err
@@ -137,7 +137,7 @@ func (r *queryResolver) Applications(ctx context.Context, first *int, last *int,
 
 // Input is the resolver for the input field.
 func (r *reportResolver) Input(ctx context.Context, obj *model.Report) (*model.Input, error) {
-	return r.adapter.GetInputByIndex(ctx, obj.InputIndex)
+	return r.adapter.GetInputByIndexAppContract(ctx, obj.InputIndex, obj.AppContract)
 }
 
 // Application is the resolver for the application field.
@@ -147,7 +147,7 @@ func (r *reportResolver) Application(ctx context.Context, obj *model.Report) (*m
 
 // Input is the resolver for the input field.
 func (r *voucherResolver) Input(ctx context.Context, obj *model.Voucher) (*model.Input, error) {
-	return r.adapter.GetInputByIndex(ctx, obj.InputIndex)
+	return r.adapter.GetInputByIndexAppContract(ctx, obj.InputIndex, obj.AppContract)
 }
 
 // Application is the resolver for the application field.
