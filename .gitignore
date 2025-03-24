@@ -11,3 +11,6 @@ sqlite3
 /rollups-node
 /rollups-espresso-reader
 graphql-db-migration
+.vscode/launch.json
+__debug_bin*
+pkg/convenience/synchronizer_node/__debug_bin*
