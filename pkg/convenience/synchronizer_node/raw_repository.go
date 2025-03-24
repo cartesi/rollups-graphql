@@ -502,6 +502,12 @@ func (s *RawRepository) FindAllOutputsWithProofGte(ctx context.Context, filter *
 			output o
 		INNER JOIN application a
 			ON a.id = o.input_epoch_application_id
+		INNER JOIN input i on
+			o.input_index = i.index
+			and a.id = i.epoch_application_id
+		INNER JOIN epoch e on
+			i.epoch_index = e.index
+			and i.epoch_application_id = e.application_id
 		WHERE
 			output_hashes_siblings IS NOT NULL
 				AND
@@ -510,6 +516,8 @@ func (s *RawRepository) FindAllOutputsWithProofGte(ctx context.Context, filter *
 					OR
 				(o.index > $2)
 			)
+				AND
+			e.status = 'CLAIM_ACCEPTED'
 		ORDER BY
 			o.index ASC,
 			o.input_epoch_application_id ASC
