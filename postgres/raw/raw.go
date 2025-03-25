@@ -3,13 +3,15 @@ package raw
 import (
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"runtime"
 
 	"github.com/joho/godotenv"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/compose"
 )
 
 const (
@@ -38,19 +40,6 @@ func LoadMapEnvFile() (map[string]string, error) {
 	return godotenv.Read(path)
 }
 
-// check if docker compose command is available
-func CheckDockerCompose(ctx context.Context) error {
-	slog.Debug("checking docker compose")
-	cmd := exec.CommandContext(ctx, "docker", "compose", "version")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("docker compose not found: %s", err)
-	}
-	slog.Debug("docker compose version", "output", string(output))
-
-	return nil
-}
-
 func RunDockerCompose(stdCtx context.Context) error {
 	slog.Debug("running docker compose")
 	if stdCtx == nil {
@@ -59,27 +48,17 @@ func RunDockerCompose(stdCtx context.Context) error {
 	ctx, cancel := context.WithCancel(stdCtx)
 	defer cancel()
 
-	err := CheckDockerCompose(ctx)
-	if err != nil {
-		return err
-	}
-
 	filePath, err := GetFilePath(DOCKER_COMPOSE_FILE)
 	if err != nil {
 		return err
 	}
-	slog.Debug("docker compose file path", "path", filePath)
 
-	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", filePath, "up", DOCKER_COMPOSE_SERVICE, "--wait")
-	output, err := cmd.CombinedOutput()
-
+	dockerCompose, err := compose.NewDockerCompose(filePath)
 	if err != nil {
-		slog.Debug("docker compose up failed", "output", string(output))
-		_ = ShowDockerComposeLog(ctx, filePath)
-		return fmt.Errorf("docker compose up failed: %s", err)
+		return fmt.Errorf("failed to create docker compose: %s", err)
 	}
 
-	slog.Debug("docker compose up", "output", string(output))
+	err = dockerCompose.Up(ctx, compose.RunServices(DOCKER_COMPOSE_SERVICE), compose.Wait(true))
 
 	return nil
 }
@@ -94,33 +73,39 @@ func StopDockerCompose(stdCtx context.Context) error {
 		return err
 	}
 
-	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", filePath, "down", "--remove-orphans")
+	dockerCompose, err := compose.NewDockerComposeWith(compose.WithStackFiles(filePath))
 
-	output, err := cmd.CombinedOutput()
+	container, err := dockerCompose.ServiceContainer(ctx, DOCKER_COMPOSE_SERVICE)
 	if err != nil {
-		slog.Debug("docker compose down failed", "output", string(output))
-		_ = ShowDockerComposeLog(ctx, filePath)
-		return fmt.Errorf("docker compose down failed: %s", err)
+		return fmt.Errorf("failed to get service container: %s", err)
 	}
+	ShowDockerComposeLog(ctx, container)
 
-	return nil
+	err = dockerCompose.Down(ctx, compose.RemoveOrphans(true), compose.RemoveVolumes(true))
+
+	return err
 }
 
-func ShowDockerComposeLog(ctx context.Context, filePath string) error {
-	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", filePath, "logs", DOCKER_COMPOSE_SERVICE, "--tail", string(DOCKER_COMPOSE_LOGS_MAX))
-	output, err := cmd.CombinedOutput()
-
-	if err != nil {
-		slog.Debug("docker compose logs failed", "output", string(output))
-		return fmt.Errorf("docker compose logs failed: %s", err)
+func ShowDockerComposeLog(ctx context.Context, container *testcontainers.DockerContainer) error {
+	if container == nil {
+		return fmt.Errorf("container is nil")
 	}
-
-	slog.Debug("docker compose logs", "output", string(output))
+	logs, err := container.Logs(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get logs: %s", err)
+	}
+	defer logs.Close()
+	val, err := io.ReadAll(logs)
+	if err != nil {
+		return fmt.Errorf("failed to read logs: %s", err)
+	}
+	slog.Debug("docker compose logs", "logs", string(val))
 
 	return nil
 }
 
 func CleanupDockerCompose(stdCtx context.Context) error {
+	slog.Debug("stopping docker compose")
 	ctx, cancel := context.WithCancel(stdCtx)
 	defer cancel()
 
@@ -129,16 +114,18 @@ func CleanupDockerCompose(stdCtx context.Context) error {
 		return err
 	}
 
-	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", filePath, "down", "--remove-orphans", "--volumes", "--rmi", "local")
-	output, err := cmd.CombinedOutput()
-
+	dockerCompose, err := compose.NewDockerComposeWith(compose.WithStackFiles(filePath))
 	if err != nil {
-		slog.Debug("docker compose cleanup failed", "output", string(output))
-		_ = ShowDockerComposeLog(ctx, filePath)
-		return fmt.Errorf("docker compose cleanup failed: %s", err)
+		return fmt.Errorf("failed to create docker compose: %s", err)
 	}
 
-	slog.Debug("docker compose cleanup", "output", string(output))
+	container, err := dockerCompose.ServiceContainer(ctx, DOCKER_COMPOSE_SERVICE)
+	if err != nil {
+		return fmt.Errorf("failed to get service container: %s", err)
+	}
+	ShowDockerComposeLog(ctx, container)
 
-	return nil
+	err = dockerCompose.Down(ctx, compose.RemoveOrphans(true), compose.RemoveVolumes(true), compose.RemoveImages(compose.RemoveImagesLocal))
+
+	return err
 }
