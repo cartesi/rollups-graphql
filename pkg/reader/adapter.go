@@ -31,9 +31,16 @@ type Adapter interface {
 		ctx context.Context,
 		id string,
 	) (*graphql.Input, error)
+
 	GetInputByIndex(
 		ctx context.Context,
 		inputIndex int,
+	) (*graphql.Input, error)
+
+	GetInputByIndexAppContract(
+		ctx context.Context,
+		inputIndex int,
+		appContract string,
 	) (*graphql.Input, error)
 
 	GetNotice(
@@ -88,7 +95,7 @@ type Adapter interface {
 
 	GetApplicationByAppContract(
 		ctx context.Context,
-		inputBoxIndex int,
+		appContract string,
 	) (*graphql.Application, error)
 
 	GetAllApplications(
