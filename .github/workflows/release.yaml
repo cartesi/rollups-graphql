@@ -46,7 +46,7 @@ jobs:
                     elif [[ "${{ github.ref }}" =~ ^refs/heads/prerelease/ ]]; then
                     echo "VERSION_TYPE=alpha" >> $GITHUB_ENV
                 fi
-
+                echo $VERSION_TYPE
             - name: Create Release Pull Request
               id: changeset
               uses: changesets/action@v1
