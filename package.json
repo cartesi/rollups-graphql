@@ -1,6 +1,6 @@
 {
     "name": "rollups-graphql",
-    "version": "2.3.11-node-20250128",
+    "version": "2.3.11-node-20250128.1",
     "private": true,
     "license": "Apache-2.0",
     "scripts": {
