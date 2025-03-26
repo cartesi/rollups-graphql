@@ -43,7 +43,7 @@ jobs:
               run: |
                 if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
                     echo "VERSION_TYPE=stable" >> $GITHUB_ENV
-                elif [[ "${{ github.ref }}" == refs/heads/prerelease/* ]]; then
+                    elif [[ "${{ github.ref }}" =~ ^refs/heads/prerelease/ ]]; then
                     echo "VERSION_TYPE=alpha" >> $GITHUB_ENV
                 fi
 
