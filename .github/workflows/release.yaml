@@ -38,21 +38,6 @@ jobs:
             - name: Install Dependencies
               run: pnpm install
 
-            - name: Determine Version Type
-              id: version-type
-              run: |
-                echo "Branch: ${{ github.ref }}"
-
-                if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-                    echo "VERSION_TYPE=stable" >> $GITHUB_ENV
-                    echo "Detected main branch"
-                elif [[ "${{ github.ref }}" == refs/heads/prerelease/* ]]; then
-                    echo "VERSION_TYPE=alpha" >> $GITHUB_ENV
-                    echo "Detected prerelease branch"
-                else
-                    echo "VERSION_TYPE=unknown" >> $GITHUB_ENV
-                    echo "Branch did not match any condition"
-                fi
             - name: Create Release Pull Request
               id: changeset
               uses: changesets/action@v1
