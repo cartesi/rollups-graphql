@@ -78,7 +78,7 @@ func (s *SynchronizerAppCreate) TestAppCreate() {
 
 	firstApp := apps[0]
 	s.Equal("echo-dapp", firstApp.Name)
-	s.Equal("0x36B9E60ACb181da458aa8870646395CD27cD0E6E", firstApp.ApplicationAddress.Hex())
+	s.Equal(DEFAULT_TEST_APP_CONTRACT, firstApp.ApplicationAddress.Hex())
 
 	for i := 0; i < 2; i++ {
 		err = s.synchronizerAppCreator.SyncApps(s.ctx)

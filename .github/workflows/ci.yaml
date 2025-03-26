@@ -4,6 +4,7 @@ on: push
 
 permissions:
   contents: write
+  pull-requests: write
 
 env:
   ANVIL_TAG: nightly-2cdbfaca634b284084d0f86357623aef7a0d2ce3
@@ -16,7 +17,7 @@ jobs:
       CARTESI_POSTGRES_ENDPOINT: 'postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable'
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         ports:
           - 5432:5432
         env:
@@ -29,7 +30,7 @@ jobs:
       
       - name: Clone Node V2 (avoid submodules)
         run: |
-          git clone -b v2.0.0-alpha.1 --depth 1 --recurse-submodules https://github.com/cartesi/rollups-node.git
+          git clone -b v2.0.0-alpha.2 --depth 1 --recurse-submodules https://github.com/cartesi/rollups-node.git
       
       - name: Wait for PostgreSQL to be ready
         run: |
@@ -49,15 +50,6 @@ jobs:
           eval $(make env)
           make migrate
 
-      - name: Deps and Cartesi Machine
-        run: |
-          export CARTESI_MACHINE_VERSION=0.18.1
-          sudo apt-get update
-          sudo apt-get install -y libboost-all-dev lua5.4 libslirp0
-          wget https://github.com/cartesi/machine-emulator/releases/download/v${CARTESI_MACHINE_VERSION}/cartesi-machine-v${CARTESI_MACHINE_VERSION}_amd64.deb
-          sudo dpkg -i ./cartesi-machine-v${CARTESI_MACHINE_VERSION}_amd64.deb
-          rm ./cartesi-machine-v${CARTESI_MACHINE_VERSION}_amd64.deb
-
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
@@ -69,7 +61,7 @@ jobs:
 
       - name: Build Node v2 image
         run: |
-          docker build -t node_v2 -f ./ci/Dockerfile .
+          docker build --build-arg TARGETARCH=amd64 -t node_v2 -f ./ci/Dockerfile .
 
       - name: Start Node v2 image
         run: |
@@ -112,7 +104,7 @@ jobs:
         env:
           PGPASSWORD: password
         run: |
-          pg_dump -h localhost -U postgres -d rollupsdb > rollupsdb-dump.sql
+          docker exec -i postgres pg_dump -U postgres -d rollupsdb > rollupsdb-dump.sql
 
       - name: Upload database dump
         uses: actions/upload-artifact@v4
@@ -160,7 +152,38 @@ jobs:
         with:
           name: migration
           path: graphql-db-migration
+ 
+  release-pullrequest:
+    name: Release Pull Request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+            fetch-depth: 0
 
+      - uses: pnpm/action-setup@v4
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+            node-version: 20
+            cache: "pnpm"
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Create Release Pull Request
+        id: changeset
+        uses: changesets/action@v1
+        with:
+            commit: "release: version packages"
+            publish: pnpm run publish-packages
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
   release:
     name: Release
     runs-on: ubuntu-latest

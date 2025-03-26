@@ -6,7 +6,6 @@ import (
 	"github.com/cartesi/rollups-graphql/pkg/convenience/decoder"
 	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
 	"github.com/cartesi/rollups-graphql/pkg/convenience/services"
-	"github.com/cartesi/rollups-graphql/pkg/convenience/synchronizer"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -19,8 +18,6 @@ type Container struct {
 	outputRepository       *repository.OutputRepository
 	repository             *repository.VoucherRepository
 	syncRepository         *repository.SynchronizerRepository
-	graphQLSynchronizer    *synchronizer.Synchronizer
-	voucherFetcher         *synchronizer.VoucherFetcher
 	noticeRepository       *repository.NoticeRepository
 	inputRepository        *repository.InputRepository
 	reportRepository       *repository.ReportRepository
@@ -187,24 +184,4 @@ func (c *Container) GetConvenienceService() *services.ConvenienceService {
 		c.GetApplicationRepository(),
 	)
 	return c.convenienceService
-}
-
-func (c *Container) GetGraphQLSynchronizer() *synchronizer.Synchronizer {
-	if c.graphQLSynchronizer != nil {
-		return c.graphQLSynchronizer
-	}
-	c.graphQLSynchronizer = synchronizer.NewSynchronizer(
-		c.GetOutputDecoder(),
-		c.GetVoucherFetcher(),
-		c.GetSyncRepository(),
-	)
-	return c.graphQLSynchronizer
-}
-
-func (c *Container) GetVoucherFetcher() *synchronizer.VoucherFetcher {
-	if c.voucherFetcher != nil {
-		return c.voucherFetcher
-	}
-	c.voucherFetcher = synchronizer.NewVoucherFetcher()
-	return c.voucherFetcher
 }
