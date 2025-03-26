@@ -38,6 +38,15 @@ jobs:
             - name: Install Dependencies
               run: pnpm install
 
+            - name: Determine Version Type
+              id: version-type
+              run: |
+                if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+                    echo "VERSION_TYPE=stable" >> $GITHUB_ENV
+                elif [[ "${{ github.ref }}" == refs/heads/prerelease/* ]]; then
+                    echo "VERSION_TYPE=alpha" >> $GITHUB_ENV
+                fi
+
             - name: Create Release Pull Request
               id: changeset
               uses: changesets/action@v1
