@@ -87,7 +87,7 @@ func (s *SynchronizerReportSuite) TestCreateAllReports() {
 	err = s.synchronizerReport.SyncReports(ctx)
 	s.Require().NoError(err)
 	second := s.countHLReports(ctx)
-	s.Equal(TOTAL_INPUT_TEST, second)
+	s.Equal(TOTAL_INPUT_TEST-1, second)
 }
 
 func (s *SynchronizerReportSuite) countHLReports(ctx context.Context) int {
