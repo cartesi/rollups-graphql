@@ -16,7 +16,7 @@ jobs:
       CARTESI_POSTGRES_ENDPOINT: 'postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable'
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         ports:
           - 5432:5432
         env:
@@ -29,7 +29,7 @@ jobs:
       
       - name: Clone Node V2 (avoid submodules)
         run: |
-          git clone -b v2.0.0-alpha.1 --depth 1 --recurse-submodules https://github.com/cartesi/rollups-node.git
+          git clone -b v2.0.0-alpha.2 --depth 1 --recurse-submodules https://github.com/cartesi/rollups-node.git
       
       - name: Wait for PostgreSQL to be ready
         run: |
@@ -49,15 +49,6 @@ jobs:
           eval $(make env)
           make migrate
 
-      - name: Deps and Cartesi Machine
-        run: |
-          export CARTESI_MACHINE_VERSION=0.18.1
-          sudo apt-get update
-          sudo apt-get install -y libboost-all-dev lua5.4 libslirp0
-          wget https://github.com/cartesi/machine-emulator/releases/download/v${CARTESI_MACHINE_VERSION}/cartesi-machine-v${CARTESI_MACHINE_VERSION}_amd64.deb
-          sudo dpkg -i ./cartesi-machine-v${CARTESI_MACHINE_VERSION}_amd64.deb
-          rm ./cartesi-machine-v${CARTESI_MACHINE_VERSION}_amd64.deb
-
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
@@ -69,7 +60,7 @@ jobs:
 
       - name: Build Node v2 image
         run: |
-          docker build -t node_v2 -f ./ci/Dockerfile .
+          docker build --build-arg TARGETARCH=amd64 -t node_v2 -f ./ci/Dockerfile .
 
       - name: Start Node v2 image
         run: |
@@ -112,7 +103,7 @@ jobs:
         env:
           PGPASSWORD: password
         run: |
-          pg_dump -h localhost -U postgres -d rollupsdb > rollupsdb-dump.sql
+          docker exec -i postgres pg_dump -U postgres -d rollupsdb > rollupsdb-dump.sql
 
       - name: Upload database dump
         uses: actions/upload-artifact@v4
