@@ -4,5 +4,7 @@
   "initialVersions": {
     "rollups-graphql": "2.3.12"
   },
-  "changesets": []
+  "changesets": [
+    "blue-bikes-help"
+  ]
 }
