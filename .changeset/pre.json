@@ -1,0 +1,8 @@
+{
+  "mode": "pre",
+  "tag": "alpha",
+  "initialVersions": {
+    "rollups-graphql": "2.3.12"
+  },
+  "changesets": []
+}
