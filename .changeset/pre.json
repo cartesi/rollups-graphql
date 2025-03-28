@@ -1,0 +1,11 @@
+{
+  "mode": "pre",
+  "tag": "node-20250128",
+  "initialVersions": {
+    "rollups-graphql": "2.3.11"
+  },
+  "changesets": [
+    "giant-cats-vanish",
+    "tasty-zoos-enter"
+  ]
+}
