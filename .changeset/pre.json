@@ -4,5 +4,7 @@
   "initialVersions": {
     "rollups-graphql": "2.3.11-node-20252525"
   },
-  "changesets": []
+  "changesets": [
+    "tall-feet-refuse"
+  ]
 }
