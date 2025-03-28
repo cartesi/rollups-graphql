@@ -14,3 +14,4 @@ graphql-db-migration
 .vscode/launch.json
 __debug_bin*
 pkg/convenience/synchronizer_node/__debug_bin*
+node_modules

@@ -32,6 +32,7 @@ type Schema struct {
 
 func New(postgresEndpoint string) (*Schema, error) {
 	driver, err := iofs.New(content, "migrations")
+
 	if err != nil {
 		return nil, err
 	}
