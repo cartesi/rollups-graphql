@@ -1,5 +1,12 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.11
+
+### Patch Changes
+
+- 6287f31: Just testing changeset
+- 95e22a3: Correction in main file
+
 ## 2.3.11-node-20251225.0
 
 ### Patch Changes
