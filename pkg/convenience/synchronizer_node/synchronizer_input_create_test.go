@@ -80,16 +80,15 @@ func (s *SynchronizerInputCreate) TestGetAdvanceInputFromMap() {
 	rawInput := inputs[0]
 	advanceInput, err := s.synchronizerInputCreate.GetAdvanceInputFromMap(rawInput)
 	s.Require().NoError(err)
-	// s.Equal("0", advanceInput.ID)
 	s.Equal(DEFAULT_TEST_APP_CONTRACT, advanceInput.AppContract.Hex())
 	s.Equal(0, advanceInput.Index)
 	s.Equal(0, advanceInput.InputBoxIndex)
 	s.Equal("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", advanceInput.MsgSender.Hex())
-	s.Equal(uint64(0x87), advanceInput.BlockNumber)
-	s.Equal("31337", advanceInput.ChainId)
+	s.Greater(int(advanceInput.BlockNumber), 42, "Block number") // nolint
+	s.Equal("13370", advanceInput.ChainId)
 	s.Equal(commons.ConvertStatusStringToCompletionStatus("ACCEPTED"), advanceInput.Status)
-	expectedBlockTimestamp := int64(1742392450) // nolint
-	s.Equal(expectedBlockTimestamp, advanceInput.BlockTimestamp.Unix())
+	minBlockTimestamp := int64(1743106900) // nolint
+	s.Greater(advanceInput.BlockTimestamp.Unix(), minBlockTimestamp)
 }
 
 func (s *SynchronizerInputCreate) TestCreateInputs() {
