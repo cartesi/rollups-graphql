@@ -77,3 +77,28 @@ The following environment variables are used for PostgreSQL configuration:
 [![Contributors](https://contributors-img.firebaseapp.com/image?repo=cartesi/rollups-graphql)](https://github.com/cartesi/rollups-graphql/graphs/contributors)
 
 Made with [contributors-img](https://contributors-img.firebaseapp.com).
+
+
+# Release
+
+## How to
+
+New releases are created using [changeset](https://github.com/changesets/changesets/blob/main/packages/cli/README.md) library. This libray is currently set up in this project. 
+
+In order to create new releases we need:
+
+1- Commit all current changes in your current branch
+
+2- Run `pnpm changeset`
+
+3- Enter all prompted information (release type, release summary)
+
+4- Check if an MD file is created, this file will trigger changeset github action to create new pull request asking for pump the project tag and aplly a release summary.
+
+5- Commit all new changes
+
+6- Git push 
+
+7- If `release-pullrequest` Github Action Job is successfully executed a pull request will be automatically created asking merge from a _changeset auto created branch_ into your _current branch_.
+
+8- After merging this intermediary pull request create a new one from _your current branch_ into _main_ branch. Merges into main branch will trigger the `Release` github action job and performs new tag and artifacts creation.
