@@ -5,15 +5,6 @@
 ### Patch Changes
 
 - 5114bd1: Changeset installation and configuration
-- 4cd8f74: Changeset setup
-- 04e68c9: Some summary
-
-## 2.3.12-node-20250128.0
-
-### Patch Changes
-
-- 4cd8f74: Changeset setup
-- 04e68c9: Some summary
 
 ## 2.3.11
 
