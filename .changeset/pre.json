@@ -1,5 +1,5 @@
 {
-  "mode": "pre",
+  "mode": "exit",
   "tag": "node-20250128",
   "initialVersions": {
     "rollups-graphql": "2.3.11"
