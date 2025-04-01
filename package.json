@@ -1,12 +1,22 @@
 {
     "name": "rollups-graphql",
-    "version": "2.3.12-node-20250128.0",
+    "version": "2.3.12",
     "private": true,
-    "license": "Apache-2.0",
+    "description": "![CI](https://github.com/cartesi/rollups-graphql/actions/workflows/ci.yaml/badge.svg) [![Go Report Card](https://goreportcard.com/badge/github.com/cartesi/rollups-graphql)](https://goreportcard.com/report/github.com/cartesi/rollups-graphql)",
     "scripts": {
         "publish-packages": "pnpm changeset tag && git push --follow-tags",
         "preinstall": "npx only-allow pnpm"
     },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/cartesi/rollups-graphql.git"
+    },
+    "author": "Calindra",
+    "license": "SEE LICENSE IN LICENSE",
+    "bugs": {
+      "url": "https://github.com/cartesi/rollups-graphql/issues"
+    },
+    "homepage": "https://github.com/cartesi/rollups-graphql#readme",
     "devDependencies": {
         "@changesets/cli": "^2.28.1",
         "prettier": "^3.3.3",
@@ -15,6 +25,5 @@
     "engines": {
         "node": ">=18.0.0"
     },
-    
     "packageManager": "pnpm@9.12.2"
 }

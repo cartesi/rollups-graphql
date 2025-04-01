@@ -2,4 +2,4 @@
 "rollups-graphql": patch
 ---
 
-Changeset setup
+Add changeset to workflow
