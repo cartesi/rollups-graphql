@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.13
+
+### Patch Changes
+
+- 554d641: Add changeset to workflow
+
 ## 2.3.12
 
 ### Patch Changes
