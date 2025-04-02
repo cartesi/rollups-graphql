@@ -25,7 +25,7 @@ go.work.sum
 # .env
 
 TODO
-
+node_modules
 .DS_Store
 /cartesi-rollups-graphql
 *.sqlite3
