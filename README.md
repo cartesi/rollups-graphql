@@ -83,8 +83,7 @@ Made with [contributors-img](https://contributors-img.firebaseapp.com).
 
 ## How to
 
-New releases are created using [changeset](https://github.com/changesets/changesets/blob/main/packages/cli/README.md) library. This libray is currently set up in this project. 
-
+New releases are created using [changeset](https://github.com/changesets/changesets/blob/main/packages/cli/README.md) library. This library is currently set up in this project.
 In order to create new releases we need:
 
 1- Commit all current changes in your current branch
