@@ -92,8 +92,7 @@ In order to create new releases we need:
 
 3- Enter all prompted information (release type, release summary)
 
-4- Check if an MD file is created, this file will trigger changeset github action to create new pull request asking for pump the project tag and aplly a release summary.
-
+4- Check if an MD file is created, this file will trigger changeset github action to create new pull request asking for bump the project tag and apply a release summary.
 5- Commit all new changes
 
 6- Git push 
