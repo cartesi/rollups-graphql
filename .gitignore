@@ -39,3 +39,4 @@ graphql-db-migration
 .vscode/launch.json
 **/__debug_bin*
 node_modules/
+package-lock.json
