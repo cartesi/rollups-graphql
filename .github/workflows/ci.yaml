@@ -156,7 +156,7 @@ jobs:
   release-pullrequest:
     name: Release Pull Request
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main-3'
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -181,6 +181,7 @@ jobs:
         uses: changesets/action@v1
         with:
             commit: "release: version packages"
+            version: pnpm changeset version
             publish: pnpm run publish-packages
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
