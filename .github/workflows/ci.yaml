@@ -2,10 +2,6 @@ name: CI
 
 on: push
 
-permissions:
-  contents: write
-  pull-requests: write
-
 env:
   ANVIL_TAG: nightly-2cdbfaca634b284084d0f86357623aef7a0d2ce3
 
@@ -153,43 +149,6 @@ jobs:
           name: migration
           path: graphql-db-migration
  
-  release-pullrequest:
-    name: Release Pull Request
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-        with:
-            fetch-depth: 0
-
-      - uses: pnpm/action-setup@v4
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
-        with:
-            node-version: 20
-            cache: "pnpm"
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-
-      - name: Install Dependencies
-        run: pnpm install
-
-      - name: Verificar Tags Antes
-        run: git show-ref --tags || echo "Nenhuma tag encontrada"
-
-      - name: Create Release Pull Request
-        id: changeset
-        uses: changesets/action@v1
-        with:
-          publish: npm run release
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
-      - name: Verificar Tags Depois
-        run: git show-ref --tags || echo "Nenhuma tag encontrada"
-
   release:
     name: Release
     runs-on: ubuntu-latest

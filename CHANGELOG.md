@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.12
+
+### Patch Changes
+
+- a8c8ffb: Fixes on ci for changeset
+
 ## 2.3.11
 
 ### Patch Changes
