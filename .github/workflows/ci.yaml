@@ -156,7 +156,7 @@ jobs:
   release-pullrequest:
     name: Release Pull Request
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main-3'
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -176,15 +176,22 @@ jobs:
       - name: Install Dependencies
         run: pnpm install
 
+      - name: Verificar Tags Antes
+        run: git show-ref --tags || echo "Nenhuma tag encontrada"
+
       - name: Create Release Pull Request
         id: changeset
         uses: changesets/action@v1
         with:
+            version: pnpm changeset version
             commit: "release: version packages"
             publish: pnpm run publish-packages
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
+      - name: Verificar Tags Depois
+        run: git show-ref --tags || echo "Nenhuma tag encontrada"
+        
   release:
     name: Release
     runs-on: ubuntu-latest
