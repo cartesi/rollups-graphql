@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.15
+
+### Patch Changes
+
+- 0f82a1f: new change
+
 ## 2.3.14
 
 ### Patch Changes
