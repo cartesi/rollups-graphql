@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.13
+
+### Patch Changes
+
+- 765e855: New changeset changes
+
 ## 2.3.12
 
 ### Patch Changes

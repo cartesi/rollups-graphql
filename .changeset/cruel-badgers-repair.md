@@ -2,4 +2,4 @@
 "rollups-graphql": patch
 ---
 
-New changeset changes
+New changeset updates
