@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.15
+
+### Patch Changes
+
+- f58759b: New changeset trial
+
 ## 2.3.14
 
 ### Patch Changes
