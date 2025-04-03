@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.14
+
+### Patch Changes
+
+- 827d3ac: Fixes on ci releases
+
 ## 2.3.13
 
 ### Patch Changes
