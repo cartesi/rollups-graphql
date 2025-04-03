@@ -1,0 +1,5 @@
+---
+"rollups-graphql": patch
+---
+
+foo

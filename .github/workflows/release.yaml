@@ -11,29 +11,28 @@ permissions:
   
 jobs:
   release:
-    name: Tag New Version
+    name: Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
+          node-version: 16
+          cache: 'npm'
 
       - name: Install Dependencies
-        run: pnpm install
+        run: npm install
 
-      - name: Verificar Tags Antes
-        run: git show-ref --tags || echo "Nenhuma tag encontrada"
+
+
+
+
+
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
@@ -42,6 +41,4 @@ jobs:
           publish: npm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Verificar Tags Depois
-        run: git show-ref --tags || echo "Nenhuma tag encontrada"
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
