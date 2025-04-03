@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.11
+
+### Patch Changes
+
+- b32746d: Changeset initial setup
+
 ## 2.3.14
 
 ### Patch Changes
