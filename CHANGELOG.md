@@ -1,5 +1,12 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.14
+
+### Patch Changes
+
+- c187809: New changeset updates
+- c187809: foo
+
 ## 2.3.13
 
 ### Patch Changes
