@@ -2,4 +2,4 @@
 "rollups-graphql": patch
 ---
 
-Changeset setup
+Fixes on ci for changeset
