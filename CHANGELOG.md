@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.11
+
+### Patch Changes
+
+- 2d4c104: Changeset setup
+
 ## 2.3.14
 
 ### Patch Changes
