@@ -1,6 +1,6 @@
 {
     "name": "rollups-graphql",
-    "version": "2.3.14",
+    "version": "2.3.11-node-20250128",
     "private": true,
     "description": "![CI](https://github.com/cartesi/rollups-graphql/actions/workflows/ci.yaml/badge.svg) [![Go Report Card](https://goreportcard.com/badge/github.com/cartesi/rollups-graphql)](https://goreportcard.com/report/github.com/cartesi/rollups-graphql)",
     "scripts": {
