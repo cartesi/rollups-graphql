@@ -1,5 +1,12 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.11
+
+### Patch Changes
+
+- b617f4f: Changeset initial setup
+- b617f4f: Git flow adjustments
+
 ## 2.3.14
 
 ### Patch Changes
