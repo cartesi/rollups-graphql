@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.23
+
+### Patch Changes
+
+- 85ee69a: BANANADA
+
 ## 2.3.22
 
 ### Patch Changes
