@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.15
+
+### Patch Changes
+
+- 03f102e: Increasing version
+
 ## 2.3.14
 
 ### Patch Changes

@@ -2,4 +2,4 @@
 "rollups-graphql": patch
 ---
 
-Increasing version
+New release 2.3.14
