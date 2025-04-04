@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.13
+
+### Patch Changes
+
+- 2a7fff1: Binaries and release after tag
+
 ## 2.3.12
 
 ### Patch Changes

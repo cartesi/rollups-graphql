@@ -191,6 +191,7 @@ jobs:
       - name: Get latest tag name
         id: get_tag
         run: |
+          echo "${{ needs.release-pullrequest.outputs.SHOULD_RELEASE }}"
           git fetch --tag
           TAG_NAME=$(git describe --tags `git rev-list --tags --max-count=1`)
           echo "tag_name=${TAG_NAME}" >> $GITHUB_ENV
