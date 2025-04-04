@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.16
+
+### Patch Changes
+
+- fd82747: New release 2.3.14
+
 ## 2.3.15
 
 ### Patch Changes
