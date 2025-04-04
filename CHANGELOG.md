@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.13
+
+### Patch Changes
+
+- 2dbbe08: Linking ci jobs after build and testing
+
 ## 2.3.12
 
 ### Patch Changes

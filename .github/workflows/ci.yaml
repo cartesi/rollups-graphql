@@ -160,7 +160,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     outputs:
       TAG_NAME: ${{ steps.get_tag.outputs.tag_name }}
-      PUBLISHED: ${{ steps.changesets.outputs.published }}
+      PUBLISHED: ${{ steps.changeset.outputs.published }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
