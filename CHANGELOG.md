@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.22
+
+### Patch Changes
+
+- 0de62b6: Read tag name from foreign job
+
 ## 2.3.21
 
 ### Patch Changes
