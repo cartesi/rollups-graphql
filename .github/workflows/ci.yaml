@@ -190,6 +190,7 @@ jobs:
       - name: Get latest tag name
         id: get_tag
         run: |
+          echo "BANANADA"
           git fetch --tag
           TAG_NAME=$(git describe --tags `git rev-list --tags --max-count=1`) | sed 's|^ref/tag/||'
           echo $TAG_NAME
