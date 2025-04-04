@@ -215,7 +215,7 @@ jobs:
 
       - uses: wangyoucao577/go-release-action@v1
         with:
-          release_tag: ${{ needs.release-pullrequest.outputs.TAG_NAME }}
+          release_tag: v2.3.21
           overwrite: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
