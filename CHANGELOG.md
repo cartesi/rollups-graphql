@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.20
+
+### Patch Changes
+
+- 2001441: Get tag name from external job
+
 ## 2.3.19
 
 ### Patch Changes
