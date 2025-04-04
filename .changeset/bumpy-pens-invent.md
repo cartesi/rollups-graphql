@@ -2,4 +2,4 @@
 "rollups-graphql": patch
 ---
 
-New release 2.3.14
+Fix linked github action jobs
