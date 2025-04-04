@@ -2,4 +2,4 @@
 "rollups-graphql": patch
 ---
 
-Sed removal
+Releasing for show time
