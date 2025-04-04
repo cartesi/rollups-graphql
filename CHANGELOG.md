@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.21
+
+### Patch Changes
+
+- c1fcfd9: Static tag
+
 ## 2.3.20
 
 ### Patch Changes

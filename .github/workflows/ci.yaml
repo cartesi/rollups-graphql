@@ -190,6 +190,7 @@ jobs:
       - name: Get latest tag name
         id: get_tag
         run: |
+          git fetch --tag
           TAG_NAME=$(git describe --tags `git rev-list --tags --max-count=1`) | sed 's|^ref/tag/||'
           echo $TAG_NAME
           echo "tag_name=${TAG_NAME}" >> $GITHUB_ENV
@@ -215,7 +216,7 @@ jobs:
 
       - uses: wangyoucao577/go-release-action@v1
         with:
-          release_tag: v2.3.21
+          release_tag: ${{ needs.release-pullrequest.outputs.TAG_NAME }}
           overwrite: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}

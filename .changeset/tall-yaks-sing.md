@@ -2,4 +2,4 @@
 "rollups-graphql": patch
 ---
 
-Static tag
+Read tag name from foreign job
