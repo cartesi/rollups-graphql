@@ -156,9 +156,11 @@ jobs:
   release-pullrequest:
     name: Release Pull Request
     runs-on: ubuntu-latest
+    needs: build
     if: github.ref == 'refs/heads/master'
     outputs:
       TAG_NAME: ${{ steps.get_tag.outputs.tag_name }}
+      PUBLISHED: ${{ steps.changesets.outputs.published }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -190,7 +192,6 @@ jobs:
       - name: Get latest tag name
         id: get_tag
         run: |
-          echo "${{ steps.changeset.outputs.published }}"
           git fetch --tag
           TAG_NAME=$(git describe --tags `git rev-list --tags --max-count=1`)
           echo "tag_name=${TAG_NAME}" >> $GITHUB_ENV
@@ -200,7 +201,7 @@ jobs:
     name: Build binaries for release
     runs-on: ubuntu-latest
     needs: [release-pullrequest]
-    if: needs.release-pullrequest.outputs.published == 'true'
+    if: needs.release.outputs.PUBLISHED == 'true'
     strategy:
       matrix:
         goos: [linux, windows, darwin]
