@@ -30,6 +30,8 @@ type Input struct {
 	BlockTimestamp string `json:"blockTimestamp"`
 
 	PrevRandao string `json:"prevRandao"`
+
+	AppContract string `json:"appContract"`
 }
 
 // Representation of a transaction that can be carried out on the base layer blockchain, such as a
@@ -38,7 +40,7 @@ type Voucher struct {
 	// Voucher index within the context of the input that produced it
 	Index int `json:"index"`
 	// Index of the input
-	InputIndex int
+	InputIndex int `json:"inputIndex"`
 	// Transaction destination address in Ethereum hex binary format (20 bytes), starting with
 	// '0x'
 	Destination string `json:"destination"`
@@ -52,6 +54,8 @@ type Voucher struct {
 	Proof Proof `json:"proof"`
 
 	TransactionHash string `json:"transactionHash"`
+
+	AppContract string `json:"appContract"`
 }
 
 type DelegateCallVoucher struct {
@@ -70,6 +74,8 @@ type DelegateCallVoucher struct {
 	Proof Proof `json:"proof"`
 
 	TransactionHash string `json:"transactionHash"`
+
+	AppContract string `json:"appContract"`
 }
 
 type Proof struct {
@@ -85,6 +91,8 @@ type Report struct {
 	InputIndex int
 	// Report data as a payload in Ethereum hex binary format, starting with '0x'
 	Payload string `json:"payload"`
+
+	AppContract string `json:"appContract"`
 }
 
 // Informational statement that can be validated in the base layer blockchain
@@ -97,6 +105,8 @@ type Notice struct {
 	Payload string `json:"payload"`
 	// InputId string
 	Proof Proof `json:"proof"`
+
+	AppContract string `json:"appContract"`
 }
 
 //

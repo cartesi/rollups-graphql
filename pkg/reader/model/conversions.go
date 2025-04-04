@@ -77,6 +77,7 @@ func ConvertInput(input cModel.AdvanceInput) (*Input, error) {
 		InputBoxIndex:       inputBoxIndexStr,
 		BlockTimestamp:      timestamp,
 		PrevRandao:          input.PrevRandao,
+		AppContract:         input.AppContract.Hex(),
 	}, nil
 }
 
@@ -93,6 +94,7 @@ func ConvertConvenientDelegateCallVoucherV1(cVoucher cModel.ConvenienceVoucher) 
 		Payload:         cVoucher.Payload,
 		Executed:        cVoucher.Executed,
 		TransactionHash: cVoucher.TransactionHash,
+		AppContract:     cVoucher.AppContract.Hex(),
 		Proof: Proof{
 			OutputIndex:          strconv.FormatUint(cVoucher.ProofOutputIndex, 10),
 			OutputHashesSiblings: outputHashesSiblings,
@@ -122,6 +124,7 @@ func ConvertConvenientVoucherV1(cVoucher cModel.ConvenienceVoucher) *Voucher {
 		Value:           cVoucher.Value,
 		Executed:        cVoucher.Executed,
 		TransactionHash: cVoucher.TransactionHash,
+		AppContract:     cVoucher.AppContract.Hex(),
 		Proof: Proof{
 			OutputIndex:          strconv.FormatUint(cVoucher.ProofOutputIndex, 10),
 			OutputHashesSiblings: outputHashesSiblings,
@@ -293,9 +296,10 @@ func ConvertConvenientNoticeV1(cNotice cModel.ConvenienceNotice) *Notice {
 		outputHashesSiblings = []string{}
 	}
 	return &Notice{
-		Index:      int(cNotice.OutputIndex),
-		InputIndex: int(cNotice.InputIndex),
-		Payload:    cNotice.Payload,
+		Index:       int(cNotice.OutputIndex),
+		InputIndex:  int(cNotice.InputIndex),
+		Payload:     cNotice.Payload,
+		AppContract: cNotice.AppContract,
 		Proof: Proof{
 			OutputIndex:          strconv.FormatUint(cNotice.ProofOutputIndex, 10),
 			OutputHashesSiblings: outputHashesSiblings,

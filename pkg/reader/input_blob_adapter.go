@@ -46,6 +46,7 @@ func (i *InputBlobAdapter) Adapt(node struct {
 		BlockNumber:   values[3].(*big.Int).String(),
 		Payload:       common.Bytes2Hex(values[7].([]uint8)),
 		InputBoxIndex: values[6].(*big.Int).String(),
+		AppContract:   values[1].(common.Address).Hex(),
 	}, nil
 }
 
