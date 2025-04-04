@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.14
+
+### Patch Changes
+
+- ddbb19a: Printing released
+
 ## 2.3.13
 
 ### Patch Changes
