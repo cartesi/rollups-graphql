@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.19
+
+### Patch Changes
+
+- a41f44e: Simplified release strategy
+
 ## 2.3.18
 
 ### Patch Changes

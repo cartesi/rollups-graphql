@@ -2,4 +2,4 @@
 "rollups-graphql": patch
 ---
 
-Simplified release strategy
+Get tag name from external job

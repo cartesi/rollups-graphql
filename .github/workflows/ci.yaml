@@ -190,7 +190,8 @@ jobs:
       - name: Get latest tag name
         id: get_tag
         run: |
-          TAG_NAME=$(git describe --tags `git rev-list --tags --max-count=1`)
+          TAG_NAME=$(git describe --tags `git rev-list --tags --max-count=1`) | sed 's|^ref/tag/||'
+          echo $TAG_NAME
           echo "tag_name=${TAG_NAME}" >> $GITHUB_ENV
           echo "::set-output name=tag_name::${TAG_NAME}"
 
@@ -210,14 +211,11 @@ jobs:
           - goarch: riscv64
             goos: darwin
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.release-pullrequest.outputs.TAG_NAME }}
-          fetch-depth: 0
-        
+      - uses: actions/checkout@v4        
 
       - uses: wangyoucao577/go-release-action@v1
         with:
+          release_tag: ${{ needs.release-pullrequest.outputs.TAG_NAME }}
           overwrite: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
