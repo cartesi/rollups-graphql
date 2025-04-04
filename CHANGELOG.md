@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.12
+
+### Patch Changes
+
+- 28ea9cb: Releasing for show time
+
 ## 2.3.23
 
 ### Patch Changes

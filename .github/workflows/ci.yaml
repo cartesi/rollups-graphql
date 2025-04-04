@@ -159,6 +159,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     outputs:
       TAG_NAME: ${{ steps.get_tag.outputs.tag_name }}
+      SHOULD_RELEASE: ${{ steps.changeset.outputs.released }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -199,6 +200,7 @@ jobs:
     name: Build binaries for release
     runs-on: ubuntu-latest
     needs: [release-pullrequest]
+    if: ${{ needs.release-pullrequest.outputs.SHOULD_RELEASE == 'true' }}
     strategy:
       matrix:
         goos: [linux, windows, darwin]
@@ -211,7 +213,7 @@ jobs:
           - goarch: riscv64
             goos: darwin
     steps:
-      - uses: actions/checkout@v4        
+      - uses: actions/checkout@v4
 
       - uses: wangyoucao577/go-release-action@v1
         with:

@@ -2,4 +2,4 @@
 "rollups-graphql": patch
 ---
 
-Releasing for show time
+Binaries and release after tag
