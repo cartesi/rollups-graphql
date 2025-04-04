@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.18
+
+### Patch Changes
+
+- 5ea17e6: Fix linked github action jobs
+
 ## 2.3.16
 
 ### Patch Changes

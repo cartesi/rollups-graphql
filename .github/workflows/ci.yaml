@@ -157,6 +157,8 @@ jobs:
     name: Release Pull Request
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
+    outputs:
+      TAG_NAME: ${{ steps.get_tag.outputs.tag_name }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -185,6 +187,13 @@ jobs:
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
+      - name: Get latest tag name
+        id: get_tag
+        run: |
+          TAG_NAME=$(git describe --tags `git rev-list --tags --max-count=1`)
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_ENV
+          echo "::set-output name=tag_name::${TAG_NAME}"
+
   releases-matrix:
     name: Build binaries for release
     runs-on: ubuntu-latest
@@ -202,6 +211,10 @@ jobs:
             goos: darwin
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-pullrequest.outputs.TAG_NAME }}
+          fetch-depth: 0
+        
 
       - uses: wangyoucao577/go-release-action@v1
         with:

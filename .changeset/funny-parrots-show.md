@@ -2,4 +2,4 @@
 "rollups-graphql": patch
 ---
 
-Fix linked github action jobs
+Simplified release strategy
