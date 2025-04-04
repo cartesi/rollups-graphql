@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.24
+
+### Patch Changes
+
+- 17ca75b: Sed removal
+
 ## 2.3.23
 
 ### Patch Changes
