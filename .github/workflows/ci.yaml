@@ -192,7 +192,7 @@ jobs:
         run: |
           echo "BANANADA"
           git fetch --tag
-          TAG_NAME=$(git describe --tags `git rev-list --tags --max-count=1`) | sed 's|^ref/tag/||'
+          TAG_NAME=$(git describe --tags `git rev-list --tags --max-count=1`)
           echo $TAG_NAME
           echo "tag_name=${TAG_NAME}" >> $GITHUB_ENV
           echo "::set-output name=tag_name::${TAG_NAME}"

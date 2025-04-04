@@ -2,4 +2,4 @@
 "rollups-graphql": patch
 ---
 
-BANANADA
+Sed removal
