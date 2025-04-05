@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.12
+
+### Patch Changes
+
+- 1d153f9: Increasing version
+
 ## 2.3.13
 
 ### Patch Changes
