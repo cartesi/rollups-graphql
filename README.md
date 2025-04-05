@@ -79,24 +79,46 @@ The following environment variables are used for PostgreSQL configuration:
 Made with [contributors-img](https://contributors-img.firebaseapp.com).
 
 
-# Release
+## Release
 
-## How to
+New releases are created using the [Changesets](https://github.com/changesets/changesets/blob/main/packages/cli/README.md) library, which is already set up in this project.
 
-New releases are created using [changeset](https://github.com/changesets/changesets/blob/main/packages/cli/README.md) library. This library is currently set up in this project.
-In order to create new releases we need:
+### How to do a standard release
 
-1- Commit all current changes in your current branch
+#### Manual steps
 
-2- Run `pnpm changeset`
+1. **Workflow permissions**:
+   - Ensure this repository has "Read and write permissions" enabled under the "Workflow permissions" section in the repository settings.
 
-3- Enter all prompted information (release type, release summary)
+2. **Create a changeset when you're ready to release a new version**:
+   ```bash
+   npx changeset
+   ```
+   - Select the type of change (patch, minor, major)
+   - Write a short description of the change
+   - Make sure a `.md` file is automatically created inside the `.changeset/` directory
 
-4- Check if an MD file is created, this file will trigger changeset github action to create new pull request asking for bump the project tag and apply a release summary.
-5- Commit all new changes
+3. **'push' your changes to remote repo**
 
-6- Git push 
+    No github action is trigered until here. 
 
-7- If `release-pullrequest` Github Action Job is successfully executed a pull request will be automatically created asking merge from a _changeset auto created branch_ into your _current branch_.
+3. **New Pull Request**
 
-8- After merging this intermediary pull request create a new one from _your current branch_ into _main_ branch. Merges into main branch will trigger the `Release` github action job and performs new tag and artifacts creation.
+    Create a pull request from your branch into `main` branch. 
+
+
+
+#### Automatic procedures
+
+After merges/commits into `main` branch in a changeset state (with an `md` file in `.changeset` directory):
+
+1. `Release Pull Request` workflow job is automatically triggered
+2. Changesets will create a release pull request. In this PR some files will be updated by changeset bot to bump the version number
+3. Once you merge this PR, `Release Pull Request` workflow job will run again, and this time a new git tag will be created and pushed:
+   - `package.json` version will be updated
+   - A GitHub tag will be created
+   - CHANGELOG.md will be updated
+
+### How to pre release
+
+See the [docs](https://github.com/changesets/changesets/blob/main/docs/prereleases.md).
