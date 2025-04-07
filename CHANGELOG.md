@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.12
+
+### Patch Changes
+
+- 009d59e: Setup of changeset-bot to standardize new releases
+
 ## 2.3.14
 
 ### Patch Changes
