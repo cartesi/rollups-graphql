@@ -6,24 +6,6 @@
 
 - 009d59e: Setup of changeset-bot to standardize new releases
 
-## 2.3.14
-
-### Patch Changes
-
-- 827d3ac: Fixes on ci releases
-
-## 2.3.13
-
-### Patch Changes
-
-- 0b43c3a: Add changeset to workflow
-
-## 2.3.12
-
-### Patch Changes
-
-- 5114bd1: Changeset installation and configuration
-
 ## 2.3.11
 
 ### Patch Changes
