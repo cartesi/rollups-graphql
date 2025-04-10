@@ -23,6 +23,7 @@ for ((i=0; i<101; i++)); do
         echo "Error executing the command $((i+1)). Stopping the script."
         exit 1
     fi
+    sleep 1
 done
 
 echo "All commands were executed successfully!"
