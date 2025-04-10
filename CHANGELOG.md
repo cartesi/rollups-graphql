@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.3.13
+
+### Patch Changes
+
+- 535bf8d: Update echo v4 and the node v2 alpha 3 database
+
 ## 2.3.12
 
 ### Patch Changes
