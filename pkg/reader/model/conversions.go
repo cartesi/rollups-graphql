@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"strconv"
 
-	"github.com/cartesi/rollups-graphql/v2/pkg/convenience/model"
 	cModel "github.com/cartesi/rollups-graphql/v2/pkg/convenience/model"
 )
 
@@ -139,7 +138,7 @@ func ConvertToAppFilter(
 	}
 
 	if filter.Address != nil {
-		key := model.APP_CONTRACT
+		key := cModel.APP_CONTRACT
 		filters = append(filters, &cModel.ConvenienceFilter{
 			Field: &key,
 			Eq:    filter.Address,
@@ -147,7 +146,7 @@ func ConvertToAppFilter(
 	}
 
 	if filter.Name != nil {
-		key := model.APP_NAME
+		key := cModel.APP_NAME
 		filters = append(filters, &cModel.ConvenienceFilter{
 			Field: &key,
 			Eq:    filter.Name,
@@ -155,7 +154,7 @@ func ConvertToAppFilter(
 	}
 
 	if filter.IndexGreaterThan != nil {
-		key := model.APP_ID
+		key := cModel.APP_ID
 		val := strconv.Itoa(*filter.IndexGreaterThan)
 		filters = append(filters, &cModel.ConvenienceFilter{
 			Field: &key,
@@ -164,7 +163,7 @@ func ConvertToAppFilter(
 	}
 
 	if filter.IndexLowerThan != nil {
-		key := model.APP_ID
+		key := cModel.APP_ID
 		val := strconv.Itoa(*filter.IndexLowerThan)
 		filters = append(filters, &cModel.ConvenienceFilter{
 			Field: &key,
