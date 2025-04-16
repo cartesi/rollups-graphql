@@ -211,7 +211,7 @@ func generateBinding(b contractBinding, content []byte) {
 		libs    = make(map[string]string)
 		aliases = make(map[string]string)
 	)
-	code, err := bind.Bind(types, abis, bins, sigs, bindingPkg, bind.LangGo, libs, aliases)
+	code, err := bind.Bind(types, abis, bins, sigs, bindingPkg, libs, aliases)
 	checkErr("generate binding", err)
 	const fileMode = 0600
 	err = os.WriteFile(b.outFile, []byte(code), fileMode)
