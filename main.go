@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/carlmjohnson/versioninfo"
-	"github.com/cartesi/rollups-graphql/pkg/bootstrap"
+	"github.com/cartesi/rollups-graphql/v2/pkg/bootstrap"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/joho/godotenv"

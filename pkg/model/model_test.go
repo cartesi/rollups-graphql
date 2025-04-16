@@ -11,12 +11,12 @@ import (
 	"testing"
 	"time"
 
-	cModel "github.com/cartesi/rollups-graphql/pkg/convenience/model"
-	cRepos "github.com/cartesi/rollups-graphql/pkg/convenience/repository"
+	cModel "github.com/cartesi/rollups-graphql/v2/pkg/convenience/model"
+	cRepos "github.com/cartesi/rollups-graphql/v2/pkg/convenience/repository"
 
-	"github.com/cartesi/rollups-graphql/pkg/commons"
-	"github.com/cartesi/rollups-graphql/pkg/convenience"
-	"github.com/cartesi/rollups-graphql/pkg/convenience/services"
+	"github.com/cartesi/rollups-graphql/v2/pkg/commons"
+	"github.com/cartesi/rollups-graphql/v2/pkg/convenience"
+	"github.com/cartesi/rollups-graphql/v2/pkg/convenience/services"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/ncruces/go-sqlite3/driver"

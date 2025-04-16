@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
+	"github.com/cartesi/rollups-graphql/v2/pkg/convenience/repository"
 )
 
 type CleanSynchronizer struct {

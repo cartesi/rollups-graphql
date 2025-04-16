@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	cModel "github.com/cartesi/rollups-graphql/pkg/convenience/model"
+	cModel "github.com/cartesi/rollups-graphql/v2/pkg/convenience/model"
 	"github.com/ethereum/go-ethereum/common"
 )
 

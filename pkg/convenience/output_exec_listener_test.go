@@ -4,9 +4,9 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/cartesi/rollups-graphql/pkg/commons"
-	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
-	"github.com/cartesi/rollups-graphql/pkg/convenience/services"
+	"github.com/cartesi/rollups-graphql/v2/pkg/commons"
+	"github.com/cartesi/rollups-graphql/v2/pkg/convenience/repository"
+	"github.com/cartesi/rollups-graphql/v2/pkg/convenience/services"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/suite"

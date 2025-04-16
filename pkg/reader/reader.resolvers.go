@@ -9,8 +9,8 @@ import (
 	"log/slog"
 	"strconv"
 
-	"github.com/cartesi/rollups-graphql/pkg/reader/graph"
-	"github.com/cartesi/rollups-graphql/pkg/reader/model"
+	"github.com/cartesi/rollups-graphql/v2/pkg/reader/graph"
+	"github.com/cartesi/rollups-graphql/v2/pkg/reader/model"
 )
 
 // Input is the resolver for the input field.

@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"math/big"
 
-	"github.com/cartesi/rollups-graphql/pkg/contracts"
-	graphql "github.com/cartesi/rollups-graphql/pkg/reader/model"
+	"github.com/cartesi/rollups-graphql/v2/pkg/contracts"
+	graphql "github.com/cartesi/rollups-graphql/v2/pkg/reader/model"
 	"github.com/ethereum/go-ethereum/common"
 )
 
