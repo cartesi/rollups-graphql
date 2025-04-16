@@ -1,6 +1,6 @@
 module github.com/cartesi/rollups-graphql/v2
 
-go 1.23.0
+go 1.24
 
 toolchain go1.24.2
 
@@ -8,7 +8,6 @@ require (
 	github.com/99designs/gqlgen v0.17.70
 	github.com/Khan/genqlient v0.8.0
 	github.com/carlmjohnson/versioninfo v0.22.5
-	github.com/deepmap/oapi-codegen/v2 v2.2.0
 	github.com/ethereum/go-ethereum v1.15.8
 	github.com/golang-migrate/migrate/v4 v4.18.2
 	github.com/google/go-github v17.0.0+incompatible
@@ -28,6 +27,7 @@ require (
 require (
 	github.com/bmatcuk/doublestar/v4 v4.8.1 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240724233137-53bbb0ceb27a // indirect
+	github.com/dprotaso/go-yit v0.0.0-20220510233725-9ba8df137936 // indirect
 	github.com/ethereum/go-verkle v0.2.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -43,8 +43,11 @@ require (
 	github.com/jackc/pgx/v4 v4.18.2 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/klauspost/compress v1.17.3 // indirect
+	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1 // indirect
 	github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037 // indirect
 	github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90 // indirect
+	github.com/speakeasy-api/openapi-overlay v0.9.0 // indirect
+	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
@@ -125,4 +128,11 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
+)
+
+tool (
+	github.com/99designs/gqlgen
+	github.com/99designs/gqlgen/graphql/introspection
+	github.com/Khan/genqlient
+	github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen
 )
