@@ -1,0 +1,128 @@
+version = '2'
+
+# Configuration for linters
+[run]
+timeout = "5m"
+
+# Output configuration section
+[output.formats.text]
+print-linter-name = true
+print-issued-lines = true
+colors = true
+
+# Main linters configuration section
+[linters]
+enable = [
+  'exhaustive',
+  'goconst',
+  'godox',
+  'lll',
+  'misspell',
+  'mnd'
+]
+
+# Linter specific settings
+[linters.settings]
+[linters.settings.lll]
+line-length = 228
+tab-width = 8
+
+[linters.settings.staticcheck]
+checks = [
+  'SA1019',
+  'all'
+]
+
+# Exclusion configuration
+[linters.exclusions]
+generated = 'lax'
+presets = [
+  'comments',
+  'common-false-positives',
+  'legacy',
+  'std-error-handling'
+]
+paths = [
+  'third_party$',
+  'builtin$',
+  'examples$'
+]
+
+# Individual exclusion rules with explanations
+[[linters.exclusions.rules]]
+linters = [
+  'staticcheck'
+]
+path = '.*'
+text = 'SA1019' # Using a deprecated function, variable, constant or field
+
+[[linters.exclusions.rules]]
+linters = [
+  'staticcheck'
+]
+path = '.*'
+text = 'ST1003' # Should not use ALL_CAPS in Go names; use CamelCase instead
+
+[[linters.exclusions.rules]]
+linters = [
+  'staticcheck'
+]
+path = '.*'
+text = 'ST1005' # Error strings should not be capitalized
+
+[[linters.exclusions.rules]]
+linters = [
+  'staticcheck'
+]
+path = '.*'
+text = 'ST1016' # Methods on the same type should have the same receiver name
+
+[[linters.exclusions.rules]]
+linters = [
+  'staticcheck'
+]
+path = '.*'
+text = 'ST1019' # Package is being imported more than once
+
+[[linters.exclusions.rules]]
+linters = [
+  'staticcheck'
+]
+path = '.*'
+text = 'ST1023' # Should omit type from declaration; it will be inferred from the right-hand side
+
+[[linters.exclusions.rules]]
+linters = [
+  'staticcheck'
+]
+path = '.*'
+text = 'QF1003' # Could use tagged switch
+
+[[linters.exclusions.rules]]
+linters = [
+  'staticcheck'
+]
+path = '.*'
+text = 'QF1004' # Could use strings.ReplaceAll instead
+
+[[linters.exclusions.rules]]
+linters = [
+  'staticcheck'
+]
+path = '.*'
+text = 'QF1011' # Could omit type error from declaration; it will be inferred from the right-hand side
+
+# Code formatters configuration
+[formatters]
+enable = [
+  'gofmt'
+]
+
+# Formatter exclusions
+[formatters.exclusions]
+generated = 'lax'
+paths = [
+  'third_party$',
+  'builtin$',
+  'examples$'
+]
