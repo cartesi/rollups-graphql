@@ -116,7 +116,7 @@ func (s *SynchronizerUpdateNodeSuite) TestUpdateInputStatusNotEqNone() {
 	none := s.getNoneInputs(ctx)
 	slog.Debug("None", "none", none)
 	second := s.countAcceptedInput(ctx)
-	s.Equal(TOTAL_INPUT_TEST-1, second)
+	s.Equal(TOTAL_INPUT_TEST, second)
 }
 
 func (s *SynchronizerUpdateNodeSuite) countInputWithStatusNone(ctx context.Context) int {

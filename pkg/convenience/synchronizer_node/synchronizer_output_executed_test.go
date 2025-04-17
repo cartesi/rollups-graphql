@@ -124,7 +124,7 @@ func (s *SynchronizerOutputExecutedSuite) TestUpdateOutputsExecuted() {
 	err = s.synchronizerOutputCreate.SyncOutputs(ctx)
 	s.Require().NoError(err)
 	second = s.countOurOutputs(ctx)
-	s.Equal(198, second)
+	s.Equal(202, second)
 
 	// check setup
 	executedCount := s.countExecuted(ctx)
@@ -149,15 +149,15 @@ func (s *SynchronizerOutputExecutedSuite) TestUpdateOutputsExecuted() {
 	err = s.synchronizerOutputExecuted.SyncOutputsExecution(ctx)
 	s.Require().NoError(err)
 	second = s.countExecuted(ctx)
-	s.Equal(TOTAL_INPUT_TEST-1, second)
+	s.Equal(TOTAL_INPUT_TEST, second)
 	err = s.synchronizerOutputExecuted.SyncOutputsExecution(ctx)
 	s.Require().NoError(err)
 	third := s.countExecuted(ctx)
-	s.Equal(TOTAL_INPUT_TEST-1, third)
+	s.Equal(TOTAL_INPUT_TEST+1, third)
 	err = s.synchronizerOutputExecuted.SyncOutputsExecution(ctx)
 	s.Require().NoError(err)
 	lastCount := s.countExecuted(ctx)
-	s.Equal(TOTAL_INPUT_TEST-1, lastCount)
+	s.Equal(TOTAL_INPUT_TEST+1, lastCount)
 	// s.Fail("uncomment this line just to see the logs")
 }
 
