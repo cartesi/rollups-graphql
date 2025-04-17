@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - track/node-next-2.0
 
 jobs:
   k6-test:
