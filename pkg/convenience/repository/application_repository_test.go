@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/cartesi/rollups-graphql/pkg/commons"
-	configtest "github.com/cartesi/rollups-graphql/pkg/convenience/config_test"
-	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
+	"github.com/cartesi/rollups-graphql/v2/pkg/commons"
+	configtest "github.com/cartesi/rollups-graphql/v2/pkg/convenience/config_test"
+	"github.com/cartesi/rollups-graphql/v2/pkg/convenience/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/suite"
 )

@@ -27,11 +27,11 @@ jobs:
         options: --name postgres
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Clone Node V2 (avoid submodules)
         run: |
           git clone -b v2.0.0-alpha.3 --depth 1 --recurse-submodules https://github.com/cartesi/rollups-node.git
-      
+
       - name: Wait for PostgreSQL to be ready
         run: |
           for i in {1..30}; do
@@ -124,12 +124,11 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.21"
+          go-version: "1.24"
 
       - name: Lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
-          args: --timeout=5m --out-format=colored-line-number
           version: latest
 
       - name: Check generate
@@ -143,7 +142,7 @@ jobs:
 
       - name: Test
         run: make test
-      
+
       - name: Generate graphql-db-migration
         run: go build -o graphql-db-migration ./dev/main.go
 
@@ -152,7 +151,7 @@ jobs:
         with:
           name: migration
           path: graphql-db-migration
- 
+
   release-pullrequest:
     name: Release Pull Request
     runs-on: ubuntu-latest
@@ -188,7 +187,7 @@ jobs:
             publish: pnpm run publish-packages
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
+
       - name: Get latest tag name
         id: get_tag
         run: |

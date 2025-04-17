@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
+	"github.com/cartesi/rollups-graphql/v2/pkg/convenience/repository"
 )
 
 type SynchronizerAppCreator struct {

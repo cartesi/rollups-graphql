@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/cartesi/rollups-graphql/pkg/contracts"
-	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
+	"github.com/cartesi/rollups-graphql/v2/pkg/contracts"
+	"github.com/cartesi/rollups-graphql/v2/pkg/convenience/model"
 	"github.com/ethereum/go-ethereum/common"
 )
 

@@ -76,6 +76,10 @@ type PageInfo struct {
 	HasPreviousPage bool `json:"hasPreviousPage"`
 }
 
+// Top level queries
+type Query struct {
+}
+
 type CompletionStatus string
 
 const (
@@ -112,7 +116,7 @@ func (e CompletionStatus) String() string {
 	return string(e)
 }
 
-func (e *CompletionStatus) UnmarshalGQL(v interface{}) error {
+func (e *CompletionStatus) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")

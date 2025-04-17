@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log/slog"
 
-	cModel "github.com/cartesi/rollups-graphql/pkg/convenience/model"
-	cRepos "github.com/cartesi/rollups-graphql/pkg/convenience/repository"
-	services "github.com/cartesi/rollups-graphql/pkg/convenience/services"
-	"github.com/cartesi/rollups-graphql/pkg/reader/loaders"
-	graphql "github.com/cartesi/rollups-graphql/pkg/reader/model"
+	cModel "github.com/cartesi/rollups-graphql/v2/pkg/convenience/model"
+	cRepos "github.com/cartesi/rollups-graphql/v2/pkg/convenience/repository"
+	services "github.com/cartesi/rollups-graphql/v2/pkg/convenience/services"
+	"github.com/cartesi/rollups-graphql/v2/pkg/reader/loaders"
+	graphql "github.com/cartesi/rollups-graphql/v2/pkg/reader/model"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 )

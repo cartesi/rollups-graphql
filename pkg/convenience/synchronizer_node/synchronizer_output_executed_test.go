@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/cartesi/rollups-graphql/pkg/commons"
-	"github.com/cartesi/rollups-graphql/pkg/contracts"
-	"github.com/cartesi/rollups-graphql/pkg/convenience"
-	"github.com/cartesi/rollups-graphql/pkg/convenience/model"
-	"github.com/cartesi/rollups-graphql/postgres/raw"
+	"github.com/cartesi/rollups-graphql/v2/pkg/commons"
+	"github.com/cartesi/rollups-graphql/v2/pkg/contracts"
+	"github.com/cartesi/rollups-graphql/v2/pkg/convenience"
+	"github.com/cartesi/rollups-graphql/v2/pkg/convenience/model"
+	"github.com/cartesi/rollups-graphql/v2/postgres/raw"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/suite"
 )
