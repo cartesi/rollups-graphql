@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	convenience "github.com/cartesi/rollups-graphql/pkg/convenience/model"
+	convenience "github.com/cartesi/rollups-graphql/v2/pkg/convenience/model"
 
-	"github.com/cartesi/rollups-graphql/pkg/commons"
+	"github.com/cartesi/rollups-graphql/v2/pkg/commons"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 )

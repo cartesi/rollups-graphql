@@ -21,6 +21,17 @@ const (
 	CompletionStatusPayloadLengthLimitExceeded CompletionStatus = "PAYLOAD_LENGTH_LIMIT_EXCEEDED"
 )
 
+var AllCompletionStatus = []CompletionStatus{
+	CompletionStatusUnprocessed,
+	CompletionStatusAccepted,
+	CompletionStatusRejected,
+	CompletionStatusException,
+	CompletionStatusMachineHalted,
+	CompletionStatusCycleLimitExceeded,
+	CompletionStatusTimeLimitExceeded,
+	CompletionStatusPayloadLengthLimitExceeded,
+}
+
 // InputStatusInput includes the requested fields of the GraphQL type Input.
 // The GraphQL type's documentation follows.
 //
@@ -355,7 +366,7 @@ type __InputStatusInput struct {
 // GetId returns __InputStatusInput.Id, and is useful for accessing the field via an interface.
 func (v *__InputStatusInput) GetId() string { return v.Id }
 
-// The query or mutation executed by InputStatus.
+// The query executed by InputStatus.
 const InputStatus_Operation = `
 query InputStatus ($id: String!) {
 	input(id: $id) {
@@ -366,32 +377,31 @@ query InputStatus ($id: String!) {
 
 // Get the input status.
 func InputStatus(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*InputStatusResponse, error) {
-	req := &graphql.Request{
+) (data_ *InputStatusResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "InputStatus",
 		Query:  InputStatus_Operation,
 		Variables: &__InputStatusInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data InputStatusResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &InputStatusResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by State.
+// The query executed by State.
 const State_Operation = `
 query State {
 	inputs {
@@ -444,23 +454,22 @@ query State {
 
 // Get the whole node state.
 func State(
-	ctx context.Context,
-	client graphql.Client,
-) (*StateResponse, error) {
-	req := &graphql.Request{
+	ctx_ context.Context,
+	client_ graphql.Client,
+) (data_ *StateResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "State",
 		Query:  State_Operation,
 	}
-	var err error
 
-	var data StateResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &StateResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }

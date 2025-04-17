@@ -21,55 +21,55 @@ models:
       - github.com/99designs/gqlgen/graphql.ID
   Input:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.Input
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.Input
   Voucher:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.Voucher
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.Voucher
   DelegateCallVoucher:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.DelegateCallVoucher
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.DelegateCallVoucher
   Proof:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.Proof
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.Proof
   Notice:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.Notice
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.Notice
   Report:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.Report
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.Report
   InputConnection:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.InputConnection
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.InputConnection
   InputEdge:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.InputEdge
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.InputEdge
   VoucherConnection:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.VoucherConnection
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.VoucherConnection
   DelegateCallVoucherConnection:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.DelegateCallVoucherConnection
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.DelegateCallVoucherConnection
   VoucherEdge:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.VoucherEdge
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.VoucherEdge
   DelegateCallVoucherEdge:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.DelegateCallVoucherEdge
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.DelegateCallVoucherEdge
   NoticeConnection:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.NoticeConnection
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.NoticeConnection
   NoticeEdge:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.NoticeEdge
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.NoticeEdge
   ReportConnection:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.ReportConnection
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.ReportConnection
   ReportEdge:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.ReportEdge
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.ReportEdge
   AppConnection:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.AppConnection
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.AppConnection
   AppEdge:
     model:
-      - github.com/cartesi/rollups-graphql/pkg/reader/model.AppEdge
+      - github.com/cartesi/rollups-graphql/v2/pkg/reader/model.AppEdge

@@ -3,9 +3,9 @@ package convenience
 import (
 	"fmt"
 
-	"github.com/cartesi/rollups-graphql/pkg/convenience/decoder"
-	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
-	"github.com/cartesi/rollups-graphql/pkg/convenience/services"
+	"github.com/cartesi/rollups-graphql/v2/pkg/convenience/decoder"
+	"github.com/cartesi/rollups-graphql/v2/pkg/convenience/repository"
+	"github.com/cartesi/rollups-graphql/v2/pkg/convenience/services"
 	"github.com/jmoiron/sqlx"
 )
 

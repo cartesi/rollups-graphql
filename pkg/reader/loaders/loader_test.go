@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cartesi/rollups-graphql/pkg/commons"
-	cModel "github.com/cartesi/rollups-graphql/pkg/convenience/model"
-	cRepos "github.com/cartesi/rollups-graphql/pkg/convenience/repository"
+	"github.com/cartesi/rollups-graphql/v2/pkg/commons"
+	cModel "github.com/cartesi/rollups-graphql/v2/pkg/convenience/model"
+	cRepos "github.com/cartesi/rollups-graphql/v2/pkg/convenience/repository"
 	"github.com/ethereum/go-ethereum/common"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"

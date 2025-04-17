@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cartesi/rollups-graphql/pkg/convenience/decoder"
-	"github.com/cartesi/rollups-graphql/pkg/convenience/repository"
-	"github.com/cartesi/rollups-graphql/pkg/supervisor"
+	"github.com/cartesi/rollups-graphql/v2/pkg/convenience/decoder"
+	"github.com/cartesi/rollups-graphql/v2/pkg/convenience/repository"
+	"github.com/cartesi/rollups-graphql/v2/pkg/supervisor"
 	"github.com/ethereum/go-ethereum/common"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"

@@ -26,7 +26,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/cartesi/rollups-graphql/pkg/commons"
+	"github.com/cartesi/rollups-graphql/v2/pkg/commons"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 )
 
@@ -211,7 +211,7 @@ func generateBinding(b contractBinding, content []byte) {
 		libs    = make(map[string]string)
 		aliases = make(map[string]string)
 	)
-	code, err := bind.Bind(types, abis, bins, sigs, bindingPkg, bind.LangGo, libs, aliases)
+	code, err := bind.Bind(types, abis, bins, sigs, bindingPkg, libs, aliases)
 	checkErr("generate binding", err)
 	const fileMode = 0600
 	err = os.WriteFile(b.outFile, []byte(code), fileMode)

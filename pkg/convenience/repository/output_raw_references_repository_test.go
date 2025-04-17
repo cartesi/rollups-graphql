@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cartesi/rollups-graphql/pkg/commons"
-	configtest "github.com/cartesi/rollups-graphql/pkg/convenience/config_test"
+	"github.com/cartesi/rollups-graphql/v2/pkg/commons"
+	configtest "github.com/cartesi/rollups-graphql/v2/pkg/convenience/config_test"
 	"github.com/stretchr/testify/suite"
 )
 
