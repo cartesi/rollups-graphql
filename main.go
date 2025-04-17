@@ -16,11 +16,10 @@ import (
 
 	"github.com/carlmjohnson/versioninfo"
 	"github.com/cartesi/rollups-graphql/pkg/bootstrap"
+	"github.com/cartesi/rollups-graphql/pkg/commons"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/joho/godotenv"
-	"github.com/lmittmann/tint"
-	"github.com/mattn/go-isatty"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 )
@@ -154,16 +153,11 @@ func run(cmd *cobra.Command, args []string) {
 	startTime := time.Now()
 
 	// setup log
-	logOpts := new(tint.Options)
+	levelDebug := slog.LevelInfo
 	if debug {
-		logOpts.Level = slog.LevelDebug
+		levelDebug = slog.LevelDebug
 	}
-	logOpts.AddSource = debug
-	logOpts.NoColor = !color || !isatty.IsTerminal(os.Stdout.Fd())
-	logOpts.TimeFormat = "[15:04:05.000]"
-	handler := tint.NewHandler(os.Stdout, logOpts)
-	logger := slog.New(handler)
-	slog.SetDefault(logger)
+	commons.ConfigureLogForProduction(levelDebug, color)
 
 	// check args
 	checkEthAddress(cmd, "address-input-box")
