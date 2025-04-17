@@ -1,5 +1,11 @@
 <!-- markdownlint-disable MD024 -->
 
+## 2.4.0
+
+### Minor Changes
+
+- 43a5bc3: Update packages
+
 ## 2.3.13
 
 ### Patch Changes
