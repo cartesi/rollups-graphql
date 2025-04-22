@@ -20,13 +20,13 @@ type LoggerWithContext struct {
 	slog.Handler
 }
 
-func (g *LoggerWithContext) Handle(ctx context.Context, r slog.Record) error {
+func (lc *LoggerWithContext) Handle(ctx context.Context, r slog.Record) error {
 	if workerName, ok := ctx.Value(workerKey).(string); ok {
 		r.AddAttrs(slog.String("worker", workerName))
 	}
 
 	// Call the parent handler
-	return g.Handler.Handle(ctx, r)
+	return lc.Handler.Handle(ctx, r)
 }
 
 func ConfigureLog(level slog.Leveler) {
