@@ -22,39 +22,43 @@ type ConvenienceServiceSuite struct {
 	reportRepository  *repository.ReportRepository
 	inputRepository   *repository.InputRepository
 	service           *ConvenienceService
+	db                *sqlx.DB
+	ctx               context.Context
+	ctxCancel         context.CancelFunc
 }
 
 func (s *ConvenienceServiceSuite) SetupTest() {
+	s.ctx, s.ctxCancel = context.WithCancel(context.Background())
 	commons.ConfigureLog(slog.LevelDebug)
-	db := sqlx.MustConnect("sqlite3", ":memory:")
+	s.db = sqlx.MustConnect("sqlite3", ":memory:")
 	outputRepository := repository.OutputRepository{
-		Db: *db,
+		Db: s.db,
 	}
 	s.voucherRepository = &repository.VoucherRepository{
-		Db:               *db,
+		Db:               s.db,
 		OutputRepository: outputRepository,
 	}
-	err := s.voucherRepository.CreateTables()
+	err := s.voucherRepository.CreateTables(s.ctx)
 	s.NoError(err)
 
 	s.noticeRepository = &repository.NoticeRepository{
-		Db:               *db,
+		Db:               s.db,
 		OutputRepository: outputRepository,
 	}
-	err = s.noticeRepository.CreateTables()
+	err = s.noticeRepository.CreateTables(s.ctx)
 	s.NoError(err)
 
 	s.reportRepository = &repository.ReportRepository{
-		Db: db,
+		Db: s.db,
 	}
-	err = s.reportRepository.CreateTables()
+	err = s.reportRepository.CreateTables(s.ctx)
 	s.NoError(err)
 
 	s.inputRepository = &repository.InputRepository{
-		Db: *db,
+		Db: s.db,
 	}
 
-	err = s.inputRepository.CreateTables()
+	err = s.inputRepository.CreateTables(s.ctx)
 	s.NoError(err)
 
 	s.service = &ConvenienceService{
@@ -197,9 +201,7 @@ func (s *ConvenienceServiceSuite) XTestCreateVoucherIdempotency() {
 	s.NoError(err)
 	s.Equal(1, int(count))
 
-	if err != nil {
-		panic(err)
-	}
+	s.Require().NoError(err)
 
 	_, err = s.service.CreateVoucher(ctx, &model.ConvenienceVoucher{
 		InputIndex:  1,
@@ -210,9 +212,7 @@ func (s *ConvenienceServiceSuite) XTestCreateVoucherIdempotency() {
 	s.NoError(err)
 	s.Equal(1, int(count))
 
-	if err != nil {
-		panic(err)
-	}
+	s.Require().NoError(err)
 }
 
 func (s *ConvenienceServiceSuite) XTestCreateNoticeIdempotency() {
@@ -227,9 +227,7 @@ func (s *ConvenienceServiceSuite) XTestCreateNoticeIdempotency() {
 	s.NoError(err)
 	s.Equal(1, int(count))
 
-	if err != nil {
-		panic(err)
-	}
+	s.Require().NoError(err)
 
 	_, err = s.service.CreateNotice(ctx, &model.ConvenienceNotice{
 		InputIndex:  1,

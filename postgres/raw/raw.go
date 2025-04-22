@@ -40,24 +40,22 @@ func LoadMapEnvFile() (map[string]string, error) {
 
 // check if docker compose command is available
 func CheckDockerCompose(ctx context.Context) error {
-	slog.Debug("checking docker compose")
+	slog.DebugContext(ctx, "checking docker compose")
 	cmd := exec.CommandContext(ctx, "docker", "compose", "version")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("docker compose not found: %s", err)
 	}
-	slog.Debug("docker compose version", "output", string(output))
+	slog.DebugContext(ctx, "docker compose version", "output", string(output))
 
 	return nil
 }
 
 func RunDockerCompose(stdCtx context.Context) error {
-	slog.Debug("running docker compose")
-	if stdCtx == nil {
-		stdCtx = context.Background()
-	}
 	ctx, cancel := context.WithCancel(stdCtx)
 	defer cancel()
+
+	slog.DebugContext(ctx, "running docker compose")
 
 	err := CheckDockerCompose(ctx)
 	if err != nil {
@@ -68,26 +66,27 @@ func RunDockerCompose(stdCtx context.Context) error {
 	if err != nil {
 		return err
 	}
-	slog.Debug("docker compose file path", "path", filePath)
+	slog.DebugContext(ctx, "docker compose file path", "path", filePath)
 
 	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", filePath, "up", DOCKER_COMPOSE_SERVICE, "--wait")
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
-		slog.Debug("docker compose up failed", "output", string(output))
+		slog.DebugContext(ctx, "docker compose up failed", "output", string(output))
 		_ = ShowDockerComposeLog(ctx, filePath)
 		return fmt.Errorf("docker compose up failed: %s", err)
 	}
 
-	slog.Debug("docker compose up", "output", string(output))
+	slog.DebugContext(ctx, "docker compose up", "output", string(output))
 
 	return nil
 }
 
 func StopDockerCompose(stdCtx context.Context) error {
-	slog.Debug("stopping docker compose")
 	ctx, cancel := context.WithCancel(stdCtx)
 	defer cancel()
+
+	slog.DebugContext(ctx, "stopping docker compose")
 
 	filePath, err := GetFilePath(DOCKER_COMPOSE_FILE)
 	if err != nil {
@@ -98,7 +97,7 @@ func StopDockerCompose(stdCtx context.Context) error {
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		slog.Debug("docker compose down failed", "output", string(output))
+		slog.DebugContext(ctx, "docker compose down failed", "output", string(output))
 		_ = ShowDockerComposeLog(ctx, filePath)
 		return fmt.Errorf("docker compose down failed: %s", err)
 	}
@@ -111,11 +110,11 @@ func ShowDockerComposeLog(ctx context.Context, filePath string) error {
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
-		slog.Debug("docker compose logs failed", "output", string(output))
+		slog.DebugContext(ctx, "docker compose logs failed", "output", string(output))
 		return fmt.Errorf("docker compose logs failed: %s", err)
 	}
 
-	slog.Debug("docker compose logs", "output", string(output))
+	slog.DebugContext(ctx, "docker compose logs", "output", string(output))
 
 	return nil
 }
@@ -133,12 +132,12 @@ func CleanupDockerCompose(stdCtx context.Context) error {
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
-		slog.Debug("docker compose cleanup failed", "output", string(output))
+		slog.DebugContext(ctx, "docker compose cleanup failed", "output", string(output))
 		_ = ShowDockerComposeLog(ctx, filePath)
 		return fmt.Errorf("docker compose cleanup failed: %s", err)
 	}
 
-	slog.Debug("docker compose cleanup", "output", string(output))
+	slog.DebugContext(ctx, "docker compose cleanup", "output", string(output))
 
 	return nil
 }

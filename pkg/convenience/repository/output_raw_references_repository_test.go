@@ -16,10 +16,13 @@ type RawOutputRefSuite struct {
 	noticeRepository       *NoticeRepository
 	rawOutputRefRepository *RawOutputRefRepository
 	dbFactory              *commons.DbFactory
+	ctx                    context.Context
+	ctxCancel              context.CancelFunc
 }
 
 func (s *RawOutputRefSuite) TearDownTest() {
-	defer s.dbFactory.Cleanup()
+	s.dbFactory.Cleanup(s.ctx)
+	s.ctxCancel()
 }
 
 func TestRawRefOutputSuite(t *testing.T) {
@@ -27,30 +30,31 @@ func TestRawRefOutputSuite(t *testing.T) {
 }
 
 func (s *RawOutputRefSuite) SetupTest() {
+	var err error
+	s.ctx, s.ctxCancel = context.WithCancel(context.Background())
 	commons.ConfigureLog(slog.LevelDebug)
-	s.dbFactory = commons.NewDbFactory()
-	db := s.dbFactory.CreateDb("input.sqlite3")
+	s.dbFactory, err = commons.NewDbFactory()
+	s.Require().NoError(err)
+	db := s.dbFactory.CreateDb(s.ctx, "input.sqlite3")
 	s.noticeRepository = &NoticeRepository{
-		Db: *db,
+		Db: db,
 	}
 	s.rawOutputRefRepository = &RawOutputRefRepository{
 		Db: db,
 	}
 
-	err := s.noticeRepository.CreateTables()
+	err = s.noticeRepository.CreateTables(s.ctx)
 	s.NoError(err)
-	err = s.rawOutputRefRepository.CreateTable()
+	err = s.rawOutputRefRepository.CreateTable(s.ctx)
 	s.NoError(err)
 }
 
 func (s *RawOutputRefSuite) TestRawRefOutputCreateTables() {
-	err := s.rawOutputRefRepository.CreateTable()
+	err := s.rawOutputRefRepository.CreateTable(s.ctx)
 	s.NoError(err)
 }
 
 func (s *RawOutputRefSuite) TestRawRefOutputShouldThrowAnErrorWhenThereIsNoTypeAttribute() {
-	ctx := context.Background()
-
 	rawNotice := RawOutputRef{
 		InputIndex:  1,
 		AppID:       2,
@@ -58,7 +62,7 @@ func (s *RawOutputRefSuite) TestRawRefOutputShouldThrowAnErrorWhenThereIsNoTypeA
 		OutputIndex: 2,
 	}
 
-	err := s.rawOutputRefRepository.Create(ctx, rawNotice)
+	err := s.rawOutputRefRepository.Create(s.ctx, rawNotice)
 	s.ErrorContains(err, "sqlite3: constraint failed: CHECK constraint failed: type IN ('voucher', 'notice')")
 }
 

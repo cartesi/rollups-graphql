@@ -1,6 +1,7 @@
 package commons
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"encoding/base64"
 	"encoding/json"
@@ -63,10 +64,10 @@ func trimNonPrintablePrefix(s string) string {
 	return "" // Return empty string if no printable character is found
 }
 
-func ExtractSigAndData(raw string) (common.Address, apitypes.TypedData, []byte, error) {
+func ExtractSigAndData(ctx context.Context, raw string) (common.Address, apitypes.TypedData, []byte, error) {
 	var sigAndData SigAndData
 	if err := json.Unmarshal([]byte(trimNonPrintablePrefix(raw)), &sigAndData); err != nil {
-		slog.Error("unmarshal error", "error", err)
+		slog.ErrorContext(ctx, "unmarshal error", "error", err)
 		return common.HexToAddress("0x"), apitypes.TypedData{}, []byte{}, fmt.Errorf("unmarshal sigAndData: %w", err)
 	}
 
@@ -79,13 +80,13 @@ func ExtractSigAndData(raw string) (common.Address, apitypes.TypedData, []byte, 
 	if err != nil {
 		return common.HexToAddress("0x"), apitypes.TypedData{}, []byte{}, fmt.Errorf("decode typed data: %w", err)
 	}
-	slog.Debug("ExtractSigAndData", "typedDataBytes", string(typedDataBytes))
+	slog.DebugContext(ctx, "ExtractSigAndData", "typedDataBytes", string(typedDataBytes))
 	typedData := apitypes.TypedData{}
 	if err := json.Unmarshal(typedDataBytes, &typedData); err != nil {
 		return common.HexToAddress("0x"), apitypes.TypedData{}, []byte{}, fmt.Errorf("unmarshal typed data: %w", err)
 	}
 
-	slog.Debug("ExtractSigAndData", "typedData", typedData.Message["app"])
+	slog.DebugContext(ctx, "ExtractSigAndData", "typedData", typedData.Message["app"])
 	dataHash, _, err := apitypes.TypedDataAndHash(typedData)
 	if err != nil {
 		return common.HexToAddress("0x"), apitypes.TypedData{}, []byte{}, fmt.Errorf("typed data hash: %w", err)
@@ -106,6 +107,6 @@ func ExtractSigAndData(raw string) (common.Address, apitypes.TypedData, []byte, 
 		return common.HexToAddress("0x"), apitypes.TypedData{}, []byte{}, fmt.Errorf("unmarshal: %w", err)
 	}
 	address := crypto.PubkeyToAddress(*pubkey)
-	slog.Debug("ExtractSigAndData", "publicKeyAddress", address)
+	slog.DebugContext(ctx, "ExtractSigAndData", "publicKeyAddress", address)
 	return address, typedData, signature, nil
 }

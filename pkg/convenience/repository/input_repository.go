@@ -16,7 +16,7 @@ import (
 const INDEX_FIELD = "Index"
 
 type InputRepository struct {
-	Db sqlx.DB
+	Db *sqlx.DB
 }
 
 type inputRow struct {
@@ -40,7 +40,7 @@ type inputRow struct {
 	ChainId                string `db:"chain_id"`
 }
 
-func (r *InputRepository) CreateTables() error {
+func (r *InputRepository) CreateTables(ctx context.Context) error {
 
 	// the ID is not unique anymore in a multi-dapp environment
 	schema := `CREATE TABLE IF NOT EXISTS convenience_inputs (
@@ -68,11 +68,11 @@ func (r *InputRepository) CreateTables() error {
 	CREATE INDEX IF NOT EXISTS idx_input_id ON convenience_inputs(app_contract, id);
 	CREATE INDEX IF NOT EXISTS idx_status_app_contract ON convenience_inputs(status, app_contract);
 	CREATE INDEX IF NOT EXISTS idx_input_index_app_contract ON convenience_inputs(input_index, app_contract);`
-	_, err := r.Db.Exec(schema)
+	_, err := r.Db.ExecContext(ctx, schema)
 	if err == nil {
-		slog.Debug("Inputs table created")
+		slog.DebugContext(ctx, "Inputs table created")
 	} else {
-		slog.Error("Create table error", "error", err)
+		slog.ErrorContext(ctx, "Create table error", "error", err)
 	}
 	return err
 }
@@ -84,7 +84,7 @@ func (r *InputRepository) Create(ctx context.Context, input model.AdvanceInput) 
 		return nil, err
 	}
 	if exist != nil {
-		slog.Debug("Input already exists. Skipping creation")
+		slog.DebugContext(ctx, "Input already exists. Skipping creation")
 		return exist, nil
 	}
 	return r.rawCreate(ctx, input)
@@ -146,7 +146,7 @@ func (r *InputRepository) rawCreate(ctx context.Context, input model.AdvanceInpu
 		hexPayload = input.Payload
 	}
 
-	exec := DBExecutor{&r.Db}
+	exec := DBExecutor{r.Db}
 	_, err := exec.ExecContext(
 		ctx,
 		insertSql,
@@ -178,7 +178,7 @@ func (r *InputRepository) UpdateStatus(ctx context.Context, appContract common.A
 	sql := `UPDATE convenience_inputs
 	SET status = $1
 	WHERE input_index = $2 and app_contract = $3`
-	exec := DBExecutor{&r.Db}
+	exec := DBExecutor{r.Db}
 	res, err := exec.ExecContext(
 		ctx,
 		sql,
@@ -187,7 +187,7 @@ func (r *InputRepository) UpdateStatus(ctx context.Context, appContract common.A
 		appContract.Hex(),
 	)
 	if err != nil {
-		slog.Error("Error updating input status", "Error", err)
+		slog.ErrorContext(ctx, "Error updating input status", "Error", err)
 		return err
 	}
 	rowsAffected, err := res.RowsAffected()
@@ -205,7 +205,7 @@ func (r *InputRepository) Update(ctx context.Context, input model.AdvanceInput) 
 		SET status = $1, exception = $2
 		WHERE input_index = $3`
 
-	exec := DBExecutor{&r.Db}
+	exec := DBExecutor{r.Db}
 	_, err := exec.ExecContext(
 		ctx,
 		sql,
@@ -214,7 +214,7 @@ func (r *InputRepository) Update(ctx context.Context, input model.AdvanceInput) 
 		input.Index,
 	)
 	if err != nil {
-		slog.Error("Error updating input", "Error", err)
+		slog.ErrorContext(ctx, "Error updating input", "Error", err)
 		return nil, err
 	}
 	return &input, nil
@@ -456,14 +456,14 @@ func (c *InputRepository) GetNonce(
 	WHERE app_contract = $1 and msg_sender = $2`
 	stmt, err := c.Db.Preparex(query)
 	if err != nil {
-		slog.Error("Count execution error")
+		slog.ErrorContext(ctx, "Count execution error")
 		return 0, err
 	}
 	defer stmt.Close()
 	var count uint64
 	err = stmt.GetContext(ctx, &count, appContract.Hex(), msgSender.Hex())
 	if err != nil {
-		slog.Error("Count execution error")
+		slog.ErrorContext(ctx, "Count execution error")
 		return 0, err
 	}
 	return count, nil
@@ -476,21 +476,21 @@ func (c *InputRepository) Count(
 	query := `SELECT count(*) FROM convenience_inputs `
 	where, args, _, err := transformToInputQuery(filter)
 	if err != nil {
-		slog.Error("Count execution error", "err", err)
+		slog.ErrorContext(ctx, "Count execution error", "err", err)
 		return 0, err
 	}
 	query += where
-	slog.Debug("Query", "query", query, "args", args)
+	slog.DebugContext(ctx, "Query", "query", query, "args", args)
 	stmt, err := c.Db.Preparex(query)
 	if err != nil {
-		slog.Error("Count execution error")
+		slog.ErrorContext(ctx, "Count execution error")
 		return 0, err
 	}
 	defer stmt.Close()
 	var count uint64
 	err = stmt.GetContext(ctx, &count, args...)
 	if err != nil {
-		slog.Error("Count execution error")
+		slog.ErrorContext(ctx, "Count execution error")
 		return 0, err
 	}
 	return count, nil
@@ -506,7 +506,7 @@ func (c *InputRepository) FindAll(
 ) (*commons.PageResult[model.AdvanceInput], error) {
 	total, err := c.Count(ctx, filter)
 	if err != nil {
-		slog.Error("database error", "err", err)
+		slog.ErrorContext(ctx, "database error", "err", err)
 		return nil, err
 	}
 	query := `SELECT
@@ -530,7 +530,7 @@ func (c *InputRepository) FindAll(
 		FROM convenience_inputs `
 	where, args, argsCount, err := transformToInputQuery(filter)
 	if err != nil {
-		slog.Error("database error", "err", err)
+		slog.ErrorContext(ctx, "database error", "err", err)
 		return nil, err
 	}
 	query += where
@@ -547,17 +547,17 @@ func (c *InputRepository) FindAll(
 	query += fmt.Sprintf(`OFFSET $%d `, argsCount)
 	args = append(args, offset)
 
-	slog.Debug("Query", "query", query, "args", args, "total", total)
+	slog.DebugContext(ctx, "Query", "query", query, "args", args, "total", total)
 	stmt, err := c.Db.PreparexContext(ctx, query)
 	if err != nil {
-		slog.Error("Find all error", "error", err)
+		slog.ErrorContext(ctx, "Find all error", "error", err)
 		return nil, err
 	}
 	defer stmt.Close()
 	var rows []inputRow
 	erro := stmt.SelectContext(ctx, &rows, args...)
 	if erro != nil {
-		slog.Error("Find all error", "error", erro)
+		slog.ErrorContext(ctx, "Find all error", "error", erro)
 		return nil, erro
 	}
 
@@ -734,7 +734,7 @@ func (c *InputRepository) BatchFindInputByInputIndexAndAppContract(
 	ctx context.Context,
 	filters []*BatchFilterItem,
 ) ([]*model.AdvanceInput, []error) {
-	slog.Debug("BatchFindInputByInputIndexAndAppContract", "len", len(filters))
+	slog.DebugContext(ctx, "BatchFindInputByInputIndexAndAppContract", "len", len(filters))
 
 	query := `SELECT
 		id,
@@ -772,7 +772,7 @@ func (c *InputRepository) BatchFindInputByInputIndexAndAppContract(
 	results := []*model.AdvanceInput{}
 	stmt, err := c.Db.PreparexContext(ctx, query)
 	if err != nil {
-		slog.Error("BatchFind prepare context", "error", err)
+		slog.ErrorContext(ctx, "BatchFind prepare context", "error", err)
 		return nil, errors
 	}
 	defer stmt.Close()
@@ -781,7 +781,7 @@ func (c *InputRepository) BatchFindInputByInputIndexAndAppContract(
 
 	err = stmt.SelectContext(ctx, &inputs, args...)
 	if err != nil {
-		slog.Error("BatchFind", "error", err)
+		slog.ErrorContext(ctx, "BatchFind", "error", err)
 		return nil, errors
 	}
 
@@ -799,7 +799,7 @@ func (c *InputRepository) BatchFindInputByInputIndexAndAppContract(
 		results = append(results, advanceInput)
 	}
 
-	slog.Debug("BatchResult", "results", len(results), "args", args, "query", "query")
+	slog.DebugContext(ctx, "BatchResult", "results", len(results), "args", args, "query", "query")
 	return results, nil
 }
 

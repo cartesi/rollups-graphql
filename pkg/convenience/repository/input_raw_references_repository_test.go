@@ -20,6 +20,9 @@ type RawInputRefSuite struct {
 	inputRepository       *InputRepository
 	RawInputRefRepository *RawInputRefRepository
 	dbFactory             *commons.DbFactory
+	ctx                   context.Context
+	db                    *sqlx.DB
+	ctxCancel             context.CancelFunc
 }
 
 func TestRawRefInputSuite(t *testing.T) {
@@ -27,23 +30,29 @@ func TestRawRefInputSuite(t *testing.T) {
 }
 
 func (s *RawInputRefSuite) TearDownTest() {
-	defer s.dbFactory.Cleanup()
+	s.ctxCancel()
+	err := s.db.Close()
+	s.NoError(err)
+	s.dbFactory.Cleanup(s.ctx)
 }
 
 func (s *RawInputRefSuite) SetupTest() {
+	var err error
+	s.ctx, s.ctxCancel = context.WithCancel(context.Background())
 	commons.ConfigureLog(slog.LevelDebug)
-	s.dbFactory = commons.NewDbFactory()
-	db := s.dbFactory.CreateDb("input.sqlite3")
+	s.dbFactory, err = commons.NewDbFactory()
+	s.Require().NoError(err)
+	s.db = s.dbFactory.CreateDb(s.ctx, "input.sqlite3")
 	s.inputRepository = &InputRepository{
-		Db: *db,
+		Db: s.db,
 	}
 	s.RawInputRefRepository = &RawInputRefRepository{
-		Db: *db,
+		Db: s.db,
 	}
 
-	err := s.inputRepository.CreateTables()
+	err = s.inputRepository.CreateTables(s.ctx)
 	s.NoError(err)
-	err = s.RawInputRefRepository.CreateTables()
+	err = s.RawInputRefRepository.CreateTables(s.ctx)
 	s.NoError(err)
 }
 
@@ -160,7 +169,7 @@ func (s *RawInputRefSuite) TestUpdateStatusJustOneRawID() {
 }
 
 func (s *RawInputRefSuite) TestUpdateStatusJustOneRawIDUsingPG() {
-	s.setupPG()
+	s.setupPG(s.ctx)
 	ctx := context.Background()
 	appContract := common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT)
 	err := s.RawInputRefRepository.Create(ctx, RawInputRef{
@@ -190,7 +199,7 @@ func (s *RawInputRefSuite) TestUpdateStatusJustOneRawIDUsingPG() {
 	s.Equal("ACCEPTED", rawInputRef.Status)
 }
 
-func (s *RawInputRefSuite) setupPG() {
+func (s *RawInputRefSuite) setupPG(ctx context.Context) {
 	envMap, err := raw.LoadMapEnvFile()
 	s.NoError(err)
 	dbName := "rollupsdb"
@@ -206,9 +215,9 @@ func (s *RawInputRefSuite) setupPG() {
 	dbNodeV2 := sqlx.MustConnect("postgres", uri)
 
 	s.RawInputRefRepository = &RawInputRefRepository{
-		Db: *dbNodeV2,
+		Db: dbNodeV2,
 	}
 
-	err = s.RawInputRefRepository.CreateTables()
+	err = s.RawInputRefRepository.CreateTables(ctx)
 	s.NoError(err)
 }

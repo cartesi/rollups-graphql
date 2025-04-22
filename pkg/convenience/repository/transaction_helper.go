@@ -34,7 +34,7 @@ func StartTransactionContext(ctx context.Context, db *sqlx.DB) (context.Context,
 func GetTransaction(ctx context.Context) (*sqlx.Tx, bool) {
 	tx, ok := ctx.Value(transactionKey).(*sqlx.Tx)
 	if !ok {
-		slog.Debug("No transaction found in context")
+		slog.DebugContext(ctx, "No transaction found in context")
 		return nil, false
 	}
 	return tx, true

@@ -41,6 +41,7 @@ func NewExecListener(
 
 // on event callback
 func (x OutputExecListener) OnEvent(
+	ctx context.Context,
 	eventValues []interface{},
 	timestamp,
 	blockNumber uint64,
@@ -61,16 +62,15 @@ func (x OutputExecListener) OnEvent(
 	input := new(big.Int).And(voucherId, bitMask)
 
 	// Print the extracted voucher and input
-	slog.Debug("Decoded voucher params",
+	slog.DebugContext(ctx, "Decoded voucher params",
 		"voucher", voucher,
 		"input", input,
 		"blockNumber", blockNumber,
 	)
 
 	// Print decoded event data
-	slog.Debug("Voucher Executed", "voucherId", voucherId.String())
+	slog.DebugContext(ctx, "Voucher Executed", "voucherId", voucherId.String())
 
-	ctx := context.Background()
 	return x.ConvenienceService.UpdateExecuted(ctx, input.Uint64(), voucher.Uint64(), true)
 }
 
@@ -81,7 +81,7 @@ func (x OutputExecListener) String() string {
 
 func (x OutputExecListener) Start(ctx context.Context, ready chan<- struct{}) error {
 	var delay time.Duration = 5 * time.Second
-	slog.Info("Connecting to", "provider", x.Provider)
+	slog.InfoContext(ctx, "Connecting to", "provider", x.Provider)
 
 	var client *ethclient.Client
 	var err error
@@ -95,7 +95,7 @@ func (x OutputExecListener) Start(ctx context.Context, ready chan<- struct{}) er
 			break
 		}
 
-		slog.Error("execlistener: dial: ", "error", err)
+		slog.ErrorContext(ctx, "execlistener: dial: ", "error", err)
 		time.Sleep(delay)
 	}
 	ready <- struct{}{}
@@ -103,7 +103,7 @@ func (x OutputExecListener) Start(ctx context.Context, ready chan<- struct{}) er
 }
 
 func (x *OutputExecListener) ReadPastExecutions(ctx context.Context, client *ethclient.Client, contractABI abi.ABI, query ethereum.FilterQuery) error {
-	slog.Debug("ReadPastExecutions", "FromBlock", x.FromBlock)
+	slog.DebugContext(ctx, "ReadPastExecutions", "FromBlock", x.FromBlock)
 
 	// Retrieve logs for the specified block range
 	oldLogs, err := client.FilterLogs(ctx, query)
@@ -112,9 +112,9 @@ func (x *OutputExecListener) ReadPastExecutions(ctx context.Context, client *eth
 	}
 	// Process old logs
 	for _, vLog := range oldLogs {
-		err := x.HandleLog(vLog, client, contractABI)
+		err := x.HandleLog(ctx, vLog, client, contractABI)
 		if err != nil {
-			slog.Error(err.Error())
+			slog.ErrorContext(ctx, err.Error())
 			continue
 		}
 	}
@@ -126,7 +126,7 @@ func (x *OutputExecListener) WatchExecutions(ctx context.Context, client *ethcli
 	// ABI of your contract
 	abi, err := contracts.ApplicationMetaData.GetAbi()
 	if err != nil {
-		slog.Error(err.Error())
+		slog.ErrorContext(ctx, err.Error())
 		return err
 	}
 	contractABI := *abi
@@ -146,7 +146,7 @@ func (x *OutputExecListener) WatchExecutions(ctx context.Context, client *ethcli
 
 		err = x.ReadPastExecutions(ctxPastInputs, client, contractABI, query)
 		if err != nil {
-			slog.Error("unexpected readPastExecutions error", "error", err)
+			slog.ErrorContext(ctx, "unexpected readPastExecutions error", "error", err)
 			time.Sleep(reconnectDelay)
 			continue
 		}
@@ -158,12 +158,12 @@ func (x *OutputExecListener) WatchExecutions(ctx context.Context, client *ethcli
 		logs := make(chan types.Log)
 		sub, err := client.SubscribeFilterLogs(ctxEth, query, logs)
 		if err != nil {
-			slog.Error("unexpected subscribe error", "error", err)
+			slog.ErrorContext(ctx, "unexpected subscribe error", "error", err)
 			time.Sleep(reconnectDelay)
 			continue
 		}
 
-		slog.Info("Listening for execution events...")
+		slog.InfoContext(ctx, "Listening for execution events...")
 
 		errChannel := make(chan error, 1)
 
@@ -178,8 +178,8 @@ func (x *OutputExecListener) WatchExecutions(ctx context.Context, client *ethcli
 					errChannel <- err
 					return
 				case vLog := <-logs:
-					if err := x.HandleLog(vLog, client, contractABI); err != nil {
-						slog.Error(err.Error())
+					if err := x.HandleLog(ctx, vLog, client, contractABI); err != nil {
+						slog.ErrorContext(ctx, err.Error())
 						// errChannel <- err
 						continue
 					}
@@ -195,8 +195,8 @@ func (x *OutputExecListener) WatchExecutions(ctx context.Context, client *ethcli
 		}
 
 		if err != nil {
-			slog.Error("OutputExecListener", "error", err)
-			slog.Info("OutputExecListener reconnecting", "reconnectDelay", reconnectDelay)
+			slog.ErrorContext(ctx, "OutputExecListener", "error", err)
+			slog.InfoContext(ctx, "OutputExecListener reconnecting", "reconnectDelay", reconnectDelay)
 			time.Sleep(reconnectDelay)
 		} else {
 			return nil
@@ -205,6 +205,7 @@ func (x *OutputExecListener) WatchExecutions(ctx context.Context, client *ethcli
 }
 
 func (x *OutputExecListener) HandleLog(
+	ctx context.Context,
 	vLog types.Log,
 	client *ethclient.Client,
 	contractABI abi.ABI,
@@ -217,7 +218,7 @@ func (x *OutputExecListener) HandleLog(
 	if err != nil {
 		return err
 	}
-	err = x.OnEvent(values, timestamp, blockNumber)
+	err = x.OnEvent(ctx, values, timestamp, blockNumber)
 	if err != nil {
 		return err
 	}

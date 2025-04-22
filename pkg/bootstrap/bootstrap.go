@@ -6,6 +6,7 @@
 package bootstrap
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -63,13 +64,13 @@ func NewBootstrapOpts() BootstrapOpts {
 	}
 }
 
-func NewSupervisorGraphQL(opts BootstrapOpts) supervisor.SupervisorWorker {
+func NewSupervisorGraphQL(ctx context.Context, opts BootstrapOpts) supervisor.SupervisorWorker {
 	var w supervisor.SupervisorWorker
 	w.Timeout = opts.TimeoutWorker
-	db := CreateDBInstance(opts)
-	container := convenience.NewContainer(*db, opts.AutoCount)
-	convenienceService := container.GetConvenienceService()
-	adapter := reader.NewAdapterV1(db, convenienceService)
+	db := CreateDBInstance(ctx, opts)
+	container := convenience.NewContainer(db, opts.AutoCount)
+	convenienceService := container.GetConvenienceService(ctx)
+	adapter := reader.NewAdapterV1(ctx, db, convenienceService)
 
 	e := echo.New()
 	e.Use(middleware.CORS())
@@ -78,7 +79,7 @@ func NewSupervisorGraphQL(opts BootstrapOpts) supervisor.SupervisorWorker {
 		ErrorMessage: "Request timed out",
 	}))
 	health.Register(e)
-	reader.Register(e, convenienceService, adapter)
+	reader.Register(ctx, e, convenienceService, adapter)
 	w.Workers = append(w.Workers, supervisor.HttpWorker{
 		Address: fmt.Sprintf("%v:%v", opts.HttpAddress, opts.HttpPort),
 		Handler: e,
@@ -92,19 +93,19 @@ func NewSupervisorGraphQL(opts BootstrapOpts) supervisor.SupervisorWorker {
 		dbNodeV2 := sqlx.MustConnect("postgres", dbRawUrl)
 		rawRepository := synchronizernode.NewRawRepository(dbRawUrl, dbNodeV2)
 		synchronizerUpdate := synchronizernode.NewSynchronizerUpdate(
-			container.GetRawInputRepository(),
+			container.GetRawInputRepository(ctx),
 			rawRepository,
-			container.GetInputRepository(),
+			container.GetInputRepository(ctx),
 		)
 		synchronizerReport := synchronizernode.NewSynchronizerReport(
-			container.GetReportRepository(),
+			container.GetReportRepository(ctx),
 			rawRepository,
 		)
 		synchronizerOutputUpdate := synchronizernode.NewSynchronizerOutputUpdate(
-			container.GetVoucherRepository(),
-			container.GetNoticeRepository(),
+			container.GetVoucherRepository(ctx),
+			container.GetNoticeRepository(ctx),
 			rawRepository,
-			container.GetRawOutputRefRepository(),
+			container.GetRawOutputRefRepository(ctx),
 		)
 
 		abi, err := contracts.OutputsMetaData.GetAbi()
@@ -121,40 +122,40 @@ func NewSupervisorGraphQL(opts BootstrapOpts) supervisor.SupervisorWorker {
 		inputAbiDecoder := synchronizernode.NewAbiDecoder(inputAbi)
 
 		synchronizerOutputCreate := synchronizernode.NewSynchronizerOutputCreate(
-			container.GetVoucherRepository(),
-			container.GetNoticeRepository(),
+			container.GetVoucherRepository(ctx),
+			container.GetNoticeRepository(ctx),
 			rawRepository,
-			container.GetRawOutputRefRepository(),
+			container.GetRawOutputRefRepository(ctx),
 			abiDecoder,
 		)
 
 		synchronizerOutputExecuted := synchronizernode.NewSynchronizerOutputExecuted(
-			container.GetVoucherRepository(),
-			container.GetNoticeRepository(),
+			container.GetVoucherRepository(ctx),
+			container.GetNoticeRepository(ctx),
 			rawRepository,
-			container.GetRawOutputRefRepository(),
+			container.GetRawOutputRefRepository(ctx),
 		)
 
 		synchronizerInputCreate := synchronizernode.NewSynchronizerInputCreator(
-			container.GetInputRepository(),
-			container.GetRawInputRepository(),
+			container.GetInputRepository(ctx),
+			container.GetRawInputRepository(ctx),
 			rawRepository,
 			inputAbiDecoder,
 		)
 
-		synchronizerAppCreate := synchronizernode.NewSynchronizerAppCreator(container.GetApplicationRepository(), rawRepository)
+		synchronizerAppCreate := synchronizernode.NewSynchronizerAppCreator(container.GetApplicationRepository(ctx), rawRepository)
 
 		synchronizerWorker := synchronizernode.NewSynchronizerCreateWorker(
-			container.GetInputRepository(),
-			container.GetRawInputRepository(),
+			container.GetInputRepository(ctx),
+			container.GetRawInputRepository(ctx),
 			dbRawUrl,
 			rawRepository,
 			&synchronizerUpdate,
-			container.GetOutputDecoder(),
+			container.GetOutputDecoder(ctx),
 			synchronizerAppCreate,
 			synchronizerReport,
 			synchronizerOutputUpdate,
-			container.GetRawOutputRefRepository(),
+			container.GetRawOutputRefRepository(ctx),
 			synchronizerOutputCreate,
 			synchronizerInputCreate,
 			synchronizerOutputExecuted,
@@ -162,10 +163,10 @@ func NewSupervisorGraphQL(opts BootstrapOpts) supervisor.SupervisorWorker {
 		w.Workers = append(w.Workers, synchronizerWorker)
 	}
 
-	cleanSync := synchronizer.NewCleanSynchronizer(container.GetSyncRepository(), nil)
+	cleanSync := synchronizer.NewCleanSynchronizer(container.GetSyncRepository(ctx), nil)
 	w.Workers = append(w.Workers, cleanSync)
 
-	slog.Info("Listening", "port", opts.HttpPort)
+	slog.InfoContext(ctx, "Listening", "port", opts.HttpPort)
 	return w
 }
 
@@ -173,10 +174,10 @@ func NewAbiDecoder(abi *abi.ABI) {
 	panic("unimplemented")
 }
 
-func CreateDBInstance(opts BootstrapOpts) *sqlx.DB {
+func CreateDBInstance(ctx context.Context, opts BootstrapOpts) *sqlx.DB {
 	var db *sqlx.DB
 	if opts.DbImplementation == "postgres" {
-		slog.Info("Using PostGres DB ...")
+		slog.InfoContext(ctx, "Using PostGres DB ...")
 		postgresHost := os.Getenv("POSTGRES_HOST")
 		postgresPort := os.Getenv("POSTGRES_PORT")
 		postgresDataBase := os.Getenv("POSTGRES_DB")
@@ -190,12 +191,12 @@ func CreateDBInstance(opts BootstrapOpts) *sqlx.DB {
 		if ok {
 			connectionString = dbUrl
 		} else {
-			slog.Warn("The environment variables POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD are deprecated. Please use POSTGRES_GRAPHQL_DB_URL instead.")
+			slog.WarnContext(ctx, "The environment variables POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD are deprecated. Please use POSTGRES_GRAPHQL_DB_URL instead.")
 		}
 		db = sqlx.MustConnect("postgres", connectionString)
-		configureConnectionPool(db)
+		configureConnectionPool(ctx, db)
 	} else {
-		db = handleSQLite(opts)
+		db = handleSQLite(ctx, opts)
 	}
 	return db
 }
@@ -206,35 +207,35 @@ func CreateDBInstance(opts BootstrapOpts) *sqlx.DB {
 // - DB_MAX_IDLE_CONNS: Maximum number of idle connections in the pool
 // - DB_CONN_MAX_LIFETIME: Maximum amount of time a connection may be reused
 // - DB_CONN_MAX_IDLE_TIME: Maximum amount of time a connection may be idle
-func configureConnectionPool(db *sqlx.DB) {
+func configureConnectionPool(ctx context.Context, db *sqlx.DB) {
 	defaultConnMaxLifetime := int(DefaultConnMaxLifetime.Seconds())
 	defaultConnMaxIdleTime := int(DefaultConnMaxIdleTime.Seconds())
 
-	maxOpenConns := getEnvInt("DB_MAX_OPEN_CONNS", DefaultMaxOpenConnections)
-	maxIdleConns := getEnvInt("DB_MAX_IDLE_CONNS", DefaultMaxIdleConnections)
-	connMaxLifetime := getEnvInt("DB_CONN_MAX_LIFETIME", defaultConnMaxLifetime)
-	connMaxIdleTime := getEnvInt("DB_CONN_MAX_IDLE_TIME", defaultConnMaxIdleTime)
+	maxOpenConns := getEnvInt(ctx, "DB_MAX_OPEN_CONNS", DefaultMaxOpenConnections)
+	maxIdleConns := getEnvInt(ctx, "DB_MAX_IDLE_CONNS", DefaultMaxIdleConnections)
+	connMaxLifetime := getEnvInt(ctx, "DB_CONN_MAX_LIFETIME", defaultConnMaxLifetime)
+	connMaxIdleTime := getEnvInt(ctx, "DB_CONN_MAX_IDLE_TIME", defaultConnMaxIdleTime)
 	db.SetMaxOpenConns(maxOpenConns)
 	db.SetMaxIdleConns(maxIdleConns)
 	db.SetConnMaxLifetime(time.Duration(connMaxLifetime) * time.Second)
 	db.SetConnMaxIdleTime(time.Duration(connMaxIdleTime) * time.Second)
 }
 
-func getEnvInt(envName string, defaultValue int) int {
+func getEnvInt(ctx context.Context, envName string, defaultValue int) int {
 	value, exists := os.LookupEnv(envName)
 	if !exists {
 		return defaultValue
 	}
 	intValue, err := cast.ToIntE(value)
 	if err != nil {
-		slog.Error("configuration error", "envName", envName, "value", value)
+		slog.ErrorContext(ctx, "configuration error", "envName", envName, "value", value)
 		panic(err)
 	}
 	return intValue
 }
 
-func handleSQLite(opts BootstrapOpts) *sqlx.DB {
-	slog.Info("Using SQLite ...")
+func handleSQLite(ctx context.Context, opts BootstrapOpts) *sqlx.DB {
+	slog.InfoContext(ctx, "Using SQLite ...")
 	sqliteFile := opts.SqliteFile
 	if sqliteFile == "" {
 		sqlitePath, err := os.MkdirTemp("", "nonodo-db-*")
@@ -242,7 +243,7 @@ func handleSQLite(opts BootstrapOpts) *sqlx.DB {
 			panic(err)
 		}
 		sqliteFile = path.Join(sqlitePath, "nonodo.sqlite3")
-		slog.Debug("SQLite3 file created", "path", sqliteFile)
+		slog.DebugContext(ctx, "SQLite3 file created", "path", sqliteFile)
 	}
 
 	return sqlx.MustConnect("sqlite3", sqliteFile)

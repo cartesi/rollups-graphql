@@ -18,6 +18,7 @@ package main
 import (
 	"archive/tar"
 	"compress/gzip"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -27,7 +28,7 @@ import (
 	"os"
 
 	"github.com/cartesi/rollups-graphql/v2/pkg/commons"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/accounts/abi/abigen"
 )
 
 const (
@@ -91,17 +92,18 @@ var bindings = []contractBinding{
 
 func main() {
 	commons.ConfigureLog(slog.LevelDebug)
-	contractsZip, err := downloadContracts(rollupsContractsUrl)
+	ctx := context.Background()
+	contractsZip, err := downloadContracts(ctx, rollupsContractsUrl)
 	checkErr("download contracts", err)
 	defer contractsZip.Close()
-	contractsTar, err := unzip(contractsZip)
+	contractsTar, err := unzip(ctx, contractsZip)
 	checkErr("unzip contracts", err)
 	defer contractsTar.Close()
 
-	contractsOpenZeppelin, err := downloadContracts(openzeppelin)
+	contractsOpenZeppelin, err := downloadContracts(ctx, openzeppelin)
 	checkErr("download contracts", err)
 	defer contractsOpenZeppelin.Close()
-	contractsTarOpenZeppelin, err := unzip(contractsOpenZeppelin)
+	contractsTarOpenZeppelin, err := unzip(ctx, contractsOpenZeppelin)
 	checkErr("unzip contracts", err)
 	defer contractsTarOpenZeppelin.Close()
 
@@ -130,10 +132,10 @@ func main() {
 		if content == nil {
 			log.Fatal("missing contents for ", b.jsonPath)
 		}
-		generateBinding(b, content)
+		generateBinding(ctx, b, content)
 	}
 
-	slog.Info("done")
+	slog.InfoContext(ctx, "done")
 }
 
 // Exit if there is any error.
@@ -145,9 +147,13 @@ func checkErr(context string, err any) {
 
 // Download the contracts from rollupsContractsUrl.
 // Return the buffer with the contracts.
-func downloadContracts(url string) (io.ReadCloser, error) {
-	slog.Info("downloading contracts from ", slog.String("url", url))
-	response, err := http.Get(url)
+func downloadContracts(ctx context.Context, url string) (io.ReadCloser, error) {
+	slog.InfoContext(ctx, "downloading contracts from ", slog.String("url", url))
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request for %s: %s", url, err.Error())
+	}
+	response, err := http.DefaultClient.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to download contracts from %s: %s", url, err.Error())
 	}
@@ -159,8 +165,8 @@ func downloadContracts(url string) (io.ReadCloser, error) {
 }
 
 // Decompress the buffer with the contracts.
-func unzip(r io.Reader) (io.ReadCloser, error) {
-	slog.Info("unziping contracts")
+func unzip(ctx context.Context, r io.Reader) (io.ReadCloser, error) {
+	slog.InfoContext(ctx, "unziping contracts")
 	gzipReader, err := gzip.NewReader(r)
 	if err != nil {
 		return nil, err
@@ -202,7 +208,7 @@ func getAbi(rawJson []byte) []byte {
 }
 
 // Generate the Go bindings for the contracts.
-func generateBinding(b contractBinding, content []byte) {
+func generateBinding(ctx context.Context, b contractBinding, content []byte) {
 	var (
 		sigs    []map[string]string
 		abis    = []string{string(getAbi(content))}
@@ -211,10 +217,10 @@ func generateBinding(b contractBinding, content []byte) {
 		libs    = make(map[string]string)
 		aliases = make(map[string]string)
 	)
-	code, err := bind.Bind(types, abis, bins, sigs, bindingPkg, libs, aliases)
+	code, err := abigen.Bind(types, abis, bins, sigs, bindingPkg, libs, aliases)
 	checkErr("generate binding", err)
 	const fileMode = 0600
 	err = os.WriteFile(b.outFile, []byte(code), fileMode)
 	checkErr("write binding file", err)
-	slog.Info("generated binding ", slog.String("file", b.outFile))
+	slog.InfoContext(ctx, "generated binding ", slog.String("file", b.outFile))
 }

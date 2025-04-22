@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	_ "embed"
 	"fmt"
 	"log/slog"
@@ -118,7 +119,7 @@ func init() {
 
 func deprecatedWarningCmd(cmd *cobra.Command, flag string, replacement string) {
 	if cmd.Flags().Changed(flag) {
-		slog.Warn(fmt.Sprintf("The '%s' flag is deprecated. %s", flag, replacement))
+		slog.WarnContext(cmd.Context(), fmt.Sprintf("The '%s' flag is deprecated. %s", flag, replacement))
 	}
 }
 
@@ -148,7 +149,7 @@ func checkAndSetFlag(cmd *cobra.Command, flagName string, setOptEnv func(string)
 }
 
 func run(cmd *cobra.Command, args []string) {
-	LoadEnv()
+	LoadEnv(cmd.Context())
 	ctx := cmd.Context()
 	startTime := time.Now()
 
@@ -186,11 +187,11 @@ func run(cmd *cobra.Command, args []string) {
 				"HTTP_PORT",
 				fmt.Sprint(opts.HttpPort), -1)
 			fmt.Println(msg)
-			slog.Info("cartesi-rollups-graphql: ready", "after", time.Since(startTime))
+			slog.InfoContext(ctx, "cartesi-rollups-graphql: ready", "after", time.Since(startTime))
 		case <-ctx.Done():
 		}
 	}()
-	var err error = bootstrap.NewSupervisorGraphQL(opts).Start(ctx, ready)
+	var err error = bootstrap.NewSupervisorGraphQL(ctx, opts).Start(ctx, ready)
 	cobra.CheckErr(err)
 }
 
@@ -198,7 +199,7 @@ func run(cmd *cobra.Command, args []string) {
 var envBuilded string
 
 // LoadEnv from embedded .env file
-func LoadEnv() {
+func LoadEnv(ctx context.Context) {
 	currentEnv := map[string]bool{}
 	rawEnv := os.Environ()
 	for _, rawEnvLine := range rawEnv {
@@ -211,15 +212,15 @@ func LoadEnv() {
 
 	for k, v := range parse {
 		if !currentEnv[k] {
-			slog.Debug("env: setting env", "key", k, "value", v)
+			slog.DebugContext(ctx, "env: setting env", "key", k, "value", v)
 			err := os.Setenv(k, v)
 			cobra.CheckErr(err)
 		} else {
-			slog.Debug("env: skipping env", "key", k)
+			slog.DebugContext(ctx, "env: skipping env", "key", k)
 		}
 	}
 
-	slog.Debug("env: loaded")
+	slog.DebugContext(ctx, "env: loaded")
 }
 
 func main() {
@@ -227,22 +228,23 @@ func main() {
 	cobra.CheckErr(cmd.Execute())
 }
 
-func exitf(format string, args ...any) {
+func exitf(ctx context.Context, format string, args ...any) {
 	err := fmt.Sprintf(format, args...)
-	slog.Error("configuration error", "error", err)
+	slog.ErrorContext(ctx, "configuration error", "error", err)
 	os.Exit(1)
 }
 
 func checkEthAddress(cmd *cobra.Command, varName string) {
 	if cmd.Flags().Changed(varName) {
+		ctx := cmd.Context()
 		value, err := cmd.Flags().GetString(varName)
 		cobra.CheckErr(err)
 		bytes, err := hexutil.Decode(value)
 		if err != nil {
-			exitf("invalid address for --%v: %v", varName, err)
+			exitf(ctx, "invalid address for --%v: %v", varName, err)
 		}
 		if len(bytes) != common.AddressLength {
-			exitf("invalid address for --%v: wrong length", varName)
+			exitf(ctx, "invalid address for --%v: wrong length", varName)
 		}
 	}
 }

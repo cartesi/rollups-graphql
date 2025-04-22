@@ -47,7 +47,7 @@ func (s *SynchronizerInputCreate) SetupTest() {
 	sqliteFileName := filepath.Join(tempDir, "output.sqlite3")
 
 	db := sqlx.MustConnect("sqlite3", sqliteFileName)
-	s.container = convenience.NewContainer(*db, false)
+	s.container = convenience.NewContainer(db, false)
 
 	dbNodeV2 := sqlx.MustConnect("postgres", RAW_DB_URL)
 	s.rawNodeV2Repository = NewRawRepository(RAW_DB_URL, dbNodeV2)
@@ -58,8 +58,8 @@ func (s *SynchronizerInputCreate) SetupTest() {
 	}
 	abiDecoder := NewAbiDecoder(abi)
 	s.synchronizerInputCreate = NewSynchronizerInputCreator(
-		s.container.GetInputRepository(),
-		s.container.GetRawInputRepository(),
+		s.container.GetInputRepository(s.ctx),
+		s.container.GetRawInputRepository(s.ctx),
 		s.rawNodeV2Repository,
 		abiDecoder,
 	)
@@ -115,7 +115,7 @@ func (s *SynchronizerInputCreate) TestCreateInputs() {
 }
 
 func (s *SynchronizerInputCreate) countOurInputs(ctx context.Context) int {
-	total, err := s.container.GetInputRepository().Count(ctx, nil)
+	total, err := s.container.GetInputRepository(s.ctx).Count(ctx, nil)
 	s.Require().NoError(err)
 	return int(total)
 }

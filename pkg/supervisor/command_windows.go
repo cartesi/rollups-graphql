@@ -35,7 +35,7 @@ func (w CommandWorker) Start(ctx context.Context, ready chan<- struct{}) error {
 		// See: https://pkg.go.dev/os#Process.Signal
 		err := cmd.Process.Kill()
 		if err != nil {
-			slog.Warn("command: failed to kill process", "command", w, "error", err)
+			slog.WarnContext(ctx, "command: failed to kill process", "command", w, "error", err)
 		}
 		return err
 	}

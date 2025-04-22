@@ -41,10 +41,10 @@ func (x CleanSynchronizer) Start(ctx context.Context, ready chan<- struct{}) err
 			return nil
 		case <-time.After(x.Period):
 			timestampBefore := uint64(time.Now().UnixMilli() - periodMili)
-			slog.Debug("Cleaning synchronizer", "timestampBefore", timestampBefore)
+			slog.DebugContext(ctx, "Cleaning synchronizer", "timestampBefore", timestampBefore)
 			err := x.SynchronizerRepository.PurgeData(ctx, timestampBefore)
 			if err != nil {
-				slog.Error("Error purging data", "Error", err)
+				slog.ErrorContext(ctx, "Error purging data", "Error", err)
 			}
 		}
 	}

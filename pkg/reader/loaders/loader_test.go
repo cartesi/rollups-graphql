@@ -13,6 +13,7 @@ import (
 	cModel "github.com/cartesi/rollups-graphql/v2/pkg/convenience/model"
 	cRepos "github.com/cartesi/rollups-graphql/v2/pkg/convenience/repository"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/stretchr/testify/suite"
@@ -31,39 +32,48 @@ type LoaderSuite struct {
 	voucherRepository *cRepos.VoucherRepository
 	noticeRepository  *cRepos.NoticeRepository
 	dbFactory         *commons.DbFactory
+	ctx               context.Context
+	ctxCancel         context.CancelFunc
+	db                *sqlx.DB
 }
 
 func (s *LoaderSuite) SetupTest() {
+	var err error
+	s.ctx, s.ctxCancel = context.WithCancel(context.Background())
 	commons.ConfigureLog(slog.LevelDebug)
-	s.dbFactory = commons.NewDbFactory()
-	db := s.dbFactory.CreateDb("adapterV1.sqlite3")
+	s.dbFactory, err = commons.NewDbFactory()
+	s.Require().NoError(err)
+	s.db = s.dbFactory.CreateDb(s.ctx, "adapterV1.sqlite3")
 	s.reportRepository = &cRepos.ReportRepository{
-		Db: db,
+		Db: s.db,
 	}
-	err := s.reportRepository.CreateTables()
+	err = s.reportRepository.CreateTables(s.ctx)
 	s.NoError(err)
 	s.inputRepository = &cRepos.InputRepository{
-		Db: *db,
+		Db: s.db,
 	}
-	err = s.inputRepository.CreateTables()
+	err = s.inputRepository.CreateTables(s.ctx)
 	s.NoError(err)
 
 	s.voucherRepository = &cRepos.VoucherRepository{
-		Db: *db,
+		Db: s.db,
 	}
-	err = s.voucherRepository.CreateTables()
+	err = s.voucherRepository.CreateTables(s.ctx)
 	s.Require().NoError(err)
 
 	s.noticeRepository = &cRepos.NoticeRepository{
-		Db: *db,
+		Db: s.db,
 	}
-	err = s.noticeRepository.CreateTables()
+	err = s.noticeRepository.CreateTables(s.ctx)
 	s.Require().NoError(err)
 
 }
 
 func (s *LoaderSuite) TearDownTest() {
-	s.dbFactory.Cleanup()
+	err := s.db.Close()
+	s.NoError(err)
+	s.dbFactory.Cleanup(s.ctx)
+	s.ctxCancel()
 }
 
 func TestAdapterSuite(t *testing.T) {

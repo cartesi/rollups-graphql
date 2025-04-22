@@ -50,16 +50,16 @@ func (s *SynchronizerOutputExecutedSuite) SetupTest() {
 	sqliteFileName := filepath.Join(tempDir, "output.sqlite3")
 
 	db := sqlx.MustConnect("sqlite3", sqliteFileName)
-	s.container = convenience.NewContainer(*db, false)
+	s.container = convenience.NewContainer(db, false)
 
 	s.dbNodeV2 = sqlx.MustConnect("postgres", RAW_DB_URL)
 	s.rawNodeV2Repository = NewRawRepository(RAW_DB_URL, s.dbNodeV2)
 
 	s.synchronizerOutputExecuted = NewSynchronizerOutputExecuted(
-		s.container.GetVoucherRepository(),
-		s.container.GetNoticeRepository(),
+		s.container.GetVoucherRepository(s.ctx),
+		s.container.GetNoticeRepository(s.ctx),
 		s.rawNodeV2Repository,
-		s.container.GetRawOutputRefRepository(),
+		s.container.GetRawOutputRefRepository(s.ctx),
 	)
 
 	abi, err := contracts.OutputsMetaData.GetAbi()
@@ -68,10 +68,10 @@ func (s *SynchronizerOutputExecutedSuite) SetupTest() {
 	}
 	abiDecoder := NewAbiDecoder(abi)
 	s.synchronizerOutputCreate = NewSynchronizerOutputCreate(
-		s.container.GetVoucherRepository(),
-		s.container.GetNoticeRepository(),
+		s.container.GetVoucherRepository(s.ctx),
+		s.container.GetNoticeRepository(s.ctx),
 		s.rawNodeV2Repository,
-		s.container.GetRawOutputRefRepository(),
+		s.container.GetRawOutputRefRepository(s.ctx),
 		abiDecoder,
 	)
 }
@@ -176,7 +176,7 @@ func (s *SynchronizerOutputExecutedSuite) countExecuted(ctx context.Context) int
 			Eq:    &value,
 		},
 	}
-	total, err := s.container.GetVoucherRepository().Count(ctx, filters)
+	total, err := s.container.GetVoucherRepository(s.ctx).Count(ctx, filters)
 	s.Require().NoError(err)
 	return int(total)
 }

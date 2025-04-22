@@ -18,25 +18,31 @@ type VoucherRepositorySuite struct {
 	suite.Suite
 	voucherRepository *VoucherRepository
 	dbFactory         *commons.DbFactory
+	ctx               context.Context
+	ctxCancel         context.CancelFunc
 }
 
 func (s *VoucherRepositorySuite) SetupTest() {
+	var err error
+	s.ctx, s.ctxCancel = context.WithCancel(context.Background())
 	commons.ConfigureLog(slog.LevelDebug)
-	s.dbFactory = commons.NewDbFactory()
-	db := s.dbFactory.CreateDb("voucher.sqlite3")
-	outputRepository := OutputRepository{*db}
+	s.dbFactory, err = commons.NewDbFactory()
+	s.Require().NoError(err)
+	db := s.dbFactory.CreateDb(s.ctx, "voucher.sqlite3")
+	outputRepository := OutputRepository{db}
 	s.voucherRepository = &VoucherRepository{
-		Db: *db, OutputRepository: outputRepository,
+		Db: db, OutputRepository: outputRepository,
 	}
-	noticeRepository := NoticeRepository{*db, outputRepository, false}
-	err := noticeRepository.CreateTables()
+	noticeRepository := NoticeRepository{db, outputRepository, false}
+	err = noticeRepository.CreateTables(s.ctx)
 	s.NoError(err)
-	err = s.voucherRepository.CreateTables()
+	err = s.voucherRepository.CreateTables(s.ctx)
 	s.NoError(err)
 }
 
 func (s *VoucherRepositorySuite) TearDownTest() {
-	s.dbFactory.Cleanup()
+	s.dbFactory.Cleanup(s.ctx)
+	s.ctxCancel()
 }
 
 func TestConvenienceRepositorySuite(t *testing.T) {

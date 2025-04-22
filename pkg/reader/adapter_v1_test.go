@@ -14,6 +14,7 @@ import (
 	"github.com/cartesi/rollups-graphql/v2/pkg/convenience/services"
 	"github.com/cartesi/rollups-graphql/v2/pkg/reader/model"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/stretchr/testify/suite"
@@ -27,6 +28,9 @@ const ApplicationAddress = "0x75135d8ADb7180640d29d822D9AD59E83E8695b2"
 
 type AdapterSuite struct {
 	suite.Suite
+	ctx               context.Context
+	ctxCancel         context.CancelFunc
+	db                *sqlx.DB
 	reportRepository  *cRepos.ReportRepository
 	inputRepository   *cRepos.InputRepository
 	voucherRepository *cRepos.VoucherRepository
@@ -36,30 +40,33 @@ type AdapterSuite struct {
 }
 
 func (s *AdapterSuite) SetupTest() {
+	var err error
+	s.ctx, s.ctxCancel = context.WithCancel(context.Background())
 	commons.ConfigureLog(slog.LevelDebug)
-	s.dbFactory = commons.NewDbFactory()
-	db := s.dbFactory.CreateDb("adapterV1.sqlite3")
+	s.dbFactory, err = commons.NewDbFactory()
+	s.Require().NoError(err)
+	db := s.dbFactory.CreateDb(s.ctx, "adapterV1.sqlite3")
 	s.reportRepository = &cRepos.ReportRepository{
 		Db: db,
 	}
-	err := s.reportRepository.CreateTables()
+	err = s.reportRepository.CreateTables(s.ctx)
 	s.NoError(err)
 	s.inputRepository = &cRepos.InputRepository{
-		Db: *db,
+		Db: db,
 	}
-	err = s.inputRepository.CreateTables()
+	err = s.inputRepository.CreateTables(s.ctx)
 	s.NoError(err)
 
 	s.voucherRepository = &cRepos.VoucherRepository{
-		Db: *db,
+		Db: db,
 	}
-	err = s.voucherRepository.CreateTables()
+	err = s.voucherRepository.CreateTables(s.ctx)
 	s.Require().NoError(err)
 
 	s.noticeRepository = &cRepos.NoticeRepository{
-		Db: *db,
+		Db: db,
 	}
-	err = s.noticeRepository.CreateTables()
+	err = s.noticeRepository.CreateTables(s.ctx)
 	s.Require().NoError(err)
 	s.adapter = &AdapterV1{
 		reportRepository:  s.reportRepository,
@@ -72,7 +79,10 @@ func (s *AdapterSuite) SetupTest() {
 }
 
 func (s *AdapterSuite) TearDownTest() {
-	s.dbFactory.Cleanup()
+	s.ctxCancel()
+	err := s.db.Close()
+	s.NoError(err)
+	s.dbFactory.Cleanup(s.ctx)
 }
 
 func TestAdapterSuite(t *testing.T) {
@@ -80,7 +90,7 @@ func TestAdapterSuite(t *testing.T) {
 }
 
 func (s *AdapterSuite) TestCreateTables() {
-	err := s.reportRepository.CreateTables()
+	err := s.reportRepository.CreateTables(s.ctx)
 	s.NoError(err)
 }
 

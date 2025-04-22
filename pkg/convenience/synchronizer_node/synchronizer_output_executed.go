@@ -62,7 +62,7 @@ func (s *SynchronizerOutputExecuted) syncOutputs(ctx context.Context) error {
 			UpdatedAt:   time.Unix(0, 0),
 		}
 	} else {
-		slog.Debug("SyncOutputs",
+		slog.DebugContext(ctx, "SyncOutputs",
 			"lastUpdatedAtExecuted", lastOutputRef.UpdatedAt,
 			"AppID", lastOutputRef.AppID,
 			"OutputIndex", lastOutputRef.OutputIndex,
@@ -91,7 +91,7 @@ func (s *SynchronizerOutputExecuted) UpdateExecutionData(
 		return err
 	}
 	if ref == nil {
-		slog.Warn("We may need to wait for the reference to be created")
+		slog.WarnContext(ctx, "We may need to wait for the reference to be created")
 		return nil
 	}
 	appContract := common.BytesToAddress(rawOutput.AppContract)
@@ -106,7 +106,7 @@ func (s *SynchronizerOutputExecuted) UpdateExecutionData(
 			return err
 		}
 	} else if ref.Type == repository.RAW_NOTICE_TYPE {
-		slog.Warn("Ignoring executed status because the output is a notice",
+		slog.WarnContext(ctx, "Ignoring executed status because the output is a notice",
 			"inputIndex", rawOutput.InputIndex,
 			"index", rawOutput.Index,
 			"appContract", appContract.Hex(),
@@ -144,7 +144,7 @@ func (s *SynchronizerOutputExecuted) rollbackTransaction(ctx context.Context) {
 	if hasTx && tx != nil {
 		err := tx.Rollback()
 		if err != nil {
-			slog.Error("transaction rollback error", "err", err)
+			slog.ErrorContext(ctx, "transaction rollback error", "err", err)
 			panic(err)
 		}
 	}

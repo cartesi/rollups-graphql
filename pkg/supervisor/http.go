@@ -39,7 +39,7 @@ func (w HttpWorker) Start(ctx context.Context, ready chan<- struct{}) error {
 		<-ctx.Done()
 		err := server.Shutdown(ctx)
 		if err != nil && !errors.Is(err, context.Canceled) {
-			slog.Warn("http: error shutting down server", "error", err)
+			slog.WarnContext(ctx, "http: error shutting down server", "error", err)
 		}
 	}()
 

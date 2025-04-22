@@ -29,8 +29,8 @@ func (w CommandWorker) Start(ctx context.Context, ready chan<- struct{}) error {
 	cmd := exec.CommandContext(ctx, w.Command, w.Args...)
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, w.Env...)
-	cmd.Stderr = &commandLogger{buffName: "stdout", name: w.Name}
-	cmd.Stdout = &commandLogger{buffName: "stderr", name: w.Name}
+	cmd.Stderr = NewCommandLogger("stdout", w.Name)
+	cmd.Stdout = NewCommandLogger("stderr", w.Name)
 	// Use setpgid to create a process group, so we can send the terminate signal to the
 	// processes and all of its children. This only works on unix systems.
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
@@ -38,7 +38,7 @@ func (w CommandWorker) Start(ctx context.Context, ready chan<- struct{}) error {
 		// Send the terminate signal to the process group by passing the negative pid.
 		err := syscall.Kill(-cmd.Process.Pid, syscall.SIGTERM)
 		if err != nil {
-			slog.Warn("command: failed to send SIGTERM", "command", w, "error", err)
+			slog.WarnContext(ctx, "command: failed to send SIGTERM", "command", w, "error", err)
 		}
 		return err
 	}

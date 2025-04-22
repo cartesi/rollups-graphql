@@ -17,16 +17,25 @@ import (
 type NoticeRepositorySuite struct {
 	suite.Suite
 	repository *NoticeRepository
+	db         *sqlx.DB
+	ctx        context.Context
+	ctxCancel  context.CancelFunc
 }
 
 func (s *NoticeRepositorySuite) SetupTest() {
+	s.ctx, s.ctxCancel = context.WithCancel(context.Background())
 	commons.ConfigureLog(slog.LevelDebug)
-	db := sqlx.MustConnect("sqlite3", ":memory:")
+	s.db = sqlx.MustConnect("sqlite3", ":memory:")
 	s.repository = &NoticeRepository{
-		Db: *db,
+		Db: s.db,
 	}
-	err := s.repository.CreateTables()
+	err := s.repository.CreateTables(s.ctx)
 	s.NoError(err)
+}
+
+func (s *NoticeRepositorySuite) TearDownTest() {
+	s.ctxCancel()
+	s.db.Close()
 }
 
 func TestNoticeRepositorySuite(t *testing.T) {

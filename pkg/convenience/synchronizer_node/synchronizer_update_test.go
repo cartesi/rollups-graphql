@@ -25,6 +25,8 @@ const SenderAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 type SynchronizerUpdateNodeSuite struct {
 	suite.Suite
 	ctx                        context.Context
+	ctxCancel                  context.CancelFunc
+	db                         *sqlx.DB
 	dockerComposeStartedByTest bool
 	tempDir                    string
 	container                  *convenience.Container
@@ -42,6 +44,7 @@ func (s *SynchronizerUpdateNodeSuite) SetupSuite() {
 }
 
 func (s *SynchronizerUpdateNodeSuite) SetupTest() {
+	s.ctx, s.ctxCancel = context.WithCancel(context.Background())
 	commons.ConfigureLog(slog.LevelDebug)
 
 	// Temp
@@ -53,15 +56,15 @@ func (s *SynchronizerUpdateNodeSuite) SetupTest() {
 	sqliteFileName := filepath.Join(tempDir, "update_input.sqlite3")
 	slog.Debug("SetupTest", "sqliteFileName", sqliteFileName)
 	db := sqlx.MustConnect("sqlite3", sqliteFileName)
-	s.container = convenience.NewContainer(*db, false)
+	s.container = convenience.NewContainer(db, false)
 
 	dbNodeV2 := sqlx.MustConnect("postgres", RAW_DB_URL)
 	s.rawNode = NewRawRepository(RAW_DB_URL, dbNodeV2)
-	rawInputRefRepository := s.container.GetRawInputRepository()
+	rawInputRefRepository := s.container.GetRawInputRepository(s.ctx)
 	s.synchronizerUpdate = NewSynchronizerUpdate(
 		rawInputRefRepository,
 		s.rawNode,
-		s.container.GetInputRepository(),
+		s.container.GetInputRepository(s.ctx),
 	)
 }
 
@@ -73,7 +76,11 @@ func (s *SynchronizerUpdateNodeSuite) TearDownSuite() {
 }
 
 func (s *SynchronizerUpdateNodeSuite) TearDownTest() {
-	defer os.RemoveAll(s.tempDir)
+	s.ctxCancel()
+	err := s.db.Close()
+	s.NoError(err)
+	err = os.RemoveAll(s.tempDir)
+	s.NoError(err)
 }
 
 func TestSynchronizerUpdateNodeSuiteSuite(t *testing.T) {
@@ -128,7 +135,7 @@ func (s *SynchronizerUpdateNodeSuite) countInputWithStatusNone(ctx context.Conte
 			Eq:    &value,
 		},
 	}
-	total, err := s.container.GetInputRepository().Count(ctx, filter)
+	total, err := s.container.GetInputRepository(s.ctx).Count(ctx, filter)
 	s.Require().NoError(err)
 	return int(total)
 }
@@ -142,7 +149,7 @@ func (s *SynchronizerUpdateNodeSuite) getNoneInputs(ctx context.Context) *common
 			Eq:    &value,
 		},
 	}
-	result, err := s.container.GetInputRepository().FindAll(ctx, nil, nil, nil, nil, filter)
+	result, err := s.container.GetInputRepository(s.ctx).FindAll(ctx, nil, nil, nil, nil, filter)
 	s.Require().NoError(err)
 	return result
 }
@@ -156,7 +163,7 @@ func (s *SynchronizerUpdateNodeSuite) countAcceptedInput(ctx context.Context) in
 			Eq:    &value,
 		},
 	}
-	total, err := s.container.GetInputRepository().Count(ctx, filter)
+	total, err := s.container.GetInputRepository(s.ctx).Count(ctx, filter)
 	s.Require().NoError(err)
 	return int(total)
 }
@@ -168,7 +175,7 @@ func (s *SynchronizerUpdateNodeSuite) fillRefData(ctx context.Context) {
 	s.Require().NoError(err)
 	for i := 0; i < TOTAL_INPUT_TEST; i++ {
 		id := strconv.FormatInt(int64(i), 10) // our ID
-		err := s.container.GetRawInputRepository().Create(txCtx, repository.RawInputRef{
+		err := s.container.GetRawInputRepository(s.ctx).Create(txCtx, repository.RawInputRef{
 			ID:          id,
 			InputIndex:  uint64(i),
 			AppID:       uint64(1),
@@ -177,7 +184,7 @@ func (s *SynchronizerUpdateNodeSuite) fillRefData(ctx context.Context) {
 			ChainID:     "31337",
 		})
 		s.Require().NoError(err)
-		_, err = s.container.GetInputRepository().Create(txCtx, model.AdvanceInput{
+		_, err = s.container.GetInputRepository(s.ctx).Create(txCtx, model.AdvanceInput{
 			ID:          id,
 			Index:       i,
 			Status:      model.CompletionStatusUnprocessed,

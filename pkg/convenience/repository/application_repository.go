@@ -16,7 +16,7 @@ import (
 )
 
 type ApplicationRepository struct {
-	Db sqlx.DB
+	Db *sqlx.DB
 }
 
 func (a *ApplicationRepository) FindAppByAppContract(ctx context.Context, appContract *common.Address) (*model.ConvenienceApplication, error) {
@@ -37,7 +37,7 @@ func (a *ApplicationRepository) FindAppByAppContract(ctx context.Context, appCon
 	return &app, nil
 }
 
-func (a *ApplicationRepository) CreateTables() error {
+func (a *ApplicationRepository) CreateTables(ctx context.Context) error {
 	schema := `CREATE TABLE IF NOT EXISTS convenience_application (
 		id INTEGER NOT NULL,
 		name text NOT NULL,
@@ -48,11 +48,11 @@ func (a *ApplicationRepository) CreateTables() error {
 	CREATE INDEX IF NOT EXISTS convenience_application_name ON convenience_application (name);
 	`
 
-	_, err := a.Db.Exec(schema)
+	_, err := a.Db.ExecContext(ctx, schema)
 	if err == nil {
-		slog.Debug("Application table created")
+		slog.DebugContext(ctx, "Application table created")
 	} else {
-		slog.Error("Create table error", "error", err)
+		slog.ErrorContext(ctx, "Create table error", "error", err)
 	}
 	return err
 }
@@ -87,7 +87,7 @@ func (a *ApplicationRepository) Create(ctx context.Context, rawApp *model.Conven
 		 $3
 		);`
 
-	exec := DBExecutor{db: &a.Db}
+	exec := DBExecutor{db: a.Db}
 
 	_, err := exec.ExecContext(ctx, insertSql,
 		rawApp.ID,
@@ -184,10 +184,10 @@ func (a *ApplicationRepository) FindAll(ctx context.Context, first *int, last *i
 	query += `OFFSET $` + strconv.Itoa(argsCount) + ` `
 	args = append(args, offset)
 
-	slog.Debug("Query", "query", query, "args", args)
+	slog.DebugContext(ctx, "Query", "query", query, "args", args)
 	stmt, err := a.Db.PreparexContext(ctx, query)
 	if err != nil {
-		slog.Error("query error")
+		slog.ErrorContext(ctx, "query error")
 		return nil, err
 	}
 	defer stmt.Close()
@@ -212,10 +212,10 @@ func (a *ApplicationRepository) Count(ctx context.Context, filter []*model.Conve
 		return 0, err
 	}
 	query += where
-	slog.Debug("Query", "query", query, "args", args)
+	slog.DebugContext(ctx, "Query", "query", query, "args", args)
 	stmt, err := a.Db.Preparex(query)
 	if err != nil {
-		slog.Error("query error")
+		slog.ErrorContext(ctx, "query error")
 		return 0, err
 	}
 	defer stmt.Close()
