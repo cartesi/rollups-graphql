@@ -45,26 +45,26 @@ func (s *AdapterSuite) SetupTest() {
 	commons.ConfigureLog(slog.LevelDebug)
 	s.dbFactory, err = commons.NewDbFactory()
 	s.Require().NoError(err)
-	db := s.dbFactory.CreateDb(s.ctx, "adapterV1.sqlite3")
+	s.db = s.dbFactory.CreateDb(s.ctx, "adapterV1.sqlite3")
 	s.reportRepository = &cRepos.ReportRepository{
-		Db: db,
+		Db: s.db,
 	}
 	err = s.reportRepository.CreateTables(s.ctx)
 	s.NoError(err)
 	s.inputRepository = &cRepos.InputRepository{
-		Db: db,
+		Db: s.db,
 	}
 	err = s.inputRepository.CreateTables(s.ctx)
 	s.NoError(err)
 
 	s.voucherRepository = &cRepos.VoucherRepository{
-		Db: db,
+		Db: s.db,
 	}
 	err = s.voucherRepository.CreateTables(s.ctx)
 	s.Require().NoError(err)
 
 	s.noticeRepository = &cRepos.NoticeRepository{
-		Db: db,
+		Db: s.db,
 	}
 	err = s.noticeRepository.CreateTables(s.ctx)
 	s.Require().NoError(err)

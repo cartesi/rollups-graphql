@@ -21,6 +21,7 @@ type SynchronizerNodeSuite struct {
 	suite.Suite
 	ctx                        context.Context
 	db                         *sqlx.DB
+	dbNodeV2                   *sqlx.DB
 	dockerComposeStartedByTest bool
 	workerCtx                  context.Context
 	timeoutCancel              context.CancelFunc
@@ -52,18 +53,18 @@ func (s *SynchronizerNodeSuite) SetupTest() {
 	// Database
 	s.dbFactory, err = commons.NewDbFactory()
 	s.Require().NoError(err)
-	db, err := s.dbFactory.CreateDbCtx(s.ctx, "input.sqlite3")
+	s.db, err = s.dbFactory.CreateDbCtx(s.ctx, "input.sqlite3")
 	s.Require().NoError(err)
-	container := convenience.NewContainer(db, false)
+	container := convenience.NewContainer(s.db, false)
 	s.inputRepository = container.GetInputRepository(s.ctx)
-	s.inputRefRepository = &repository.RawInputRefRepository{Db: db}
+	s.inputRefRepository = &repository.RawInputRefRepository{Db: s.db}
 	err = s.inputRefRepository.CreateTables(s.ctx)
 	s.NoError(err)
 
 	s.workerCtx, s.workerCancel = context.WithCancel(s.ctx)
 
-	dbNodeV2 := sqlx.MustConnect("postgres", RAW_DB_URL)
-	rawRepository := RawRepository{Db: dbNodeV2}
+	s.dbNodeV2 = sqlx.MustConnect("postgres", RAW_DB_URL)
+	rawRepository := RawRepository{Db: s.dbNodeV2}
 	synchronizerUpdate := NewSynchronizerUpdate(
 		s.inputRefRepository,
 		&rawRepository,
@@ -151,6 +152,8 @@ func (s *SynchronizerNodeSuite) TearDownSuite() {
 func (s *SynchronizerNodeSuite) TearDownTest() {
 	time.Sleep(1 * time.Second) // wait for io
 	err := s.db.Close()
+	s.NoError(err)
+	err = s.dbNodeV2.Close()
 	s.NoError(err)
 	s.dbFactory.Cleanup(s.ctx)
 	s.workerCancel()

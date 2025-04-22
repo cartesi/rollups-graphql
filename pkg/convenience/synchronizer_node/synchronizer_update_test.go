@@ -27,6 +27,7 @@ type SynchronizerUpdateNodeSuite struct {
 	ctx                        context.Context
 	ctxCancel                  context.CancelFunc
 	db                         *sqlx.DB
+	dbNodeV2                   *sqlx.DB
 	dockerComposeStartedByTest bool
 	tempDir                    string
 	container                  *convenience.Container
@@ -55,11 +56,11 @@ func (s *SynchronizerUpdateNodeSuite) SetupTest() {
 	// Database
 	sqliteFileName := filepath.Join(tempDir, "update_input.sqlite3")
 	slog.Debug("SetupTest", "sqliteFileName", sqliteFileName)
-	db := sqlx.MustConnect("sqlite3", sqliteFileName)
-	s.container = convenience.NewContainer(db, false)
+	s.db = sqlx.MustConnect("sqlite3", sqliteFileName)
+	s.container = convenience.NewContainer(s.db, false)
 
-	dbNodeV2 := sqlx.MustConnect("postgres", RAW_DB_URL)
-	s.rawNode = NewRawRepository(RAW_DB_URL, dbNodeV2)
+	s.dbNodeV2 = sqlx.MustConnect("postgres", RAW_DB_URL)
+	s.rawNode = NewRawRepository(RAW_DB_URL, s.dbNodeV2)
 	rawInputRefRepository := s.container.GetRawInputRepository(s.ctx)
 	s.synchronizerUpdate = NewSynchronizerUpdate(
 		rawInputRefRepository,
@@ -78,6 +79,8 @@ func (s *SynchronizerUpdateNodeSuite) TearDownSuite() {
 func (s *SynchronizerUpdateNodeSuite) TearDownTest() {
 	s.ctxCancel()
 	err := s.db.Close()
+	s.NoError(err)
+	err = s.dbNodeV2.Close()
 	s.NoError(err)
 	err = os.RemoveAll(s.tempDir)
 	s.NoError(err)
