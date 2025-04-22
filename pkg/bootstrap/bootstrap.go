@@ -58,7 +58,7 @@ func NewBootstrapOpts() BootstrapOpts {
 		ApplicationAddress: "0x75135d8ADb7180640d29d822D9AD59E83E8695b2",
 		SqliteFile:         "",
 		DbImplementation:   "postgres",
-		TimeoutWorker:      supervisor.DefaultSupervisorTimeout,
+		TimeoutWorker:      0,
 		AutoCount:          false,
 		DisableSync:        false,
 	}
