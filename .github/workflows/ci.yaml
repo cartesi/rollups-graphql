@@ -19,7 +19,7 @@ jobs:
       CARTESI_POSTGRES_ENDPOINT: 'postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable'
     services:
       postgres:
-        image: postgres:17
+        image: postgres:17.4-bookworm
         ports:
           - 5432:5432
         env:
@@ -33,7 +33,7 @@ jobs:
       - name: Clone Node V2 (avoid submodules)
         run: |
           git clone -b v${ROLLUPS_NODE_VERSION} --depth 1 --recurse-submodules https://github.com/cartesi/rollups-node.git
-      
+
       - name: Wait for PostgreSQL to be ready
         run: |
           for i in {1..30}; do
