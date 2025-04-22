@@ -1,144 +1,133 @@
 package raw
 
 import (
+	"bytes"
 	"context"
+	"embed"
 	"fmt"
+	"io"
 	"log/slog"
-	"os/exec"
-	"path"
-	"path/filepath"
-	"runtime"
 
 	"github.com/joho/godotenv"
+	"github.com/testcontainers/testcontainers-go/log"
+	"github.com/testcontainers/testcontainers-go/modules/compose"
+	_ "github.com/testcontainers/testcontainers-go/modules/compose"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 const (
-	DOCKER_COMPOSE_FILE     = "compose.yml"
-	DOCKER_COMPOSE_SERVICE  = "postgres-raw"
-	DOCKER_COMPOSE_LOGS_MAX = uint8(10)
+	DOCKER_COMPOSE_IDENTIFIER = "database-rollups"
+	DOCKER_COMPOSE_SERVICE    = "postgres-raw"
+	DOCKER_COMPOSE_LOGS_MAX   = uint8(10)
 )
 
-func GetFilePath(name string) (string, error) {
-	_, xdir, _, ok := runtime.Caller(0)
-	if !ok {
-		return "", fmt.Errorf("failed to get current directory")
-	}
+//go:embed compose.yml .env
+var composeFiles embed.FS
 
-	dir := filepath.Dir(xdir)
-	filePath := path.Join(dir, name)
+type stdcomposeLogger struct{}
 
-	return filePath, nil
+// Printf implements log.Logger.
+func (c *stdcomposeLogger) Printf(format string, v ...any) {
+	fmt.Printf(format, v...)
 }
 
-func LoadMapEnvFile() (map[string]string, error) {
-	path, err := GetFilePath(".env")
+func newComposeLogger() log.Logger {
+	return &stdcomposeLogger{}
+}
+
+func loadMapEnvFile() (map[string]string, error) {
+	content, err := composeFiles.ReadFile(".env")
 	if err != nil {
 		return nil, err
 	}
-	return godotenv.Read(path)
+	reader := bytes.NewReader(content)
+	return godotenv.Parse(reader)
 }
 
-// check if docker compose command is available
-func CheckDockerCompose(ctx context.Context) error {
-	slog.Debug("checking docker compose")
-	cmd := exec.CommandContext(ctx, "docker", "compose", "version")
-	output, err := cmd.CombinedOutput()
+func loadCompose() (io.Reader, error) {
+	content, err := composeFiles.ReadFile("compose.yml")
 	if err != nil {
-		return fmt.Errorf("docker compose not found: %s", err)
+		return nil, err
 	}
-	slog.Debug("docker compose version", "output", string(output))
-
-	return nil
+	reader := bytes.NewReader(content)
+	return reader, nil
 }
 
-func RunDockerCompose(stdCtx context.Context) error {
-	slog.Debug("running docker compose")
-	if stdCtx == nil {
-		stdCtx = context.Background()
-	}
-	ctx, cancel := context.WithCancel(stdCtx)
-	defer cancel()
-
-	err := CheckDockerCompose(ctx)
+func createStack() (compose.ComposeStack, error) {
+	env, err := loadMapEnvFile()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	filePath, err := GetFilePath(DOCKER_COMPOSE_FILE)
+	composeContent, err := loadCompose()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	slog.Debug("docker compose file path", "path", filePath)
 
-	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", filePath, "up", DOCKER_COMPOSE_SERVICE, "--wait")
-	output, err := cmd.CombinedOutput()
+	req, err := compose.NewDockerComposeWith(
+		compose.StackIdentifier(DOCKER_COMPOSE_IDENTIFIER),
+		compose.WithStackReaders(composeContent),
+		compose.WithLogger(newComposeLogger()),
+	)
 
 	if err != nil {
-		slog.Debug("docker compose up failed", "output", string(output))
-		_ = ShowDockerComposeLog(ctx, filePath)
+		return nil, fmt.Errorf("docker compose request failed: %s", err)
+	}
+
+	stack := req.WithEnv(env).WaitForService(DOCKER_COMPOSE_SERVICE, wait.ForHealthCheck())
+
+	return stack, nil
+}
+
+func RunDockerCompose(ctx context.Context) error {
+	slog.DebugContext(ctx, "running docker compose")
+
+	stack, err := createStack()
+	if err != nil {
+		return fmt.Errorf("docker compose create stack failed: %s", err)
+	}
+
+	if err := stack.Up(ctx, compose.Wait(true)); err != nil {
 		return fmt.Errorf("docker compose up failed: %s", err)
 	}
 
-	slog.Debug("docker compose up", "output", string(output))
+	slog.DebugContext(ctx, "docker compose up successful")
 
 	return nil
 }
 
-func StopDockerCompose(stdCtx context.Context) error {
-	slog.Debug("stopping docker compose")
-	ctx, cancel := context.WithCancel(stdCtx)
-	defer cancel()
+func StopDockerCompose(ctx context.Context) error {
+	slog.DebugContext(ctx, "stopping docker compose")
 
-	filePath, err := GetFilePath(DOCKER_COMPOSE_FILE)
+	stack, err := createStack()
 	if err != nil {
-		return err
+		return fmt.Errorf("docker compose create stack failed: %s", err)
 	}
 
-	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", filePath, "down", "--remove-orphans")
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		slog.Debug("docker compose down failed", "output", string(output))
-		_ = ShowDockerComposeLog(ctx, filePath)
+	if err = stack.Down(ctx, compose.RemoveOrphans(true)); err != nil {
 		return fmt.Errorf("docker compose down failed: %s", err)
 	}
+	slog.DebugContext(ctx, "docker compose down successful")
 
 	return nil
 }
 
-func ShowDockerComposeLog(ctx context.Context, filePath string) error {
-	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", filePath, "logs", DOCKER_COMPOSE_SERVICE, "--tail", string(DOCKER_COMPOSE_LOGS_MAX))
-	output, err := cmd.CombinedOutput()
-
+func CleanupDockerCompose(ctx context.Context) error {
+	stack, err := createStack()
 	if err != nil {
-		slog.Debug("docker compose logs failed", "output", string(output))
-		return fmt.Errorf("docker compose logs failed: %s", err)
+		return fmt.Errorf("docker compose create stack failed: %s", err)
 	}
 
-	slog.Debug("docker compose logs", "output", string(output))
-
-	return nil
-}
-
-func CleanupDockerCompose(stdCtx context.Context) error {
-	ctx, cancel := context.WithCancel(stdCtx)
-	defer cancel()
-
-	filePath, err := GetFilePath(DOCKER_COMPOSE_FILE)
-	if err != nil {
-		return err
+	downOpts := []compose.StackDownOption{
+		compose.RemoveOrphans(true),
+		compose.RemoveVolumes(true),
+		compose.RemoveImages(compose.RemoveImagesLocal),
 	}
-
-	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", filePath, "down", "--remove-orphans", "--volumes", "--rmi", "local")
-	output, err := cmd.CombinedOutput()
-
-	if err != nil {
-		slog.Debug("docker compose cleanup failed", "output", string(output))
-		_ = ShowDockerComposeLog(ctx, filePath)
+	if err = stack.Down(ctx, downOpts...); err != nil {
 		return fmt.Errorf("docker compose cleanup failed: %s", err)
 	}
 
-	slog.Debug("docker compose cleanup", "output", string(output))
+	slog.DebugContext(ctx, "docker compose cleanup successful")
 
 	return nil
 }
