@@ -166,7 +166,7 @@ func downloadContracts(ctx context.Context, url string) (io.ReadCloser, error) {
 
 // Decompress the buffer with the contracts.
 func unzip(ctx context.Context, r io.Reader) (io.ReadCloser, error) {
-	slog.InfoContext(ctx, "unziping contracts")
+	slog.InfoContext(ctx, "unzipping contracts")
 	gzipReader, err := gzip.NewReader(r)
 	if err != nil {
 		return nil, err
