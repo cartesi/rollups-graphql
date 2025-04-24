@@ -102,7 +102,7 @@ New releases are created using the [Changesets](https://github.com/changesets/ch
 
 3. **'push' your changes to remote repo**
 
-   No github action is trigered until here.
+   No GitHub action is triggered until here.
 
 4. **New Pull Request**
 
