@@ -2,7 +2,6 @@ package synchronizernode
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"math/big"
 	"strings"
@@ -22,32 +21,22 @@ type RawNodeSuite struct {
 	suite.Suite
 	rawRepository              RawRepository
 	ctx                        context.Context
-	dockerComposeStartedByTest bool
 	DefaultTimeout             time.Duration
+	container                  *raw.DockerComposeContainer
 }
 
 func (s *RawNodeSuite) SetupSuite() {
 	s.DefaultTimeout = 1 * time.Minute
 	s.ctx = context.Background()
-	pgUp := commons.IsPortInUse(5432)
-	if !pgUp {
-		err := raw.RunDockerCompose(s.ctx)
-		s.NoError(err)
-		s.dockerComposeStartedByTest = true
-	}
 
-	envMap, err := raw.LoadMapEnvFile()
-	s.NoError(err)
-	dbName := "rollupsdb"
-	dbPass := "password"
-	if _, ok := envMap["POSTGRES_PASSWORD"]; ok {
-		dbPass = envMap["POSTGRES_PASSWORD"]
-	}
-	if _, ok := envMap["POSTGRES_DB"]; ok {
-		dbName = envMap["POSTGRES_DB"]
-	}
-	uri := fmt.Sprintf("postgres://postgres:%s@localhost:5432/%s?sslmode=disable", dbPass, dbName)
-	slog.Info("Raw Input URI", "uri", uri)
+	// Start docker compose
+	s.container = &raw.DockerComposeContainer{}
+	err := s.container.RunDockerCompose(s.ctx)
+	s.Require().NoError(err)
+
+	uri, err := s.container.GetPostgresURI(s.ctx)
+	s.Require().NoError(err)
+
 	dbNodeV2 := sqlx.MustConnect("postgres", uri)
 	s.rawRepository = RawRepository{
 		connectionURL: uri,

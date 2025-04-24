@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"testing"
 
@@ -20,6 +19,9 @@ type RawInputRefSuite struct {
 	inputRepository       *InputRepository
 	RawInputRefRepository *RawInputRefRepository
 	dbFactory             *commons.DbFactory
+	container             *raw.DockerComposeContainer
+	ctx                   context.Context
+	ctxCancel             context.CancelFunc
 }
 
 func TestRawRefInputSuite(t *testing.T) {
@@ -28,9 +30,12 @@ func TestRawRefInputSuite(t *testing.T) {
 
 func (s *RawInputRefSuite) TearDownTest() {
 	defer s.dbFactory.Cleanup()
+	s.container.CleanupDockerCompose(s.ctx)
+	s.ctxCancel()
 }
 
 func (s *RawInputRefSuite) SetupTest() {
+	s.ctx, s.ctxCancel = context.WithCancel(context.Background())
 	commons.ConfigureLog(slog.LevelDebug)
 	s.dbFactory = commons.NewDbFactory()
 	db := s.dbFactory.CreateDb("input.sqlite3")
@@ -160,10 +165,8 @@ func (s *RawInputRefSuite) TestUpdateStatusJustOneRawID() {
 }
 
 func (s *RawInputRefSuite) TestUpdateStatusJustOneRawIDUsingPG() {
-	s.setupPG()
-	ctx := context.Background()
 	appContract := common.HexToAddress(configtest.DEFAULT_TEST_APP_CONTRACT)
-	err := s.RawInputRefRepository.Create(ctx, RawInputRef{
+	err := s.RawInputRefRepository.Create(s.ctx, RawInputRef{
 		ID:          "001",
 		InputIndex:  uint64(1),
 		AppID:       uint64(7),
@@ -183,25 +186,19 @@ func (s *RawInputRefSuite) TestUpdateStatusJustOneRawIDUsingPG() {
 			ChainID:     "31337",
 		},
 	}
-	err = s.RawInputRefRepository.UpdateStatus(ctx, rawInputsRefs, "ACCEPTED")
+	err = s.RawInputRefRepository.UpdateStatus(s.ctx, rawInputsRefs, "ACCEPTED")
 	s.Require().NoError(err)
-	rawInputRef, err := s.RawInputRefRepository.FindByInputIndexAndAppContract(ctx, uint64(1), &appContract)
+	rawInputRef, err := s.RawInputRefRepository.FindByInputIndexAndAppContract(s.ctx, uint64(1), &appContract)
 	s.Require().NoError(err)
 	s.Equal("ACCEPTED", rawInputRef.Status)
 }
 
-func (s *RawInputRefSuite) setupPG() {
-	envMap, err := raw.LoadMapEnvFile()
-	s.NoError(err)
-	dbName := "rollupsdb"
-	dbPass := "password"
-	if _, ok := envMap["POSTGRES_PASSWORD"]; ok {
-		dbPass = envMap["POSTGRES_PASSWORD"]
-	}
-	if _, ok := envMap["POSTGRES_DB"]; ok {
-		dbName = envMap["POSTGRES_DB"]
-	}
-	uri := fmt.Sprintf("postgres://postgres:%s@localhost:5432/%s?sslmode=disable", dbPass, dbName)
+func (s *RawInputRefSuite) setupPG(ctx context.Context) {
+	s.container = raw.NewDockerComposeContainer()
+	err := s.container.RunDockerCompose(ctx)
+	s.Require().NoError(err)
+	uri, err := s.container.GetPostgresURI(ctx)
+	s.Require().NoError(err)
 	slog.Info("Raw Input URI", "uri", uri)
 	dbNodeV2 := sqlx.MustConnect("postgres", uri)
 
