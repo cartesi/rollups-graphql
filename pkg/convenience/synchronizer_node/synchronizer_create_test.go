@@ -20,7 +20,6 @@ import (
 type SynchronizerNodeSuite struct {
 	suite.Suite
 	ctx                        context.Context
-	dockerComposeStartedByTest bool
 	workerCtx                  context.Context
 	timeoutCancel              context.CancelFunc
 	workerCancel               context.CancelFunc
@@ -28,22 +27,13 @@ type SynchronizerNodeSuite struct {
 	inputRepository            *repository.InputRepository
 	inputRefRepository         *repository.RawInputRefRepository
 	dbFactory                  *commons.DbFactory
-}
-
-func (s *SynchronizerNodeSuite) SetupSuite() {
-	timeout := 1 * time.Minute
-	s.ctx, s.timeoutCancel = context.WithTimeout(context.Background(), timeout)
-
-	pgUp := commons.IsPortInUse(5432)
-	if !pgUp {
-		err := raw.RunDockerCompose(s.ctx)
-		s.NoError(err)
-		s.dockerComposeStartedByTest = true
-	}
+	container                  *raw.DockerComposeContainer
 }
 
 func (s *SynchronizerNodeSuite) SetupTest() {
 	commons.ConfigureLog(slog.LevelDebug)
+	timeout := 1 * time.Minute
+	s.ctx, s.timeoutCancel = context.WithTimeout(context.Background(), timeout)
 
 	s.workerResult = make(chan error)
 
@@ -59,7 +49,9 @@ func (s *SynchronizerNodeSuite) SetupTest() {
 
 	s.workerCtx, s.workerCancel = context.WithCancel(s.ctx)
 
-	dbNodeV2 := sqlx.MustConnect("postgres", RAW_DB_URL)
+	uri, err := s.container.GetPostgresURI()
+	s.Require().NoError(err)
+	dbNodeV2 := sqlx.MustConnect("postgres", uri)
 	rawRepository := RawRepository{Db: dbNodeV2}
 	synchronizerUpdate := NewSynchronizerUpdate(
 		s.inputRefRepository,
@@ -139,17 +131,15 @@ func (s *SynchronizerNodeSuite) SetupTest() {
 }
 
 func (s *SynchronizerNodeSuite) TearDownSuite() {
-	if s.dockerComposeStartedByTest {
-		err := raw.StopDockerCompose(s.ctx)
-		s.NoError(err)
-	}
-	s.timeoutCancel()
+	s.container.CleanupDockerCompose(s.ctx)
 }
 
 func (s *SynchronizerNodeSuite) TearDownTest() {
+	s.container.StopDockerCompose(s.ctx)
 	time.Sleep(1 * time.Second) // wait for io
 	s.dbFactory.Cleanup()
 	s.workerCancel()
+	s.timeoutCancel()
 }
 
 func TestSynchronizerNodeSuite(t *testing.T) {
