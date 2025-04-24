@@ -85,9 +85,9 @@ func NewSupervisorGraphQL(opts BootstrapOpts) supervisor.SupervisorWorker {
 	})
 
 	if !opts.DisableSync {
-		dbRawUrl, ok := os.LookupEnv("POSTGRES_NODE_DB_URL")
+		dbRawUrl, ok := os.LookupEnv("CARTESI_DATABASE_CONNECTION")
 		if !ok {
-			panic("POSTGRES_NODE_DB_URL environment variable not set")
+			panic("CARTESI_DATABASE_CONNECTION environment variable not set")
 		}
 		dbNodeV2 := sqlx.MustConnect("postgres", dbRawUrl)
 		rawRepository := synchronizernode.NewRawRepository(dbRawUrl, dbNodeV2)

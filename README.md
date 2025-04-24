@@ -33,7 +33,7 @@ make up-db-raw
 
 ```shell
 export POSTGRES_GRAPHQL_DB_URL="postgres://postgres:password@127.0.0.1:5432/hlgraphql?sslmode=disable"
-export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
+export CARTESI_DATABASE_CONNECTION="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
 go run . --http-address=0.0.0.0
 ```
 
@@ -57,7 +57,7 @@ Run the rollups graphql:
 
 ```shell
 export POSTGRES_GRAPHQL_DB_URL="postgres://postgres:password@localhost:5432/hlgraphql?sslmode=disable"
-export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
+export CARTESI_DATABASE_CONNECTION="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
 ./cartesi-rollups-graphql
 ```
 
@@ -66,7 +66,7 @@ export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollups
 The following environment variables are used for PostgreSQL configuration:
 
 - `POSTGRES_GRAPHQL_DB_URL`: URL for the PostgreSQL database used by GraphQL.
-- `POSTGRES_NODE_DB_URL`: URL for the PostgreSQL database used by the node.
+- `CARTESI_DATABASE_CONNECTION`: URL for the PostgreSQL database used by the node.
 - `DB_MAX_OPEN_CONNS`: Maximum number of open connections to the database (default: 25).
 - `DB_MAX_IDLE_CONNS`: Maximum number of idle connections in the pool (default: 10).
 - `DB_CONN_MAX_LIFETIME`: Maximum amount of time a connection may be reused (default: 1800 seconds).
@@ -100,11 +100,11 @@ New releases are created using the [Changesets](https://github.com/changesets/ch
 
 3. **'push' your changes to remote repo**
 
-    No github action is trigered until here. 
+    No github action is trigered until here.
 
 3. **New Pull Request**
 
-    Create a pull request from your branch into `main` branch. 
+    Create a pull request from your branch into `main` branch.
 
 
 
