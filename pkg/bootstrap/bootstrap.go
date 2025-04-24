@@ -186,11 +186,11 @@ func CreateDBInstance(opts BootstrapOpts) *sqlx.DB {
 			"dbname=%s password=%s sslmode=disable",
 			postgresHost, postgresPort, postgresUser,
 			postgresDataBase, postgresPassword)
-		dbUrl, ok := os.LookupEnv("POSTGRES_GRAPHQL_DB_URL")
+		dbUrl, ok := os.LookupEnv("CARTESI_GRAPHQL_DATABASE_CONNECTION")
 		if ok {
 			connectionString = dbUrl
 		} else {
-			slog.Warn("The environment variables POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD are deprecated. Please use POSTGRES_GRAPHQL_DB_URL instead.")
+			slog.Warn("The environment variables POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD are deprecated. Please use CARTESI_GRAPHQL_DATABASE_CONNECTION instead.")
 		}
 		db = sqlx.MustConnect("postgres", connectionString)
 		configureConnectionPool(db)

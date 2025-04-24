@@ -53,7 +53,7 @@ go run . --enable-debug
 ```
 
 ```shell
-export POSTGRES_GRAPHQL_DB_URL="postgres://postgres:password@127.0.0.1:5432/hlgraphql?sslmode=disable"
+export CARTESI_GRAPHQL_DATABASE_CONNECTION="postgres://postgres:password@127.0.0.1:5432/hlgraphql?sslmode=disable"
 export CARTESI_DATABASE_CONNECTION="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
 go run . --http-address=0.0.0.0 --enable-debug
 ```
@@ -70,7 +70,7 @@ make clean-db-raw
 
 The following environment variables are used for PostgreSQL configuration:
 
-- `POSTGRES_GRAPHQL_DB_URL`: URL for the PostgreSQL database used by GraphQL.
+- `CARTESI_GRAPHQL_DATABASE_CONNECTION`: URL for the PostgreSQL database used by GraphQL.
 - `CARTESI_DATABASE_CONNECTION`: URL for the PostgreSQL database used by the node.
 - `DB_MAX_OPEN_CONNS`: Maximum number of open connections to the database (default: 25).
 - `DB_MAX_IDLE_CONNS`: Maximum number of idle connections in the pool (default: 10).
