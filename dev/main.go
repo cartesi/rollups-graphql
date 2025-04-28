@@ -116,7 +116,7 @@ func main() {
 	var err error
 	ctx := context.Background()
 
-	postgresEndpoint := os.Getenv("POSTGRES_GRAPHQL_DB_URL")
+	postgresEndpoint := os.Getenv("CARTESI_GRAPHQL_DATABASE_CONNECTION")
 
 	uri, err := url.Parse(postgresEndpoint)
 	if err == nil {

@@ -32,8 +32,8 @@ make up-db-raw
 ```
 
 ```shell
-export POSTGRES_GRAPHQL_DB_URL="postgres://postgres:password@127.0.0.1:5432/hlgraphql?sslmode=disable"
-export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
+export CARTESI_GRAPHQL_DATABASE_CONNECTION="postgres://postgres:password@127.0.0.1:5432/hlgraphql?sslmode=disable"
+export CARTESI_DATABASE_CONNECTION="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
 go run . --http-address=0.0.0.0
 ```
 
@@ -56,8 +56,8 @@ go build -o cartesi-rollups-graphql
 Run the rollups graphql:
 
 ```shell
-export POSTGRES_GRAPHQL_DB_URL="postgres://postgres:password@localhost:5432/hlgraphql?sslmode=disable"
-export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
+export CARTESI_GRAPHQL_DATABASE_CONNECTION="postgres://postgres:password@localhost:5432/hlgraphql?sslmode=disable"
+export CARTESI_DATABASE_CONNECTION="postgres://postgres:password@localhost:5432/rollupsdb?sslmode=disable"
 ./cartesi-rollups-graphql
 ```
 
@@ -65,8 +65,8 @@ export POSTGRES_NODE_DB_URL="postgres://postgres:password@localhost:5432/rollups
 
 The following environment variables are used for PostgreSQL configuration:
 
-- `POSTGRES_GRAPHQL_DB_URL`: URL for the PostgreSQL database used by GraphQL.
-- `POSTGRES_NODE_DB_URL`: URL for the PostgreSQL database used by the node.
+- `CARTESI_GRAPHQL_DATABASE_CONNECTION`: URL for the PostgreSQL database used by GraphQL.
+- `CARTESI_DATABASE_CONNECTION`: URL for the PostgreSQL database used by the node.
 - `DB_MAX_OPEN_CONNS`: Maximum number of open connections to the database (default: 25).
 - `DB_MAX_IDLE_CONNS`: Maximum number of idle connections in the pool (default: 10).
 - `DB_CONN_MAX_LIFETIME`: Maximum amount of time a connection may be reused (default: 1800 seconds).
@@ -78,7 +78,6 @@ The following environment variables are used for PostgreSQL configuration:
 
 Made with [contributors-img](https://contributors-img.firebaseapp.com).
 
-
 ## Release
 
 New releases are created using the [Changesets](https://github.com/changesets/changesets/blob/main/packages/cli/README.md) library, which is already set up in this project.
@@ -88,25 +87,26 @@ New releases are created using the [Changesets](https://github.com/changesets/ch
 #### Manual steps
 
 1. **Workflow permissions**:
+
    - Ensure this repository has "Read and write permissions" enabled under the "Workflow permissions" section in the repository settings.
 
 2. **Create a changeset when you're ready to release a new version**:
+
    ```bash
    npx changeset
    ```
+
    - Select the type of change (patch, minor, major)
    - Write a short description of the change
    - Make sure a `.md` file is automatically created inside the `.changeset/` directory
 
 3. **'push' your changes to remote repo**
 
-    No github action is trigered until here. 
+   No GitHub action is triggered until here.
 
-3. **New Pull Request**
+4. **New Pull Request**
 
-    Create a pull request from your branch into `main` branch. 
-
-
+   Create a pull request from your branch into `main` branch.
 
 #### Automatic procedures
 

@@ -86,9 +86,9 @@ func NewSupervisorGraphQL(ctx context.Context, opts BootstrapOpts) supervisor.Su
 	})
 
 	if !opts.DisableSync {
-		dbRawUrl, ok := os.LookupEnv("POSTGRES_NODE_DB_URL")
+		dbRawUrl, ok := os.LookupEnv("CARTESI_DATABASE_CONNECTION")
 		if !ok {
-			panic("POSTGRES_NODE_DB_URL environment variable not set")
+			panic("CARTESI_DATABASE_CONNECTION environment variable not set")
 		}
 		dbNodeV2 := sqlx.MustConnect("postgres", dbRawUrl)
 		rawRepository := synchronizernode.NewRawRepository(dbRawUrl, dbNodeV2)
@@ -187,11 +187,11 @@ func CreateDBInstance(ctx context.Context, opts BootstrapOpts) *sqlx.DB {
 			"dbname=%s password=%s sslmode=disable",
 			postgresHost, postgresPort, postgresUser,
 			postgresDataBase, postgresPassword)
-		dbUrl, ok := os.LookupEnv("POSTGRES_GRAPHQL_DB_URL")
+		dbUrl, ok := os.LookupEnv("CARTESI_GRAPHQL_DATABASE_CONNECTION")
 		if ok {
 			connectionString = dbUrl
 		} else {
-			slog.WarnContext(ctx, "The environment variables POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD are deprecated. Please use POSTGRES_GRAPHQL_DB_URL instead.")
+			slog.WarnContext(ctx, "The environment variables POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD are deprecated. Please use CARTESI_GRAPHQL_DATABASE_CONNECTION instead.")
 		}
 		db = sqlx.MustConnect("postgres", connectionString)
 		configureConnectionPool(ctx, db)
