@@ -1,6 +1,7 @@
 package reader
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"log/slog"
@@ -15,11 +16,17 @@ import (
 type InputBlobAdapterTestSuite struct {
 	suite.Suite
 	blobAdapter InputBlobAdapter
+	ctx         context.Context
+	ctxCancel   context.CancelFunc
 }
 
 func (s *InputBlobAdapterTestSuite) SetupTest() {
 	s.blobAdapter = InputBlobAdapter{}
+	s.ctx, s.ctxCancel = context.WithCancel(context.Background())
+}
 
+func (s *InputBlobAdapterTestSuite) TearDownTest() {
+	s.ctxCancel()
 }
 
 func TestInputBlobAdapterSuite(t *testing.T) {
@@ -37,7 +44,7 @@ func (s *InputBlobAdapterTestSuite) TestAdapt() {
 	nodeValue.Blob = GenerateBlob()
 	nodeValue.Status = "UNPROCESSED"
 
-	input, err := s.blobAdapter.Adapt(nodeValue)
+	input, err := s.blobAdapter.Adapt(s.ctx, nodeValue)
 	slog.Info("input>>>>>", "ERR", input)
 	s.NoError(err)
 	s.NotNil(input)

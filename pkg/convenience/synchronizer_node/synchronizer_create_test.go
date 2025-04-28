@@ -20,6 +20,8 @@ import (
 type SynchronizerNodeSuite struct {
 	suite.Suite
 	ctx                        context.Context
+	db                         *sqlx.DB
+	dbNodeV2                   *sqlx.DB
 	dockerComposeStartedByTest bool
 	workerCtx                  context.Context
 	timeoutCancel              context.CancelFunc
@@ -43,69 +45,70 @@ func (s *SynchronizerNodeSuite) SetupSuite() {
 }
 
 func (s *SynchronizerNodeSuite) SetupTest() {
+	var err error
 	commons.ConfigureLog(slog.LevelDebug)
 
 	s.workerResult = make(chan error)
 
 	// Database
-	s.dbFactory = commons.NewDbFactory()
-	db, err := s.dbFactory.CreateDbCtx(s.ctx, "input.sqlite3")
-	s.NoError(err)
-	container := convenience.NewContainer(*db, false)
-	s.inputRepository = container.GetInputRepository()
-	s.inputRefRepository = &repository.RawInputRefRepository{Db: *db}
-	err = s.inputRefRepository.CreateTables()
+	s.dbFactory, err = commons.NewDbFactory()
+	s.Require().NoError(err)
+	s.db, err = s.dbFactory.CreateDbCtx(s.ctx, "input.sqlite3")
+	s.Require().NoError(err)
+	container := convenience.NewContainer(s.db, false)
+	s.inputRepository = container.GetInputRepository(s.ctx)
+	s.inputRefRepository = &repository.RawInputRefRepository{Db: s.db}
+	err = s.inputRefRepository.CreateTables(s.ctx)
 	s.NoError(err)
 
 	s.workerCtx, s.workerCancel = context.WithCancel(s.ctx)
 
-	dbNodeV2 := sqlx.MustConnect("postgres", RAW_DB_URL)
-	rawRepository := RawRepository{Db: dbNodeV2}
+	s.dbNodeV2 = sqlx.MustConnect("postgres", RAW_DB_URL)
+	rawRepository := RawRepository{Db: s.dbNodeV2}
 	synchronizerUpdate := NewSynchronizerUpdate(
 		s.inputRefRepository,
 		&rawRepository,
 		s.inputRepository,
 	)
 	synchronizerReport := NewSynchronizerReport(
-		container.GetReportRepository(),
+		container.GetReportRepository(s.ctx),
 		&rawRepository,
 	)
 	synchronizerOutputUpdate := NewSynchronizerOutputUpdate(
-		container.GetVoucherRepository(),
-		container.GetNoticeRepository(),
+		container.GetVoucherRepository(s.ctx),
+		container.GetNoticeRepository(s.ctx),
 		&rawRepository,
-		container.GetRawOutputRefRepository(),
+		container.GetRawOutputRefRepository(s.ctx),
 	)
 
 	abi, err := contracts.OutputsMetaData.GetAbi()
-	if err != nil {
-		panic(err)
-	}
+	s.Require().NoError(err)
+
 	abiDecoder := NewAbiDecoder(abi)
 
 	synchronizerOutputCreate := NewSynchronizerOutputCreate(
-		container.GetVoucherRepository(),
-		container.GetNoticeRepository(),
+		container.GetVoucherRepository(s.ctx),
+		container.GetNoticeRepository(s.ctx),
 		&rawRepository,
-		container.GetRawOutputRefRepository(),
+		container.GetRawOutputRefRepository(s.ctx),
 		abiDecoder,
 	)
 
 	synchronizerOutputExecuted := NewSynchronizerOutputExecuted(
-		container.GetVoucherRepository(),
-		container.GetNoticeRepository(),
+		container.GetVoucherRepository(s.ctx),
+		container.GetNoticeRepository(s.ctx),
 		&rawRepository,
-		container.GetRawOutputRefRepository(),
+		container.GetRawOutputRefRepository(s.ctx),
 	)
 
 	synchronizerCreateInput := NewSynchronizerInputCreator(
-		container.GetInputRepository(),
-		container.GetRawInputRepository(),
+		container.GetInputRepository(s.ctx),
+		container.GetRawInputRepository(s.ctx),
 		&rawRepository,
 		abiDecoder,
 	)
 
-	synchronizerAppCreate := NewSynchronizerAppCreator(container.GetApplicationRepository(), &rawRepository)
+	synchronizerAppCreate := NewSynchronizerAppCreator(container.GetApplicationRepository(s.ctx), &rawRepository)
 
 	wr := NewSynchronizerCreateWorker(
 		s.inputRepository,
@@ -113,11 +116,11 @@ func (s *SynchronizerNodeSuite) SetupTest() {
 		RAW_DB_URL,
 		&rawRepository,
 		&synchronizerUpdate,
-		container.GetOutputDecoder(),
+		container.GetOutputDecoder(s.ctx),
 		synchronizerAppCreate,
 		synchronizerReport,
 		synchronizerOutputUpdate,
-		container.GetRawOutputRefRepository(),
+		container.GetRawOutputRefRepository(s.ctx),
 		synchronizerOutputCreate,
 		synchronizerCreateInput,
 		synchronizerOutputExecuted,
@@ -148,7 +151,11 @@ func (s *SynchronizerNodeSuite) TearDownSuite() {
 
 func (s *SynchronizerNodeSuite) TearDownTest() {
 	time.Sleep(1 * time.Second) // wait for io
-	s.dbFactory.Cleanup()
+	err := s.db.Close()
+	s.NoError(err)
+	err = s.dbNodeV2.Close()
+	s.NoError(err)
+	s.dbFactory.Cleanup(s.ctx)
 	s.workerCancel()
 }
 

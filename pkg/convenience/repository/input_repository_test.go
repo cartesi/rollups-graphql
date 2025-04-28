@@ -21,16 +21,21 @@ type InputRepositorySuite struct {
 	suite.Suite
 	inputRepository *InputRepository
 	dbFactory       *commons.DbFactory
+	ctx             context.Context
+	ctxCancel       context.CancelFunc
 }
 
 func (s *InputRepositorySuite) SetupTest() {
+	var err error
+	s.ctx, s.ctxCancel = context.WithCancel(context.Background())
 	commons.ConfigureLog(slog.LevelDebug)
-	s.dbFactory = commons.NewDbFactory()
-	db := s.dbFactory.CreateDb("input.sqlite3")
+	s.dbFactory, err = commons.NewDbFactory()
+	s.Require().NoError(err)
+	db := s.dbFactory.CreateDb(s.ctx, "input.sqlite3")
 	s.inputRepository = &InputRepository{
-		Db: *db,
+		Db: db,
 	}
-	err := s.inputRepository.CreateTables()
+	err = s.inputRepository.CreateTables(s.ctx)
 	s.NoError(err)
 }
 
@@ -40,7 +45,7 @@ func TestInputRepositorySuite(t *testing.T) {
 }
 
 func (s *InputRepositorySuite) TestCreateTables() {
-	err := s.inputRepository.CreateTables()
+	err := s.inputRepository.CreateTables(s.ctx)
 	s.NoError(err)
 }
 
@@ -337,5 +342,6 @@ func (s *InputRepositorySuite) TestBatchFindInput() {
 }
 
 func (s *InputRepositorySuite) TearDownTest() {
-	defer s.dbFactory.Cleanup()
+	s.dbFactory.Cleanup(s.ctx)
+	s.ctxCancel()
 }

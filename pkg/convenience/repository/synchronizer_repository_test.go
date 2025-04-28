@@ -16,21 +16,25 @@ import (
 type SynchronizerRepositorySuite struct {
 	suite.Suite
 	repository *SynchronizerRepository
+	db         *sqlx.DB
+	ctx        context.Context
+	ctxCancel  context.CancelFunc
 }
 
 func (s *SynchronizerRepositorySuite) SetupTest() {
 	commons.ConfigureLog(slog.LevelDebug)
-	db := sqlx.MustConnect("sqlite3", ":memory:")
+	s.ctx, s.ctxCancel = context.WithCancel(context.Background())
+	s.db = sqlx.MustConnect("sqlite3", ":memory:")
 	s.repository = &SynchronizerRepository{
-		Db: *db,
+		Db: *s.db,
 	}
-	err := s.repository.CreateTables()
+	err := s.repository.CreateTables(s.ctx)
 	s.NoError(err)
 }
 
 func (s *SynchronizerRepositorySuite) TearDownTest() {
-	err := s.repository.Db.Close()
-	s.NoError(err)
+	s.ctxCancel()
+	s.db.Close()
 }
 
 func TestSynchronizerRepositorySuiteSuite(t *testing.T) {

@@ -81,7 +81,7 @@ func (o *OutputDecoder) HandleOutputV2(
 	// detect the output type Voucher | Notice
 	// 0xc258d6e5 for Notice
 	// 0x237a816f for Vouchers
-	slog.Debug("Add Voucher/Notices",
+	slog.DebugContext(ctx, "Add Voucher/Notices",
 		"inputIndex", processOutputData.InputIndex,
 		"outputIndex", processOutputData.OutputIndex,
 	)
@@ -94,17 +94,17 @@ func (o *OutputDecoder) HandleOutputV2(
 			Blob: processOutputData.Payload,
 		},
 	}
-	convertedInput, err := o.GetConvertedInput(*input)
+	convertedInput, err := o.GetConvertedInput(ctx, *input)
 	if err != nil {
-		slog.Error("Failed to get converted:", "err", err)
+		slog.ErrorContext(ctx, "Failed to get converted:", "err", err)
 		return fmt.Errorf("error getting converted input: %w", err)
 	}
 
 	payload := processOutputData.Payload[2:]
 	if payload[2:10] == model.VOUCHER_SELECTOR {
-		destination, err := o.RetrieveDestination(processOutputData.Payload)
+		destination, err := o.RetrieveDestination(ctx, processOutputData.Payload)
 		if err != nil {
-			slog.Error("Failed to retrieve destination for node blob ", "err", err)
+			slog.ErrorContext(ctx, "Failed to retrieve destination for node blob ", "err", err)
 			return fmt.Errorf("error retrieving destination for node blob '%s': %w", processOutputData.Payload, err)
 		}
 
@@ -133,10 +133,10 @@ func (o *OutputDecoder) HandleInput(
 	input model.InputEdge,
 	status model.CompletionStatus,
 ) error {
-	convertedInput, err := o.GetConvertedInput(input)
+	convertedInput, err := o.GetConvertedInput(ctx, input)
 
 	if err != nil {
-		slog.Error("Failed to get converted:", "err", err)
+		slog.ErrorContext(ctx, "Failed to get converted:", "err", err)
 		return fmt.Errorf("error getting converted input: %w", err)
 	}
 	_, err = o.convenienceService.CreateInput(ctx, &model.AdvanceInput{
@@ -202,20 +202,20 @@ func jsonToAbi(abiJSON string) (*abi.ABI, error) {
 	return &abiData, nil
 }
 
-func (o *OutputDecoder) GetConvertedInput(input model.InputEdge) (model.ConvertedInput, error) {
+func (o *OutputDecoder) GetConvertedInput(ctx context.Context, input model.InputEdge) (model.ConvertedInput, error) {
 	payload := input.Node.Blob
 	var emptyConvertedInput model.ConvertedInput
 	abiParsed, err := contracts.InputsMetaData.GetAbi()
 
 	if err != nil {
-		slog.Error("Error parsing abi", "err", err)
+		slog.ErrorContext(ctx, "Error parsing abi", "err", err)
 		return emptyConvertedInput, err
 	}
 
 	values, err := abiParsed.Methods["EvmAdvance"].Inputs.Unpack(common.Hex2Bytes(payload[10:]))
 
 	if err != nil {
-		slog.Error("Error unpacking abi", "err", err)
+		slog.ErrorContext(ctx, "Error unpacking abi", "err", err)
 		return emptyConvertedInput, err
 	}
 	convertedInput := model.ConvertedInput{
@@ -231,17 +231,17 @@ func (o *OutputDecoder) GetConvertedInput(input model.InputEdge) (model.Converte
 	return convertedInput, nil
 }
 
-func (o *OutputDecoder) ParseBytesToInput(data []byte) (model.ConvertedInput, error) {
+func (o *OutputDecoder) ParseBytesToInput(ctx context.Context, data []byte) (model.ConvertedInput, error) {
 	var emptyConvertedInput model.ConvertedInput
 	abiParsed, err := contracts.InputsMetaData.GetAbi()
 	if err != nil {
-		slog.Error("Error parsing abi", "err", err)
+		slog.ErrorContext(ctx, "Error parsing abi", "err", err)
 		return emptyConvertedInput, err
 	}
 	values, err := abiParsed.Methods["EvmAdvance"].Inputs.Unpack(data[4:])
 
 	if err != nil {
-		slog.Error("Error unpacking abi", "err", err)
+		slog.ErrorContext(ctx, "Error unpacking abi", "err", err)
 		return emptyConvertedInput, err
 	}
 	convertedInput := model.ConvertedInput{
@@ -257,20 +257,20 @@ func (o *OutputDecoder) ParseBytesToInput(data []byte) (model.ConvertedInput, er
 	return convertedInput, nil
 }
 
-func (o *OutputDecoder) RetrieveDestination(payload string) (common.Address, error) {
+func (o *OutputDecoder) RetrieveDestination(ctx context.Context, payload string) (common.Address, error) {
 	abiParsed, err := contracts.OutputsMetaData.GetAbi()
 
 	if err != nil {
-		slog.Error("Error parsing abi", "err", err)
+		slog.ErrorContext(ctx, "Error parsing abi", "err", err)
 		return common.Address{}, err
 	}
 
-	slog.Info("payload", "payload", payload)
+	slog.InfoContext(ctx, "payload", "payload", payload)
 
 	values, err := abiParsed.Methods["Voucher"].Inputs.Unpack(common.Hex2Bytes(payload[10:]))
 
 	if err != nil {
-		slog.Error("Error unpacking abi", "err", err)
+		slog.ErrorContext(ctx, "Error unpacking abi", "err", err)
 		return common.Address{}, err
 	}
 

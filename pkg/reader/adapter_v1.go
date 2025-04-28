@@ -46,7 +46,7 @@ func (a AdapterV1) GetApplicationByAppContract(ctx context.Context, inputBoxInde
 	// Trying to get app contract from context
 	ctxAddress, err := GetAppContractInsideCtx(ctx)
 	if err != nil {
-		slog.Debug("app contract not found in context", "error", err)
+		slog.DebugContext(ctx, "app contract not found in context", "error", err)
 	}
 
 	if ctxAddress != nil {
@@ -59,7 +59,7 @@ func (a AdapterV1) GetApplicationByAppContract(ctx context.Context, inputBoxInde
 			return nil, err
 		}
 		if input == nil {
-			slog.Debug("input not found", "inputBoxIndex", inputBoxIndex)
+			slog.DebugContext(ctx, "input not found", "inputBoxIndex", inputBoxIndex)
 			return nil, fmt.Errorf("input from inputBoxIndex not found")
 		}
 		address = &input.AppContract
@@ -72,13 +72,13 @@ func (a AdapterV1) GetApplicationByAppContract(ctx context.Context, inputBoxInde
 	}
 
 	if app == nil {
-		slog.Debug("application not found", "appContract", address.Hex())
+		slog.DebugContext(ctx, "application not found", "appContract", address.Hex())
 		defaultApplication := &graphql.Application{
 			ID:      "0",
 			Name:    "MAIN",
 			Address: address.Hex(),
 		}
-		slog.Debug("Generate default application", "defaultApplication", defaultApplication)
+		slog.DebugContext(ctx, "Generate default application", "defaultApplication", defaultApplication)
 		return defaultApplication, nil
 	}
 
@@ -99,28 +99,29 @@ func (a AdapterV1) GetApplications(ctx context.Context, first *int, last *int, a
 }
 
 func NewAdapterV1(
+	ctx context.Context,
 	db *sqlx.DB,
 	convenienceService *services.ConvenienceService,
 ) Adapter {
-	slog.Debug("NewAdapterV1")
+	slog.DebugContext(ctx, "NewAdapterV1")
 	reportRepository := &cRepos.ReportRepository{
 		Db: db,
 	}
-	err := reportRepository.CreateTables()
+	err := reportRepository.CreateTables(ctx)
 	if err != nil {
 		panic(err)
 	}
 	inputRepository := &cRepos.InputRepository{
-		Db: *db,
+		Db: db,
 	}
-	err = inputRepository.CreateTables()
+	err = inputRepository.CreateTables(ctx)
 	if err != nil {
 		panic(err)
 	}
 	voucherRepository := &cRepos.VoucherRepository{
-		Db: *db,
+		Db: db,
 	}
-	err = voucherRepository.CreateTables()
+	err = voucherRepository.CreateTables(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -446,7 +447,7 @@ func (a AdapterV1) GetReports(
 		first, last, after, before, filters,
 	)
 	if err != nil {
-		slog.Error("Adapter GetReports", "error", err)
+		slog.ErrorContext(ctx, "Adapter GetReports", "error", err)
 		return nil, err
 	}
 	return a.convertToReportConnection(
@@ -515,21 +516,21 @@ func (a AdapterV1) GetInputByIndex(
 		if err != nil {
 			return nil, err
 		}
-		return getConvertedInputFromGraphql(input)
+		return getConvertedInputFromGraphql(ctx, input)
 	} else {
 		input, err := a.inputRepository.FindByIndexAndAppContract(ctx, inputIndex, appContract)
 		if err != nil {
 			return nil, err
 		}
-		return getConvertedInputFromGraphql(input)
+		return getConvertedInputFromGraphql(ctx, input)
 	}
 }
 
-func getConvertedInputFromGraphql(input *cModel.AdvanceInput) (*graphql.Input, error) {
+func getConvertedInputFromGraphql(ctx context.Context, input *cModel.AdvanceInput) (*graphql.Input, error) {
 	if input == nil {
 		return nil, fmt.Errorf("input not found")
 	}
-	convertedInput, err := graphql.ConvertInput(*input)
+	convertedInput, err := graphql.ConvertInput(ctx, *input)
 
 	if err != nil {
 		return nil, err
@@ -549,7 +550,7 @@ func (a AdapterV1) GetInput(
 	if err != nil {
 		return nil, err
 	}
-	return getConvertedInputFromGraphql(input)
+	return getConvertedInputFromGraphql(ctx, input)
 }
 
 func (a AdapterV1) GetInputs(
@@ -557,7 +558,7 @@ func (a AdapterV1) GetInputs(
 	first *int, last *int, after *string, before *string, where *graphql.InputFilter,
 ) (*graphql.InputConnection, error) {
 	appContract := ctx.Value(cModel.AppContractKey)
-	slog.Debug("GetInputs", "appContract", appContract)
+	slog.DebugContext(ctx, "GetInputs", "appContract", appContract)
 	filters := []*cModel.ConvenienceFilter{}
 	filters, err := addAppContractFilterAsNeeded(ctx, filters)
 	if err != nil {
@@ -601,6 +602,7 @@ func (a AdapterV1) GetInputs(
 		return nil, err
 	}
 	return a.convertToInputConnection(
+		ctx,
 		inputs.Rows,
 		int(inputs.Offset),
 		int(inputs.Total),
@@ -608,12 +610,13 @@ func (a AdapterV1) GetInputs(
 }
 
 func (a AdapterV1) convertToInputConnection(
+	ctx context.Context,
 	inputs []cModel.AdvanceInput,
 	offset int, total int,
 ) (*graphql.InputConnection, error) {
 	convNodes := make([]*graphql.Input, len(inputs))
 	for i := range inputs {
-		convertedInput, err := graphql.ConvertInput(inputs[i])
+		convertedInput, err := graphql.ConvertInput(ctx, inputs[i])
 
 		if err != nil {
 			return nil, err

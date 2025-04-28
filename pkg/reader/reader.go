@@ -22,6 +22,7 @@ import (
 
 // Register the GraphQL reader API to echo.
 func Register(
+	ctx context.Context,
 	e *echo.Echo,
 	convenienceService *services.ConvenienceService,
 	adapter Adapter,
@@ -40,7 +41,7 @@ func Register(
 	})
 	e.POST("/graphql/:appContract", func(c echo.Context) error {
 		appContract := c.Param("appContract")
-		slog.Debug("path parameter received: ", "app_contract", appContract)
+		slog.DebugContext(ctx, "path parameter received: ", "app_contract", appContract)
 		ctx := context.WithValue(c.Request().Context(), cModel.AppContractKey, appContract)
 		loader := loaders.NewLoaders(
 			convenienceService.ReportRepository,
@@ -59,7 +60,7 @@ func Register(
 	})
 	e.GET("/graphql/:appContract", func(c echo.Context) error {
 		appContract := c.Param("appContract")
-		slog.Debug("graphql playground", "appContract", appContract)
+		slog.DebugContext(ctx, "graphql playground", "appContract", appContract)
 		playgroundHandler := playground.Handler("GraphQL",
 			fmt.Sprintf("/graphql/%s", appContract),
 		)

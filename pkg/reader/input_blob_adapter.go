@@ -1,6 +1,7 @@
 package reader
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"math/big"
@@ -12,7 +13,7 @@ import (
 
 type InputBlobAdapter struct{}
 
-func (i *InputBlobAdapter) Adapt(node struct {
+func (i *InputBlobAdapter) Adapt(ctx context.Context, node struct {
 	Index  int    `json:"index"`
 	Blob   string `json:"blob"`
 	Status string `json:"status"`
@@ -20,21 +21,21 @@ func (i *InputBlobAdapter) Adapt(node struct {
 	abiParsed, err := contracts.InputsMetaData.GetAbi()
 
 	if err != nil {
-		slog.Error("Error parsing abi", "err", err)
+		slog.ErrorContext(ctx, "Error parsing abi", "err", err)
 		return nil, err
 	}
 
 	values, err := abiParsed.Methods["EvmAdvance"].Inputs.UnpackValues(common.Hex2Bytes(node.Blob[10:]))
 
 	if err != nil {
-		slog.Error("Error unpacking blob.", "err", err)
+		slog.ErrorContext(ctx, "Error unpacking blob.", "err", err)
 		return nil, err
 	}
 
 	convertedStatus, err := convertCompletionStatus(node.Status)
 
 	if err != nil {
-		slog.Error("Error converting CompletionStatus.", "err", err)
+		slog.ErrorContext(ctx, "Error converting CompletionStatus.", "err", err)
 		return nil, err
 	}
 

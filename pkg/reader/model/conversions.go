@@ -4,6 +4,7 @@
 package model
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -40,11 +41,11 @@ func convertCompletionStatus(status cModel.CompletionStatus) (CompletionStatus, 
 	}
 }
 
-func ConvertInput(input cModel.AdvanceInput) (*Input, error) {
+func ConvertInput(ctx context.Context, input cModel.AdvanceInput) (*Input, error) {
 	convertedStatus, err := convertCompletionStatus(input.Status)
 
 	if err != nil {
-		slog.Error("Error converting CompletionStatus", "Error", err)
+		slog.ErrorContext(ctx, "Error converting CompletionStatus", "Error", err)
 		return nil, err
 	}
 
@@ -323,12 +324,13 @@ func ConvertToAppConnectionV1(apps []cModel.ConvenienceApplication, offset int, 
 }
 
 func ConvertToInputConnectionV1(
+	ctx context.Context,
 	inputs []cModel.AdvanceInput,
 	offset int, total int,
 ) (*InputConnection, error) {
 	convNodes := make([]*Input, len(inputs))
 	for i := range inputs {
-		convertedInput, err := ConvertInput(inputs[i])
+		convertedInput, err := ConvertInput(ctx, inputs[i])
 
 		if err != nil {
 			return nil, err

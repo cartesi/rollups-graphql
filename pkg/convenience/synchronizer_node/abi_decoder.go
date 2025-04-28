@@ -20,6 +20,6 @@ func (s AbiDecoder) GetMapRaw(rawData []byte) (map[string]any, error) {
 		return nil, err
 	}
 	err = method.Inputs.UnpackIntoMap(data, rawData[4:])
-	// slog.Debug("DecodedData", "map", data)
+	// slog.DebugContext(ctx, "DecodedData", "map", data)
 	return data, err
 }

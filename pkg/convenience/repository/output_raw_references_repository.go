@@ -31,7 +31,7 @@ type RawOutputRef struct {
 	SyncPriority uint64    `db:"sync_priority"`
 }
 
-func (r *RawOutputRefRepository) CreateTable() error {
+func (r *RawOutputRefRepository) CreateTable(ctx context.Context) error {
 	schema := `CREATE TABLE IF NOT EXISTS convenience_output_raw_references (
 		app_id 			integer NOT NULL,
 		input_index		integer NOT NULL,
@@ -44,15 +44,15 @@ func (r *RawOutputRefRepository) CreateTable() error {
 		created_at		TIMESTAMP NOT NULL,
 		sync_priority	integer   NOT NULL,
 		PRIMARY KEY (input_index, output_index, app_contract));
-		
+
 		CREATE INDEX IF NOT EXISTS idx_input_index ON convenience_output_raw_references(input_index, app_contract);
 		CREATE INDEX IF NOT EXISTS idx_convenience_output_raw_references_app_id ON convenience_output_raw_references(app_id);
 		CREATE INDEX IF NOT EXISTS idx_convenience_output_raw_references_has_proof_app_id ON convenience_output_raw_references(has_proof, app_id);`
-	_, err := r.Db.Exec(schema)
+	_, err := r.Db.ExecContext(ctx, schema)
 	if err != nil {
-		slog.Error("Failed to create Raw Outputs table", "error", err)
+		slog.ErrorContext(ctx, "Failed to create Raw Outputs table", "error", err)
 	} else {
-		slog.Debug("Raw Outputs table created successfully")
+		slog.DebugContext(ctx, "Raw Outputs table created successfully")
 	}
 	return err
 }
@@ -60,7 +60,7 @@ func (r *RawOutputRefRepository) CreateTable() error {
 func (r *RawOutputRefRepository) Create(ctx context.Context, rawOutput RawOutputRef) error {
 	dbInstance, err := r.FindByAppIDAndOutputIndex(ctx, rawOutput.AppID, rawOutput.OutputIndex)
 	if err != nil {
-		slog.Error("Error finding output reference", "error", err,
+		slog.ErrorContext(ctx, "Error finding output reference", "error", err,
 			"app_id", rawOutput.AppID,
 			"app_contract", rawOutput.AppContract,
 			"output_index", rawOutput.OutputIndex,
@@ -98,7 +98,7 @@ func (r *RawOutputRefRepository) Create(ctx context.Context, rawOutput RawOutput
 	)
 
 	if err != nil {
-		slog.Error("Error creating output reference", "error", err,
+		slog.ErrorContext(ctx, "Error creating output reference", "error", err,
 			"app_id", rawOutput.AppID,
 			"app_contract", rawOutput.AppContract,
 			"output_index", rawOutput.OutputIndex,
@@ -122,7 +122,7 @@ func (r *RawOutputRefRepository) FindLatestRawOutputRef(ctx context.Context) (*R
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		slog.Error("Failed to retrieve the latest output ID", "error", err)
+		slog.ErrorContext(ctx, "Failed to retrieve the latest output ID", "error", err)
 		return nil, err
 	}
 	return &outputRef, err
@@ -133,24 +133,24 @@ func (r *RawOutputRefRepository) SetSyncPriority(ctx context.Context, rawOutputR
 
 	result, err := exec.ExecContext(ctx, `
 		UPDATE convenience_output_raw_references
-		SET 
+		SET
 			sync_priority = $1
 		WHERE app_id = $2 and output_index = $3`,
 		rawOutputRef.SyncPriority, rawOutputRef.AppID, rawOutputRef.OutputIndex)
 
 	if err != nil {
-		slog.Error("Error updating output proof", "error", err)
+		slog.ErrorContext(ctx, "Error updating output proof", "error", err)
 		return err
 	}
 
 	affected, err := result.RowsAffected()
 	if err != nil {
-		slog.Error("RollupsGraphql: SetSyncPriority error fetching rows affected", "error", err)
+		slog.ErrorContext(ctx, "RollupsGraphql: SetSyncPriority error fetching rows affected", "error", err)
 		return err
 	}
 
 	if affected != 1 {
-		slog.Error("RollupsGraphql: SetSyncPriority update error", "app_id", rawOutputRef.AppID, "output_index", rawOutputRef.OutputIndex)
+		slog.ErrorContext(ctx, "RollupsGraphql: SetSyncPriority update error", "app_id", rawOutputRef.AppID, "output_index", rawOutputRef.OutputIndex)
 		return fmt.Errorf("repo_err_1 unexpected number of rows updated: %d", affected)
 	}
 
@@ -162,7 +162,7 @@ func (r *RawOutputRefRepository) SetHasProofToTrue(ctx context.Context, rawOutpu
 
 	result, err := exec.ExecContext(ctx, `
 		UPDATE convenience_output_raw_references
-		SET 
+		SET
 			has_proof = true,
 			updated_at = $1,
 			sync_priority = $2
@@ -170,18 +170,18 @@ func (r *RawOutputRefRepository) SetHasProofToTrue(ctx context.Context, rawOutpu
 		rawOutputRef.SyncPriority, rawOutputRef.AppID, rawOutputRef.OutputIndex)
 
 	if err != nil {
-		slog.Error("RollupsGraphql: SetHasProofToTrue Error updating output proof", "error", err)
+		slog.ErrorContext(ctx, "RollupsGraphql: SetHasProofToTrue Error updating output proof", "error", err)
 		return err
 	}
 
 	affected, err := result.RowsAffected()
 	if err != nil {
-		slog.Error("RollupsGraphql: SetHasProofToTrue Error fetching rows affected", "error", err)
+		slog.ErrorContext(ctx, "RollupsGraphql: SetHasProofToTrue Error fetching rows affected", "error", err)
 		return err
 	}
 
 	if affected != 1 {
-		slog.Error("RollupsGraphql: SetHasProofToTrue update error", "app_id", rawOutputRef.AppID, "output_index", rawOutputRef.OutputIndex)
+		slog.ErrorContext(ctx, "RollupsGraphql: SetHasProofToTrue update error", "app_id", rawOutputRef.AppID, "output_index", rawOutputRef.OutputIndex)
 		return fmt.Errorf("repo_err_1 unexpected number of rows updated: %d", affected)
 	}
 
@@ -198,20 +198,20 @@ func (r *RawOutputRefRepository) SetExecutedToTrue(ctx context.Context, rawOutpu
 		`, rawOutputRef.UpdatedAt, rawOutputRef.AppID, rawOutputRef.OutputIndex)
 
 	if err != nil {
-		slog.Error("RollupsGraphql: SetExecutedToTrue Error updating executed field", "error", err)
+		slog.ErrorContext(ctx, "RollupsGraphql: SetExecutedToTrue Error updating executed field", "error", err)
 		return err
 	}
 
 	affected, err := result.RowsAffected()
 	if err != nil {
-		slog.Error("RollupsGraphql: SetExecutedToTrue Error fetching rows affected", "error", err)
+		slog.ErrorContext(ctx, "RollupsGraphql: SetExecutedToTrue Error fetching rows affected", "error", err)
 		return err
 	}
 
 	if affected != 1 {
 		return fmt.Errorf("repo_err_2 unexpected number of rows updated: %d", affected)
 	}
-	slog.Debug("RollupsGraphql: SetExecutedToTrue",
+	slog.DebugContext(ctx, "RollupsGraphql: SetExecutedToTrue",
 		"updated_at", rawOutputRef.UpdatedAt,
 		"app_id", rawOutputRef.AppID,
 		"output_index", rawOutputRef.OutputIndex,
@@ -222,18 +222,18 @@ func (r *RawOutputRefRepository) SetExecutedToTrue(ctx context.Context, rawOutpu
 func (r *RawOutputRefRepository) FindByAppIDAndOutputIndex(ctx context.Context, appID, outputIndex uint64) (*RawOutputRef, error) {
 	var outputRef RawOutputRef
 	err := r.Db.GetContext(ctx, &outputRef, `
-		SELECT * FROM convenience_output_raw_references 
+		SELECT * FROM convenience_output_raw_references
 		WHERE app_id = $1 and output_index = $2`, appID, outputIndex)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			slog.Debug("RollupsGraphql: FindByAppIDAndOutputIndex Output reference not found",
+			slog.DebugContext(ctx, "RollupsGraphql: FindByAppIDAndOutputIndex Output reference not found",
 				"app_id", appID,
 				"output_index", outputIndex,
 			)
 			return nil, nil
 		}
-		slog.Error("RollupsGraphql: FindByAppIDAndOutputIndex Error finding output reference by ID", "error", err, "app_id", appID, "output_index", outputIndex)
+		slog.ErrorContext(ctx, "RollupsGraphql: FindByAppIDAndOutputIndex Error finding output reference by ID", "error", err, "app_id", appID, "output_index", outputIndex)
 		return nil, err
 	}
 	return &outputRef, nil
@@ -249,20 +249,20 @@ func (r *RawOutputRefRepository) UpdateSyncPriority(ctx context.Context, rawOutp
 		`, time.Now().Unix(), rawOutputRef.AppID, rawOutputRef.OutputIndex)
 
 	if err != nil {
-		slog.Error("RollupsGraphql: UpdateSyncPriority Error updating executed field", "error", err)
+		slog.ErrorContext(ctx, "RollupsGraphql: UpdateSyncPriority Error updating executed field", "error", err)
 		return err
 	}
 
 	affected, err := result.RowsAffected()
 	if err != nil {
-		slog.Error("RollupsGraphql: UpdateSyncPriority Error fetching rows affected", "error", err)
+		slog.ErrorContext(ctx, "RollupsGraphql: UpdateSyncPriority Error fetching rows affected", "error", err)
 		return err
 	}
 
 	if affected != 1 {
 		return fmt.Errorf("repo_err_3 unexpected number of rows updated: %d", affected)
 	}
-	slog.Debug("RollupsGraphql: UpdateSyncPriority",
+	slog.DebugContext(ctx, "RollupsGraphql: UpdateSyncPriority",
 		"updated_at", rawOutputRef.UpdatedAt,
 		"app_id", rawOutputRef.AppID,
 		"output_index", rawOutputRef.OutputIndex,
@@ -273,10 +273,10 @@ func (r *RawOutputRefRepository) UpdateSyncPriority(ctx context.Context, rawOutp
 func (r *RawOutputRefRepository) GetFirstOutputRefWithoutProof(ctx context.Context) (*RawOutputRef, error) {
 	var outputRef RawOutputRef
 	err := r.Db.GetContext(ctx, &outputRef, `
-		SELECT 
-			* 
+		SELECT
+			*
 		FROM
-			convenience_output_raw_references 
+			convenience_output_raw_references
 		WHERE
 			has_proof = false
 		ORDER BY
@@ -285,10 +285,10 @@ func (r *RawOutputRefRepository) GetFirstOutputRefWithoutProof(ctx context.Conte
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			slog.Debug("RollupsGraphql: GetFirstOutputRefWithoutProof No output ID without proof found")
+			slog.DebugContext(ctx, "RollupsGraphql: GetFirstOutputRefWithoutProof No output ID without proof found")
 			return nil, nil
 		}
-		slog.Error("RollupsGraphql: GetFirstOutputRefWithoutProof Failed to retrieve output ID without proof", "error", err)
+		slog.ErrorContext(ctx, "RollupsGraphql: GetFirstOutputRefWithoutProof Failed to retrieve output ID without proof", "error", err)
 		return nil, err
 	}
 	return &outputRef, err
@@ -297,20 +297,20 @@ func (r *RawOutputRefRepository) GetFirstOutputRefWithoutProof(ctx context.Conte
 func (r *RawOutputRefRepository) GetLastUpdatedAtExecuted(ctx context.Context) (*RawOutputRef, error) {
 	var outputRef RawOutputRef
 	err := r.Db.GetContext(ctx, &outputRef, `
-		SELECT 
+		SELECT
 			*
 		FROM
-			convenience_output_raw_references 
+			convenience_output_raw_references
 		WHERE
 			executed = true and type = 'voucher'
 		ORDER BY updated_at DESC, output_index DESC, app_id DESC LIMIT 1`)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			slog.Debug("RollupsGraphql: GetLastUpdatedAtExecuted No output ref executed = true")
+			slog.DebugContext(ctx, "RollupsGraphql: GetLastUpdatedAtExecuted No output ref executed = true")
 			return nil, nil
 		}
-		slog.Error("RollupsGraphql: GetLastUpdatedAtExecuted Failed to retrieve output ID not executed", "error", err)
+		slog.ErrorContext(ctx, "RollupsGraphql: GetLastUpdatedAtExecuted Failed to retrieve output ID not executed", "error", err)
 		return nil, err
 	}
 	return &outputRef, err

@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 
@@ -23,38 +24,38 @@ func RemoveSelector(payload string) string {
 	return fmt.Sprintf("0x%s", payload[10:])
 }
 
-func GetDestination(payload string) (common.Address, error) {
+func GetDestination(ctx context.Context, payload string) (common.Address, error) {
 	abiParsed, err := contracts.OutputsMetaData.GetAbi()
 
 	if err != nil {
-		slog.Error("Error parsing abi", "err", err)
+		slog.ErrorContext(ctx, "Error parsing abi", "err", err)
 		return common.Address{}, err
 	}
 
-	slog.Info("payload", "payload", payload)
+	slog.InfoContext(ctx, "payload", "payload", payload)
 
 	values, err := abiParsed.Methods["Voucher"].Inputs.Unpack(common.Hex2Bytes(payload[10:]))
 
 	if err != nil {
-		slog.Error("Error unpacking abi", "err", err)
+		slog.ErrorContext(ctx, "Error unpacking abi", "err", err)
 		return common.Address{}, err
 	}
 
 	return values[0].(common.Address), nil
 }
 
-func GetConvertedInput(payload string) ([]interface{}, error) {
+func GetConvertedInput(ctx context.Context, payload string) ([]interface{}, error) {
 	abiParsed, err := contracts.InputsMetaData.GetAbi()
 
 	if err != nil {
-		slog.Error("Error parsing abi", "err", err)
+		slog.ErrorContext(ctx, "Error parsing abi", "err", err)
 		return make([]interface{}, 0), err
 	}
 
 	values, err := abiParsed.Methods["EvmAdvance"].Inputs.Unpack(common.Hex2Bytes(payload[10:]))
 
 	if err != nil {
-		slog.Error("Error unpacking abi", "err", err)
+		slog.ErrorContext(ctx, "Error unpacking abi", "err", err)
 		return make([]interface{}, 0), err
 	}
 

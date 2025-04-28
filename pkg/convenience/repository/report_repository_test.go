@@ -22,16 +22,25 @@ import (
 type ReportRepositorySuite struct {
 	suite.Suite
 	reportRepository *ReportRepository
+	db               *sqlx.DB
+	ctx              context.Context
+	ctxCancel        context.CancelFunc
 }
 
 func (s *ReportRepositorySuite) SetupTest() {
+	s.ctx, s.ctxCancel = context.WithCancel(context.Background())
 	commons.ConfigureLog(slog.LevelDebug)
-	db := sqlx.MustConnect("sqlite3", ":memory:")
+	s.db = sqlx.MustConnect("sqlite3", ":memory:")
 	s.reportRepository = &ReportRepository{
-		Db: db,
+		Db: s.db,
 	}
-	err := s.reportRepository.CreateTables()
+	err := s.reportRepository.CreateTables(s.ctx)
 	s.NoError(err)
+}
+
+func (s *ReportRepositorySuite) TearDownTest() {
+	s.db.Close()
+	s.ctxCancel()
 }
 
 func TestReportRepositorySuite(t *testing.T) {
@@ -39,7 +48,7 @@ func TestReportRepositorySuite(t *testing.T) {
 }
 
 func (s *ReportRepositorySuite) TestCreateTables() {
-	err := s.reportRepository.CreateTables()
+	err := s.reportRepository.CreateTables(s.ctx)
 	s.NoError(err)
 }
 

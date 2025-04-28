@@ -66,10 +66,10 @@ func (r *inputResolver) Application(ctx context.Context, obj *model.Input) (*mod
 
 // Input is the resolver for the input field.
 func (r *noticeResolver) Input(ctx context.Context, obj *model.Notice) (*model.Input, error) {
-	slog.Debug("Find input by index", "inputIndex", obj.InputIndex)
+	slog.DebugContext(ctx, "Find input by index", "inputIndex", obj.InputIndex)
 	input, err := r.adapter.GetInputByIndex(ctx, obj.InputIndex)
 	if err != nil {
-		slog.Error("Input not found")
+		slog.ErrorContext(ctx, "Input not found")
 		return nil, err
 	}
 	return input, nil
@@ -82,7 +82,7 @@ func (r *noticeResolver) Application(ctx context.Context, obj *model.Notice) (*m
 
 // Input is the resolver for the input field.
 func (r *queryResolver) Input(ctx context.Context, id string) (*model.Input, error) {
-	slog.Debug("queryResolver.Input", "id", id)
+	slog.DebugContext(ctx, "queryResolver.Input", "id", id)
 	return r.adapter.GetInput(ctx, id)
 }
 

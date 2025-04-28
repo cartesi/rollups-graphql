@@ -19,7 +19,7 @@ type ReportRepository struct {
 	AutoCount bool
 }
 
-func (r *ReportRepository) CreateTables() error {
+func (r *ReportRepository) CreateTables(ctx context.Context) error {
 	schema := `CREATE TABLE IF NOT EXISTS convenience_reports (
     output_index  integer,
     payload       text,
@@ -32,11 +32,11 @@ func (r *ReportRepository) CreateTables() error {
 	CREATE INDEX IF NOT EXISTS idx_input_index_output_index ON convenience_reports(input_index, output_index);
 	CREATE INDEX IF NOT EXISTS idx_input_index_app_contract ON convenience_reports(input_index, app_contract);
 	CREATE INDEX IF NOT EXISTS idx_output_index_app_contract ON convenience_reports(output_index, app_contract);`
-	_, err := r.Db.Exec(schema)
+	_, err := r.Db.ExecContext(ctx, schema)
 	if err == nil {
-		slog.Debug("Reports table created")
+		slog.DebugContext(ctx, "Reports table created")
 	} else {
-		slog.Error("Create table error", "error", err)
+		slog.ErrorContext(ctx, "Create table error", "error", err)
 	}
 	return err
 }
@@ -45,7 +45,7 @@ func (r *ReportRepository) CreateReport(ctx context.Context, report cModel.Repor
 	if r.AutoCount {
 		count, err := r.Count(ctx, nil)
 		if err != nil {
-			slog.Error("database error", "err", err)
+			slog.ErrorContext(ctx, "database error", "err", err)
 			return cModel.Report{}, err
 		}
 		report.Index = int(count)
@@ -55,7 +55,7 @@ func (r *ReportRepository) CreateReport(ctx context.Context, report cModel.Repor
 		return cModel.Report{}, err
 	}
 	if dbInstance != nil {
-		slog.Debug("Report already exists", "index", report.Index, "app_contract", report.AppContract.Hex())
+		slog.DebugContext(ctx, "Report already exists", "index", report.Index, "app_contract", report.AppContract.Hex())
 		return *dbInstance, nil
 	}
 	insertSql := `INSERT INTO convenience_reports (
@@ -84,7 +84,7 @@ func (r *ReportRepository) CreateReport(ctx context.Context, report cModel.Repor
 	)
 
 	if err != nil {
-		slog.Error("database error",
+		slog.ErrorContext(ctx, "database error",
 			"err", err,
 			"index", report.Index,
 			"input_index", report.InputIndex,
@@ -150,7 +150,7 @@ func (r *ReportRepository) FindLastReport(ctx context.Context) (*cModel.FastRepo
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		slog.Error("Failed to retrieve the last report from the database", "error", err)
+		slog.ErrorContext(ctx, "Failed to retrieve the last report from the database", "error", err)
 		return nil, err
 	}
 	return &report, err
@@ -168,7 +168,7 @@ func (r *ReportRepository) FindByInputAndOutputIndex(
 		inputIndex, outputIndex,
 	)
 	if err != nil {
-		slog.Error("database error", "err", err)
+		slog.ErrorContext(ctx, "database error", "err", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -200,7 +200,7 @@ func (r *ReportRepository) FindByOutputIndexAndAppContract(
 ) (*cModel.Report, error) {
 	rows, err := r.queryByOutputIndexAndAppContract(ctx, outputIndex, appContract)
 	if err != nil {
-		slog.Error("database error", "err", err)
+		slog.ErrorContext(ctx, "database error", "err", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -263,21 +263,21 @@ func (c *ReportRepository) Count(
 	query := `SELECT count(*) FROM convenience_reports `
 	where, args, _, err := transformToReportQuery(filter)
 	if err != nil {
-		slog.Error("Count execution error")
+		slog.ErrorContext(ctx, "Count execution error")
 		return 0, err
 	}
 	query += where
-	slog.Debug("Query", "query", query, "args", args)
+	slog.DebugContext(ctx, "Query", "query", query, "args", args)
 	stmt, err := c.Db.PreparexContext(ctx, query)
 	if err != nil {
-		slog.Error("Count execution error")
+		slog.ErrorContext(ctx, "Count execution error")
 		return 0, err
 	}
 	defer stmt.Close()
 	var count uint64
 	err = stmt.Get(&count, args...)
 	if err != nil {
-		slog.Error("Count execution error")
+		slog.ErrorContext(ctx, "Count execution error")
 		return 0, err
 	}
 	return count, nil
@@ -320,14 +320,14 @@ func (c *ReportRepository) FindAll(
 ) (*commons.PageResult[cModel.Report], error) {
 	total, err := c.Count(ctx, filter)
 	if err != nil {
-		slog.Error("database error", "err", err)
+		slog.ErrorContext(ctx, "database error", "err", err)
 		return nil, err
 	}
 
 	query := `SELECT input_index, output_index, payload FROM convenience_reports `
 	where, args, argsCount, err := transformToReportQuery(filter)
 	if err != nil {
-		slog.Error("database error", "err", err)
+		slog.ErrorContext(ctx, "database error", "err", err)
 		return nil, err
 	}
 	query += where
@@ -343,7 +343,7 @@ func (c *ReportRepository) FindAll(
 	query += fmt.Sprintf(`OFFSET $%d `, argsCount)
 	args = append(args, offset)
 
-	slog.Debug("Query", "query", query, "args", args, "total", total)
+	slog.DebugContext(ctx, "Query", "query", query, "args", args, "total", total)
 	stmt, err := c.Db.PreparexContext(ctx, query)
 	if err != nil {
 		return nil, err
@@ -436,7 +436,7 @@ func (c *ReportRepository) BatchFindAllByInputIndexAndAppContract(
 	ctx context.Context,
 	filters []*BatchFilterItem,
 ) ([]*commons.PageResult[cModel.Report], []error) {
-	slog.Debug("BatchFindAllByInputIndexAndAppContract", "len", len(filters))
+	slog.DebugContext(ctx, "BatchFindAllByInputIndexAndAppContract", "len", len(filters))
 	query := `SELECT
 				input_index, output_index, payload, app_contract FROM convenience_reports
 		WHERE
@@ -455,7 +455,7 @@ func (c *ReportRepository) BatchFindAllByInputIndexAndAppContract(
 	results := []*commons.PageResult[cModel.Report]{}
 	stmt, err := c.Db.PreparexContext(ctx, query)
 	if err != nil {
-		slog.Error("BatchFind prepare context", "error", err)
+		slog.ErrorContext(ctx, "BatchFind prepare context", "error", err)
 		return nil, errors
 	}
 	defer stmt.Close()
@@ -463,7 +463,7 @@ func (c *ReportRepository) BatchFindAllByInputIndexAndAppContract(
 	var reports []cModel.Report
 	rows, err := stmt.QueryxContext(ctx, args...)
 	if err != nil {
-		slog.Error("BatchFind query context", "error", err)
+		slog.ErrorContext(ctx, "BatchFind query context", "error", err)
 		return nil, errors
 	}
 	defer rows.Close()
@@ -505,7 +505,7 @@ func (c *ReportRepository) BatchFindAllByInputIndexAndAppContract(
 		}
 		results = append(results, reportsItem)
 	}
-	slog.Debug("BatchResult", "len", len(results))
+	slog.DebugContext(ctx, "BatchResult", "len", len(results))
 	return results, nil
 }
 

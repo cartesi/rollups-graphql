@@ -50,16 +50,16 @@ func (s *SynchronizerOutputUpdateSuite) SetupTest() {
 	// sqliteFileName = fmt.Sprintf("../../../sync-proof-output-%d.sqlite3", time.Now().Unix())
 
 	db := sqlx.MustConnect("sqlite3", sqliteFileName)
-	s.container = convenience.NewContainer(*db, false)
+	s.container = convenience.NewContainer(db, false)
 
 	dbNodeV2 := sqlx.MustConnect("postgres", RAW_DB_URL)
 	s.rawNodeV2Repository = NewRawRepository(RAW_DB_URL, dbNodeV2)
 
 	s.synchronizerOutputUpdate = NewSynchronizerOutputUpdate(
-		s.container.GetVoucherRepository(),
-		s.container.GetNoticeRepository(),
+		s.container.GetVoucherRepository(s.ctx),
+		s.container.GetNoticeRepository(s.ctx),
 		s.rawNodeV2Repository,
-		s.container.GetRawOutputRefRepository(),
+		s.container.GetRawOutputRefRepository(s.ctx),
 	)
 }
 
@@ -124,7 +124,7 @@ func (s *SynchronizerOutputUpdateSuite) fillRefData(ctx context.Context) {
 		if i%2 == 0 {
 			outputType = "notice"
 		}
-		err := s.container.GetRawOutputRefRepository().Create(txCtx, repository.RawOutputRef{
+		err := s.container.GetRawOutputRefRepository(s.ctx).Create(txCtx, repository.RawOutputRef{
 			AppID:       uint64(1),
 			InputIndex:  uint64(i),
 			OutputIndex: uint64(i),
@@ -134,7 +134,7 @@ func (s *SynchronizerOutputUpdateSuite) fillRefData(ctx context.Context) {
 		})
 		s.Require().NoError(err)
 		if outputType == repository.RAW_VOUCHER_TYPE {
-			_, err = s.container.GetVoucherRepository().CreateVoucher(
+			_, err = s.container.GetVoucherRepository(s.ctx).CreateVoucher(
 				txCtx, &model.ConvenienceVoucher{
 					AppContract: appContract,
 					OutputIndex: uint64(i),
@@ -143,7 +143,7 @@ func (s *SynchronizerOutputUpdateSuite) fillRefData(ctx context.Context) {
 			)
 			s.Require().NoError(err)
 		} else {
-			_, err = s.container.GetNoticeRepository().Create(
+			_, err = s.container.GetNoticeRepository(s.ctx).Create(
 				txCtx, &model.ConvenienceNotice{
 					AppContract: appContract.Hex(),
 					OutputIndex: uint64(i),

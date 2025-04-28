@@ -46,7 +46,7 @@ func (s *SynchronizerUpdate) findFirst50RawInputsGteRefWithStatus(
 
 func (s *SynchronizerUpdate) startTransaction(ctx context.Context) (context.Context, error) {
 	db := s.RawInputRefRepository.Db
-	ctxWithTx, err := repository.StartTransaction(ctx, &db)
+	ctxWithTx, err := repository.StartTransaction(ctx, db)
 	if err != nil {
 		return ctx, err
 	}
@@ -66,7 +66,7 @@ func (s *SynchronizerUpdate) rollbackTransaction(ctx context.Context) {
 	if hasTx && tx != nil {
 		err := tx.Rollback()
 		if err != nil {
-			slog.Error("transaction rollback error", "err", err)
+			slog.ErrorContext(ctx, "transaction rollback error", "err", err)
 			panic(err)
 		}
 	}
@@ -125,10 +125,10 @@ func GetStatusRosetta() []RosettaStatusRef {
 func (s *SynchronizerUpdate) updateStatus(ctx context.Context, rawInputs []RawInput, status model.CompletionStatus) error {
 	for _, rawInput := range rawInputs {
 		appContract := common.BytesToAddress(rawInput.ApplicationAddress)
-		// slog.Debug("Update", "appContract", appContract, "index", rawInput.Index, "status", status)
+		// slog.DebugContext(ctx, "Update", "appContract", appContract, "index", rawInput.Index, "status", status)
 		err := s.InputRepository.UpdateStatus(ctx, appContract, rawInput.Index, status)
 		if err != nil {
-			slog.Warn("Ignoring missing input", "err", err)
+			slog.WarnContext(ctx, "Ignoring missing input", "err", err)
 		}
 	}
 	return nil

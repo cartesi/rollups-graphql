@@ -11,11 +11,23 @@ import (
 	"regexp"
 )
 
+type commandLoggerType interface {
+	io.Writer
+}
+
 // Log the command output with the name as a prefix.
 type commandLogger struct {
 	name     string
 	buffName string
 	buffer   bytes.Buffer
+}
+
+func NewCommandLogger(buffName, name string) commandLoggerType {
+	return &commandLogger{
+		name:     name,
+		buffName: buffName,
+		buffer:   *bytes.NewBuffer([]byte{}),
+	}
 }
 
 func (w *commandLogger) Write(data []byte) (int, error) {

@@ -67,7 +67,7 @@ func (s *SynchronizerOutputUpdate) syncOutputsProofs(ctx context.Context) error 
 	}
 	total := len(rawOutputs)
 	if total == 0 {
-		slog.Debug("SyncOutputsProofs: no new proofs to sync")
+		slog.DebugContext(ctx, "SyncOutputsProofs: no new proofs to sync")
 		return nil
 	}
 	outputIndexes := []uint64{}
@@ -88,7 +88,7 @@ func (s *SynchronizerOutputUpdate) syncOutputsProofs(ctx context.Context) error 
 			return err
 		}
 	}
-	slog.Debug("SyncOutputsProofs: lastOutputRefWithoutProof",
+	slog.DebugContext(ctx, "SyncOutputsProofs: lastOutputRefWithoutProof",
 		"app_id", lastOutputRefWithoutProof.AppID,
 		"output_index", lastOutputRefWithoutProof.OutputIndex,
 		"output_indexes", outputIndexes,
@@ -112,7 +112,7 @@ func (s *SynchronizerOutputUpdate) SetTopPriority(
 		return err
 	}
 	if ref == nil {
-		slog.Warn("We may need to wait for the reference to be created")
+		slog.WarnContext(ctx, "We may need to wait for the reference to be created")
 		return nil
 	}
 	ref.SyncPriority = 0
@@ -133,10 +133,10 @@ func (s *SynchronizerOutputUpdate) UpdateProof(
 		return err
 	}
 	if ref == nil {
-		slog.Warn("We may need to wait for the reference to be created")
+		slog.WarnContext(ctx, "We may need to wait for the reference to be created")
 		return nil
 	}
-	// slog.Debug("Ref",
+	// slog.DebugContext(ctx, "Ref",
 	// 	"appContract", ref.AppContract,
 	// 	"OutputIndex", ref.OutputIndex,
 	// )
@@ -217,7 +217,7 @@ func (s *SynchronizerOutputUpdate) rollbackTransaction(ctx context.Context) {
 	if hasTx && tx != nil {
 		err := tx.Rollback()
 		if err != nil {
-			slog.Error("transaction rollback error", "err", err)
+			slog.ErrorContext(ctx, "transaction rollback error", "err", err)
 			panic(err)
 		}
 	}
