@@ -19,9 +19,13 @@ type ApplicationRepositorySuite struct {
 	suite.Suite
 	repository *ApplicationRepository
 	tempDir    string
+	db         *sqlx.DB
+	ctx        context.Context
+	ctxCancel  context.CancelFunc
 }
 
 func (a *ApplicationRepositorySuite) SetupTest() {
+	a.ctx, a.ctxCancel = context.WithCancel(context.Background())
 	commons.ConfigureLog(slog.LevelDebug)
 
 	// Temp
@@ -32,19 +36,19 @@ func (a *ApplicationRepositorySuite) SetupTest() {
 	// Database
 	sqliteFileName := filepath.Join(tempDir, "application.sqlite3")
 
-	db := sqlx.MustConnect("sqlite3", sqliteFileName)
+	a.db = sqlx.MustConnect("sqlite3", sqliteFileName)
 
 	a.repository = &ApplicationRepository{
-		Db: *db,
+		Db: a.db,
 	}
-	err = a.repository.CreateTables()
+	err = a.repository.CreateTables(a.ctx)
 	a.NoError(err)
 }
 
 func (a *ApplicationRepositorySuite) TearDownTest() {
-	err := a.repository.Db.Close()
-	a.NoError(err)
-	err = os.RemoveAll(a.tempDir)
+	a.ctxCancel()
+	a.db.Close()
+	err := os.RemoveAll(a.tempDir)
 	a.NoError(err)
 }
 

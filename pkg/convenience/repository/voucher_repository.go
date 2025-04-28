@@ -18,7 +18,7 @@ import (
 const FALSE = "false"
 
 type VoucherRepository struct {
-	Db               sqlx.DB
+	Db               *sqlx.DB
 	OutputRepository OutputRepository
 	AutoCount        bool
 }
@@ -37,7 +37,7 @@ type voucherRow struct {
 	IsDelegatedCall      bool   `db:"is_delegated_call"`
 }
 
-func (c *VoucherRepository) CreateTables() error {
+func (c *VoucherRepository) CreateTables(ctx context.Context) error {
 	schema := `CREATE TABLE IF NOT EXISTS convenience_vouchers (
 		destination            text,
 		payload 	           text,
@@ -59,7 +59,7 @@ func (c *VoucherRepository) CreateTables() error {
 	`
 
 	// execute a query on the server
-	_, err := c.Db.Exec(schema)
+	_, err := c.Db.ExecContext(ctx, schema)
 	return err
 }
 
@@ -91,7 +91,7 @@ func (c *VoucherRepository) FindVoucherByAppContractAndOutputIndex(
 func (c *VoucherRepository) CreateVoucher(
 	ctx context.Context, voucher *model.ConvenienceVoucher,
 ) (*model.ConvenienceVoucher, error) {
-	// slog.Debug("CreateVoucher", "payload", voucher.Payload, "value", voucher.Value)
+	// slog.DebugContext(ctx, "CreateVoucher", "payload", voucher.Payload, "value", voucher.Value)
 	if c.AutoCount {
 		count, err := c.OutputRepository.CountAllOutputs(ctx)
 		if err != nil {
@@ -120,7 +120,7 @@ func (c *VoucherRepository) CreateVoucher(
 		is_delegated_call
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
-	exec := DBExecutor{&c.Db}
+	exec := DBExecutor{c.Db}
 
 	_, err = exec.ExecContext(
 		ctx,
@@ -137,7 +137,7 @@ func (c *VoucherRepository) CreateVoucher(
 		voucher.IsDelegatedCall,
 	)
 	if err != nil {
-		slog.Error("Error creating vouchers",
+		slog.ErrorContext(ctx, "Error creating vouchers",
 			"Error", err,
 			"app_contract", voucher.AppContract.Hex(),
 			"input_index", voucher.InputIndex,
@@ -155,7 +155,7 @@ func (c *VoucherRepository) SetProof(
 	updateVoucher := `UPDATE convenience_vouchers SET
 		output_hashes_siblings = $1
 		WHERE app_contract = $2 and output_index = $3`
-	exec := DBExecutor{&c.Db}
+	exec := DBExecutor{c.Db}
 	res, err := exec.ExecContext(
 		ctx,
 		updateVoucher,
@@ -183,7 +183,7 @@ func (c *VoucherRepository) SetExecuted(
 		transaction_hash = $1,
 		executed = true
 		WHERE app_contract = $2 and output_index = $3`
-	exec := DBExecutor{&c.Db}
+	exec := DBExecutor{c.Db}
 	res, err := exec.ExecContext(
 		ctx,
 		updateVoucher,
@@ -213,7 +213,7 @@ func (c *VoucherRepository) UpdateVoucher(
 		executed = $3
 		WHERE input_index = $4 and output_index = $5`
 
-	exec := DBExecutor{&c.Db}
+	exec := DBExecutor{c.Db}
 
 	_, err := exec.ExecContext(
 		ctx,
@@ -289,7 +289,7 @@ func (c *VoucherRepository) FindVoucherByOutputIndexAndAppContract(
 	rows, err := c.queryByOutputIndexAndAppContract(ctx, outputIndex, appContract, isDelegatedCall)
 
 	if err != nil {
-		slog.Error("RollupsGraphql: FindVoucherByOutputIndexAndAppContract database error", "err", err)
+		slog.ErrorContext(ctx, "RollupsGraphql: FindVoucherByOutputIndexAndAppContract database error", "err", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -409,7 +409,7 @@ func (c *VoucherRepository) count(
 		return 0, err
 	}
 	query += where
-	slog.Debug("Query", "query", query, "args", args)
+	slog.DebugContext(ctx, "Query", "query", query, "args", args)
 	stmt, err := c.Db.Preparex(query)
 	if err != nil {
 		return 0, err
@@ -518,7 +518,7 @@ func (c *VoucherRepository) findAllVouchers(
 	query += `OFFSET $` + strconv.Itoa(argsCount) + ` `
 	args = append(args, offset)
 
-	slog.Debug("Query", "query", query, "args", args, "total", total)
+	slog.DebugContext(ctx, "Query", "query", query, "args", args, "total", total)
 	stmt, err := c.Db.Preparex(query)
 	if err != nil {
 		return nil, err
@@ -668,7 +668,7 @@ func (c *VoucherRepository) BatchFindAllByInputIndexAndAppContract(
 	ctx context.Context,
 	filters []*BatchFilterItem,
 ) ([]*commons.PageResult[model.ConvenienceVoucher], []error) {
-	slog.Debug("BatchFindAllByInputIndexAndAppContract", "len", len(filters))
+	slog.DebugContext(ctx, "BatchFindAllByInputIndexAndAppContract", "len", len(filters))
 	query := `SELECT * FROM convenience_vouchers WHERE `
 
 	args := []interface{}{}
@@ -685,14 +685,14 @@ func (c *VoucherRepository) BatchFindAllByInputIndexAndAppContract(
 	results := []*commons.PageResult[model.ConvenienceVoucher]{}
 	stmt, err := c.Db.PreparexContext(ctx, query)
 	if err != nil {
-		slog.Error("BatchFind prepare context", "error", err)
+		slog.ErrorContext(ctx, "BatchFind prepare context", "error", err)
 		return nil, errors
 	}
 	defer stmt.Close()
 
 	rows, err := stmt.QueryxContext(ctx, args...)
 	if err != nil {
-		slog.Error("BatchFind query context", "error", err)
+		slog.ErrorContext(ctx, "BatchFind query context", "error", err)
 		return nil, errors
 	}
 	defer rows.Close()
@@ -732,7 +732,7 @@ func (c *VoucherRepository) BatchFindAllByInputIndexAndAppContract(
 		}
 		results = append(results, reportsItem)
 	}
-	slog.Debug("BatchVouchersResult", "len", len(results))
+	slog.DebugContext(ctx, "BatchVouchersResult", "len", len(results))
 	return results, nil
 }
 

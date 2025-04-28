@@ -19,7 +19,7 @@ func (c *SynchronizerRepository) GetDB() *sqlx.DB {
 	return &c.Db
 }
 
-func (c *SynchronizerRepository) CreateTables() error {
+func (c *SynchronizerRepository) CreateTables(ctx context.Context) error {
 	idType := "INTEGER"
 
 	if c.Db.DriverName() == "postgres" {
@@ -42,7 +42,7 @@ func (c *SynchronizerRepository) CreateTables() error {
 		`, idType)
 
 	// execute a query on the server
-	_, err := c.Db.Exec(schema)
+	_, err := c.Db.ExecContext(ctx, schema)
 
 	return err
 }
@@ -96,7 +96,7 @@ func (c *SynchronizerRepository) GetLastFetched(
 	query := `SELECT * FROM synchronizer_fetch ORDER BY id DESC LIMIT 1`
 	stmt, err := c.Db.Preparex(query)
 	if err != nil {
-		slog.Error("Error searching for last fetched", "Error", err)
+		slog.ErrorContext(ctx, "Error searching for last fetched", "Error", err)
 		return nil, err
 	}
 	defer stmt.Close()
@@ -106,7 +106,7 @@ func (c *SynchronizerRepository) GetLastFetched(
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		slog.Error("Error searching for last fetched", "Error", err)
+		slog.ErrorContext(ctx, "Error searching for last fetched", "Error", err)
 		return nil, err
 	}
 	return &p, nil

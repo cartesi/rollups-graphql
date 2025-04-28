@@ -53,7 +53,7 @@ func (s SynchronizerInputCreator) SyncInputs(ctx context.Context) error {
 
 func (s *SynchronizerInputCreator) startTransaction(ctx context.Context) (context.Context, error) {
 	db := s.InputRepository.Db
-	ctxWithTx, err := repository.StartTransaction(ctx, &db)
+	ctxWithTx, err := repository.StartTransaction(ctx, db)
 	if err != nil {
 		return ctx, err
 	}
@@ -65,7 +65,7 @@ func (s *SynchronizerInputCreator) rollbackTransaction(ctx context.Context) {
 	if hasTx && tx != nil {
 		err := tx.Rollback()
 		if err != nil {
-			slog.Error("transaction rollback error", "err", err)
+			slog.ErrorContext(ctx, "transaction rollback error", "err", err)
 			panic(err)
 		}
 	}
@@ -171,7 +171,7 @@ func (s *SynchronizerInputCreator) GetAdvanceInputFromMap(rawInput RawInput) (*m
 		return nil, fmt.Errorf("inputBoxIndex not found")
 	}
 
-	// slog.Debug("GetAdvanceInputFromMap", "chainId", chainId)
+	// slog.DebugContext(ctx, "GetAdvanceInputFromMap", "chainId", chainId)
 	advanceInput := model.AdvanceInput{
 		ID:                     FormatTransactionId(rawInput.TransactionRef),
 		AppContract:            appContract,

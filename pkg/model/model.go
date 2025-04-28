@@ -95,7 +95,7 @@ func (m *NonodoModel) AddAdvanceInput(
 	if err != nil {
 		return err
 	}
-	slog.Info("nonodo: added advance input", "index", input.Index, "sender", input.MsgSender,
+	slog.InfoContext(ctx, "nonodo: added advance input", "index", input.Index, "sender", input.MsgSender,
 		"payload", input.Payload)
 	return nil
 }
@@ -106,7 +106,7 @@ func (m *NonodoModel) AddAdvanceInput(
 
 // Add an inspect input to the model.
 // Return the inspect input index that should be used for polling.
-func (m *NonodoModel) AddInspectInput(payload []byte) int {
+func (m *NonodoModel) AddInspectInput(ctx context.Context, payload []byte) int {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
@@ -117,19 +117,19 @@ func (m *NonodoModel) AddInspectInput(payload []byte) int {
 		Payload: payload,
 	}
 	m.inspects = append(m.inspects, &input)
-	slog.Info("nonodo: added inspect input", "index", input.Index,
+	slog.InfoContext(ctx, "nonodo: added inspect input", "index", input.Index,
 		"payload", hexutil.Encode(input.Payload))
 
 	return index
 }
 
 // Get the inspect input from the model.
-func (m *NonodoModel) GetInspectInput(index int) (InspectInput, error) {
+func (m *NonodoModel) GetInspectInput(ctx context.Context, index int) (InspectInput, error) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
 	if index >= len(m.inspects) {
-		slog.Error(fmt.Sprintf("invalid inspect input index: %v", index))
+		slog.ErrorContext(ctx, fmt.Sprintf("invalid inspect input index: %v", index))
 		return InspectInput{}, fmt.Errorf("invalid inspect input index: %v", index)
 	}
 	return *m.inspects[index], nil

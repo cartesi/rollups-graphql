@@ -43,21 +43,25 @@ type ModelSuite struct {
 	noticeRepository   *cRepos.NoticeRepository
 	tempDir            string
 	convenienceService *services.ConvenienceService
+	ctx                context.Context
+	ctxCancel          context.CancelFunc
+	db                 *sqlx.DB
 }
 
 func (s *ModelSuite) SetupTest() {
+	s.ctx, s.ctxCancel = context.WithCancel(context.Background())
 	tempDir, err := os.MkdirTemp("", "")
 	s.tempDir = tempDir
 	s.NoError(err)
 	sqliteFileName := fmt.Sprintf("test%d.sqlite3", time.Now().UnixMilli())
 	sqliteFileName = path.Join(tempDir, sqliteFileName)
-	db := sqlx.MustConnect("sqlite3", sqliteFileName)
-	container := convenience.NewContainer(*db, false)
-	decoder := container.GetOutputDecoder()
-	s.reportRepository = container.GetReportRepository()
-	s.inputRepository = container.GetInputRepository()
-	s.voucherRepository = container.GetVoucherRepository()
-	s.noticeRepository = container.GetNoticeRepository()
+	s.db = sqlx.MustConnect("sqlite3", sqliteFileName)
+	container := convenience.NewContainer(s.db, false)
+	decoder := container.GetOutputDecoder(s.ctx)
+	s.reportRepository = container.GetReportRepository(s.ctx)
+	s.inputRepository = container.GetInputRepository(s.ctx)
+	s.voucherRepository = container.GetVoucherRepository(s.ctx)
+	s.noticeRepository = container.GetNoticeRepository(s.ctx)
 
 	s.m = NewNonodoModel(
 		decoder,
@@ -66,7 +70,7 @@ func (s *ModelSuite) SetupTest() {
 		s.voucherRepository,
 		s.noticeRepository,
 	)
-	s.convenienceService = container.GetConvenienceService()
+	s.convenienceService = container.GetConvenienceService(s.ctx)
 	s.n = 3
 	s.payloads = make([]string, s.n)
 	s.senders = make([]common.Address, s.n)
@@ -119,7 +123,11 @@ func (s *ModelSuite) TestItGetsNoReports() {
 }
 
 func (s *ModelSuite) TearDownTest() {
-	defer os.RemoveAll(s.tempDir)
+	s.ctxCancel()
+	err := s.db.Close()
+	s.NoError(err)
+	err = os.RemoveAll(s.tempDir)
+	s.NoError(err)
 }
 
 func (s *ModelSuite) getAllVouchers(

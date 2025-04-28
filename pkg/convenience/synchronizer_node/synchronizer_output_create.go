@@ -58,7 +58,7 @@ func (s *SynchronizerOutputCreate) syncOutputs(ctx context.Context) error {
 		return err
 	}
 	if latestOutputRef != nil {
-		slog.Debug("SyncOutputs",
+		slog.DebugContext(ctx, "SyncOutputs",
 			"CreatedAt", latestOutputRef.CreatedAt,
 			"AppID", latestOutputRef.AppID,
 			"OutputIndex", latestOutputRef.OutputIndex,
@@ -199,7 +199,7 @@ func (s *SynchronizerOutputCreate) rollbackTransaction(ctx context.Context) {
 	if hasTx && tx != nil {
 		err := tx.Rollback()
 		if err != nil {
-			slog.Error("transaction rollback error", "err", err)
+			slog.ErrorContext(ctx, "transaction rollback error", "err", err)
 			panic(err)
 		}
 	}

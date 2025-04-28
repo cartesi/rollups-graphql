@@ -130,7 +130,7 @@ func (s SynchronizerCreateWorker) WatchNewInputs(stdCtx context.Context) error {
 			return wrong
 		}
 
-		slog.Debug("Retrying to fetch new inputs")
+		slog.DebugContext(ctx, "Retrying to fetch new inputs")
 	}
 }
 

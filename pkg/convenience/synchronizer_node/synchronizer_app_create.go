@@ -24,7 +24,7 @@ func NewSynchronizerAppCreator(
 
 func (s *SynchronizerAppCreator) startTransaction(ctx context.Context) (context.Context, error) {
 	db := s.AppRepository.Db
-	ctxWithTx, err := repository.StartTransaction(ctx, &db)
+	ctxWithTx, err := repository.StartTransaction(ctx, db)
 	if err != nil {
 		return ctx, err
 	}
@@ -36,7 +36,7 @@ func (s *SynchronizerAppCreator) rollbackTransaction(ctx context.Context) {
 	if hasTx && tx != nil {
 		err := tx.Rollback()
 		if err != nil {
-			slog.Error("transaction rollback error", "err", err)
+			slog.ErrorContext(ctx, "transaction rollback error", "err", err)
 			panic(err)
 		}
 	}

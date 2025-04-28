@@ -1,6 +1,7 @@
 package convenience
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/cartesi/rollups-graphql/v2/pkg/convenience/decoder"
@@ -27,32 +28,32 @@ type Container struct {
 	appRepository          *repository.ApplicationRepository
 }
 
-func NewContainer(db sqlx.DB, autoCount bool) *Container {
+func NewContainer(db *sqlx.DB, autoCount bool) *Container {
 	return &Container{
-		db:        &db,
+		db:        db,
 		AutoCount: autoCount,
 	}
 }
 
-func (c *Container) GetApplicationRepository() *repository.ApplicationRepository {
+func (c *Container) GetApplicationRepository(ctx context.Context) *repository.ApplicationRepository {
 	if c.appRepository != nil {
 		return c.appRepository
 	}
 	c.appRepository = &repository.ApplicationRepository{
-		Db: *c.db,
+		Db: c.db,
 	}
-	err := c.appRepository.CreateTables()
+	err := c.appRepository.CreateTables(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return c.appRepository
 }
 
-func (c *Container) GetOutputDecoder() *decoder.OutputDecoder {
+func (c *Container) GetOutputDecoder(ctx context.Context) *decoder.OutputDecoder {
 	if c.outputDecoder != nil {
 		return c.outputDecoder
 	}
-	c.outputDecoder = decoder.NewOutputDecoder(*c.GetConvenienceService())
+	c.outputDecoder = decoder.NewOutputDecoder(*c.GetConvenienceService(ctx))
 	return c.outputDecoder
 }
 
@@ -61,72 +62,72 @@ func (c *Container) GetOutputRepository() *repository.OutputRepository {
 		return c.outputRepository
 	}
 	c.outputRepository = &repository.OutputRepository{
-		Db: *c.db,
+		Db: c.db,
 	}
 	return c.outputRepository
 }
 
-func (c *Container) GetVoucherRepository() *repository.VoucherRepository {
+func (c *Container) GetVoucherRepository(ctx context.Context) *repository.VoucherRepository {
 	if c.repository != nil {
 		return c.repository
 	}
 	c.repository = &repository.VoucherRepository{
-		Db:               *c.db,
+		Db:               c.db,
 		OutputRepository: *c.GetOutputRepository(),
 		AutoCount:        c.AutoCount,
 	}
-	err := c.repository.CreateTables()
+	err := c.repository.CreateTables(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return c.repository
 }
 
-func (c *Container) GetSyncRepository() *repository.SynchronizerRepository {
+func (c *Container) GetSyncRepository(ctx context.Context) *repository.SynchronizerRepository {
 	if c.syncRepository != nil {
 		return c.syncRepository
 	}
 	c.syncRepository = &repository.SynchronizerRepository{
 		Db: *c.db,
 	}
-	err := c.syncRepository.CreateTables()
+	err := c.syncRepository.CreateTables(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return c.syncRepository
 }
 
-func (c *Container) GetNoticeRepository() *repository.NoticeRepository {
+func (c *Container) GetNoticeRepository(ctx context.Context) *repository.NoticeRepository {
 	if c.noticeRepository != nil {
 		return c.noticeRepository
 	}
 	c.noticeRepository = &repository.NoticeRepository{
-		Db:               *c.db,
+		Db:               c.db,
 		OutputRepository: *c.GetOutputRepository(),
 		AutoCount:        c.AutoCount,
 	}
-	err := c.noticeRepository.CreateTables()
+	err := c.noticeRepository.CreateTables(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return c.noticeRepository
 }
 
-func (c *Container) GetRawInputRepository() *repository.RawInputRefRepository {
+func (c *Container) GetRawInputRepository(ctx context.Context) *repository.RawInputRefRepository {
 	if c.rawInputRefRepository != nil {
 		return c.rawInputRefRepository
 	}
 	c.rawInputRefRepository = &repository.RawInputRefRepository{
-		Db: *c.db,
+		Db: c.db,
 	}
-	err := c.rawInputRefRepository.CreateTables()
+	err := c.rawInputRefRepository.CreateTables(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return c.rawInputRefRepository
 }
 
-func (c *Container) GetRawOutputRefRepository() *repository.RawOutputRefRepository {
+func (c *Container) GetRawOutputRefRepository(ctx context.Context) *repository.RawOutputRefRepository {
 	if c.db == nil {
 		panic(fmt.Errorf("db cannot be nil"))
 	}
@@ -136,28 +137,28 @@ func (c *Container) GetRawOutputRefRepository() *repository.RawOutputRefReposito
 	c.rawOutputRefRepository = &repository.RawOutputRefRepository{
 		Db: c.db,
 	}
-	err := c.rawOutputRefRepository.CreateTable()
+	err := c.rawOutputRefRepository.CreateTable(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return c.rawOutputRefRepository
 }
 
-func (c *Container) GetInputRepository() *repository.InputRepository {
+func (c *Container) GetInputRepository(ctx context.Context) *repository.InputRepository {
 	if c.inputRepository != nil {
 		return c.inputRepository
 	}
 	c.inputRepository = &repository.InputRepository{
-		Db: *c.db,
+		Db: c.db,
 	}
-	err := c.inputRepository.CreateTables()
+	err := c.inputRepository.CreateTables(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return c.inputRepository
 }
 
-func (c *Container) GetReportRepository() *repository.ReportRepository {
+func (c *Container) GetReportRepository(ctx context.Context) *repository.ReportRepository {
 	if c.reportRepository != nil {
 		return c.reportRepository
 	}
@@ -165,23 +166,23 @@ func (c *Container) GetReportRepository() *repository.ReportRepository {
 		Db:        c.db,
 		AutoCount: c.AutoCount,
 	}
-	err := c.reportRepository.CreateTables()
+	err := c.reportRepository.CreateTables(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return c.reportRepository
 }
 
-func (c *Container) GetConvenienceService() *services.ConvenienceService {
+func (c *Container) GetConvenienceService(ctx context.Context) *services.ConvenienceService {
 	if c.convenienceService != nil {
 		return c.convenienceService
 	}
 	c.convenienceService = services.NewConvenienceService(
-		c.GetVoucherRepository(),
-		c.GetNoticeRepository(),
-		c.GetInputRepository(),
-		c.GetReportRepository(),
-		c.GetApplicationRepository(),
+		c.GetVoucherRepository(ctx),
+		c.GetNoticeRepository(ctx),
+		c.GetInputRepository(ctx),
+		c.GetReportRepository(ctx),
+		c.GetApplicationRepository(ctx),
 	)
 	return c.convenienceService
 }

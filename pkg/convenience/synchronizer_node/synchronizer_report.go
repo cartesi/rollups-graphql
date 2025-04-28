@@ -36,7 +36,7 @@ func (s *SynchronizerReport) SyncReports(ctx context.Context) error {
 	}
 	err = s.commitTransaction(txCtx)
 	if err != nil {
-		slog.Error("report commit transaction failed")
+		slog.ErrorContext(ctx, "report commit transaction failed")
 		panic(err)
 	}
 	return nil
@@ -45,12 +45,12 @@ func (s *SynchronizerReport) SyncReports(ctx context.Context) error {
 func (s *SynchronizerReport) syncReports(ctx context.Context) error {
 	ourLastReport, err := s.ReportRepository.FindLastReport(ctx)
 	if err != nil {
-		slog.Error("fail to find last report imported")
+		slog.ErrorContext(ctx, "fail to find last report imported")
 		return err
 	}
 	rawReports, err := s.RawRepository.FindAllReportsGt(ctx, ourLastReport)
 	if err != nil {
-		slog.Error("fail to find all reports")
+		slog.ErrorContext(ctx, "fail to find all reports")
 		return err
 	}
 	for _, rawReport := range rawReports {
@@ -62,7 +62,7 @@ func (s *SynchronizerReport) syncReports(ctx context.Context) error {
 			AppID:       rawReport.ApplicationId,
 		})
 		if err != nil {
-			slog.Error("fail to create report", "err", err)
+			slog.ErrorContext(ctx, "fail to create report", "err", err)
 			return err
 		}
 	}
@@ -91,7 +91,7 @@ func (s *SynchronizerReport) rollbackTransaction(ctx context.Context) {
 	if hasTx && tx != nil {
 		err := tx.Rollback()
 		if err != nil {
-			slog.Error("transaction rollback error", "err", err)
+			slog.ErrorContext(ctx, "transaction rollback error", "err", err)
 			panic(err)
 		}
 	}

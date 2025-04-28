@@ -48,12 +48,12 @@ func (s *SynchronizerAppCreate) SetupTest() {
 	sqliteFileName := filepath.Join(tempDir, "application.sqlite3")
 
 	db := sqlx.MustConnect("sqlite3", sqliteFileName)
-	s.container = convenience.NewContainer(*db, false)
+	s.container = convenience.NewContainer(db, false)
 
 	dbNodeV2 := sqlx.MustConnect("postgres", RAW_DB_URL)
 	s.rawNodeV2Repository = NewRawRepository(RAW_DB_URL, dbNodeV2)
 
-	s.appRepository = s.container.GetApplicationRepository()
+	s.appRepository = s.container.GetApplicationRepository(s.ctx)
 
 	s.synchronizerAppCreator = NewSynchronizerAppCreator(
 		s.appRepository,

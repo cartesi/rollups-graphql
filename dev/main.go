@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"errors"
 	"fmt"
@@ -28,9 +29,10 @@ const ExpectedVersion uint = 1
 
 type Schema struct {
 	migrate *mig.Migrate
+	ctx     context.Context
 }
 
-func New(postgresEndpoint string) (*Schema, error) {
+func New(ctx context.Context, postgresEndpoint string) (*Schema, error) {
 	driver, err := iofs.New(content, "migrations")
 	if err != nil {
 		return nil, err
@@ -41,10 +43,10 @@ func New(postgresEndpoint string) (*Schema, error) {
 		return nil, err
 	}
 
-	return &Schema{migrate: migrate}, nil
+	return &Schema{migrate: migrate, ctx: ctx}, nil
 }
 
-func NewWithPool(pool *pgxpool.Pool) (*Schema, error) {
+func NewWithPool(ctx context.Context, pool *pgxpool.Pool) (*Schema, error) {
 	source, err := iofs.New(content, "migrations")
 	if err != nil {
 		return nil, err
@@ -61,7 +63,7 @@ func NewWithPool(pool *pgxpool.Pool) (*Schema, error) {
 		return nil, err
 	}
 
-	return &Schema{migrate: migrate}, nil
+	return &Schema{migrate: migrate, ctx: ctx}, nil
 }
 
 func (s *Schema) Version() (uint, error) {
@@ -89,10 +91,10 @@ func (s *Schema) Downgrade() error {
 func (s *Schema) Close() {
 	source, db := s.migrate.Close()
 	if source != nil {
-		slog.Error("Error releasing migration sources", "error", source)
+		slog.ErrorContext(s.ctx, "Error releasing migration sources", "error", source)
 	}
 	if db != nil {
-		slog.Error("Error closing db connection", "error", db)
+		slog.ErrorContext(s.ctx, "Error closing db connection", "error", db)
 	}
 }
 
@@ -112,6 +114,7 @@ func (s *Schema) ValidateVersion() (uint, error) {
 func main() {
 	var s *Schema
 	var err error
+	ctx := context.Background()
 
 	postgresEndpoint := os.Getenv("CARTESI_GRAPHQL_DATABASE_CONNECTION")
 
@@ -119,7 +122,7 @@ func main() {
 	if err == nil {
 		uri.User = nil
 	} else {
-		slog.Error("Failed to parse PostgresEndpoint.", "error", err)
+		slog.ErrorContext(ctx, "Failed to parse PostgresEndpoint.", "error", err)
 		os.Exit(1)
 	}
 
@@ -129,13 +132,13 @@ func main() {
 	retrySleep := 5 * time.Second
 
 	for i := 0; i < maxRetry; i++ {
-		s, err = New(postgresEndpoint)
+		s, err = New(ctx, postgresEndpoint)
 		if err == nil {
 			break
 		}
-		slog.Warn("Connection to database failed. Trying again.", "PostgresEndpoint", uri.String())
+		slog.WarnContext(ctx, "Connection to database failed. Trying again.", "PostgresEndpoint", uri.String())
 		if i == maxRetry-1 {
-			slog.Error("Failed to connect to database.", "error", err)
+			slog.ErrorContext(ctx, "Failed to connect to database.", "error", err)
 			os.Exit(1)
 		}
 		time.Sleep(retrySleep)
@@ -144,15 +147,15 @@ func main() {
 
 	err = s.Upgrade()
 	if err != nil {
-		slog.Error("Error while upgrading database schema", "error", err)
+		slog.ErrorContext(ctx, "Error while upgrading database schema", "error", err)
 		os.Exit(1)
 	}
 
 	version, err := s.ValidateVersion()
 	if err != nil {
-		slog.Error("Error while validating database schema version", "error", err)
+		slog.ErrorContext(ctx, "Error while validating database schema version", "error", err)
 		os.Exit(1)
 	}
 
-	slog.Info("Database Schema successfully Updated.", "version", version)
+	slog.InfoContext(ctx, "Database Schema successfully Updated.", "version", version)
 }

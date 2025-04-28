@@ -125,7 +125,7 @@ func (s *RawRepository) GetApplicationRef(ctx context.Context, app *model.Conven
 	res, err := s.Db.QueryxContext(ctx, query, app.ID, LIMIT)
 
 	if err != nil {
-		slog.Error("Failed to execute query in GetApplicationRef", "error", err)
+		slog.ErrorContext(ctx, "Failed to execute query in GetApplicationRef", "error", err)
 		return nil, err
 	}
 
@@ -133,7 +133,7 @@ func (s *RawRepository) GetApplicationRef(ctx context.Context, app *model.Conven
 		var app RawApplication
 		err := res.StructScan(&app)
 		if err != nil {
-			slog.Error("Failed to scan row into Application struct", "error", err)
+			slog.ErrorContext(ctx, "Failed to scan row into Application struct", "error", err)
 			return nil, err
 		}
 		apps = append(apps, app)
@@ -158,7 +158,7 @@ func (s *RawRepository) FindAllAppsRef(ctx context.Context) ([]RawApplication, e
 	apps := []RawApplication{}
 	result, err := s.Db.QueryxContext(ctx, query, LIMIT)
 	if err != nil {
-		slog.Error("Failed to execute query in FindAllAppsRef", "error", err)
+		slog.ErrorContext(ctx, "Failed to execute query in FindAllAppsRef", "error", err)
 		return nil, err
 	}
 
@@ -166,7 +166,7 @@ func (s *RawRepository) FindAllAppsRef(ctx context.Context) ([]RawApplication, e
 		var app RawApplication
 		err := result.StructScan(&app)
 		if err != nil {
-			slog.Error("Failed to scan row into Application struct", "error", err)
+			slog.ErrorContext(ctx, "Failed to scan row into Application struct", "error", err)
 			return nil, err
 		}
 		apps = append(apps, app)
@@ -204,7 +204,7 @@ func (s *RawRepository) First50RawInputsGteRefWithStatus(ctx context.Context, in
 		LIMIT $5`
 	result, err := s.Db.QueryxContext(ctx, query, inputRef.CreatedAt, inputRef.AppID, inputRef.InputIndex, status, LIMIT)
 	if err != nil {
-		slog.Error("RollupsGraphql: Failed to execute query in First50RawInputsGteRefWithStatus",
+		slog.ErrorContext(ctx, "RollupsGraphql: Failed to execute query in First50RawInputsGteRefWithStatus",
 			"query", query, "error", err)
 		return nil, err
 	}
@@ -214,15 +214,15 @@ func (s *RawRepository) First50RawInputsGteRefWithStatus(ctx context.Context, in
 		var input RawInput
 		err := result.StructScan(&input)
 		if err != nil {
-			slog.Error("Failed to scan row into RawInput struct", "error", err)
+			slog.ErrorContext(ctx, "Failed to scan row into RawInput struct", "error", err)
 			return nil, err
 		}
 		// input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress[2:]))
 		inputs = append(inputs, input)
 	}
-	slog.Debug("First50RawInputsGteRefWithStatus", "status", status, "results", len(inputs))
+	slog.DebugContext(ctx, "First50RawInputsGteRefWithStatus", "status", status, "results", len(inputs))
 	if len(inputs) > 0 {
-		slog.Debug("First50RawInputsGteRefWithStatus first result", "appID", inputs[0].ApplicationId,
+		slog.DebugContext(ctx, "First50RawInputsGteRefWithStatus first result", "appID", inputs[0].ApplicationId,
 			"InputIndex", inputs[0].Index,
 		)
 	}
@@ -258,7 +258,7 @@ func (s *RawRepository) FindAllRawInputs(ctx context.Context) ([]RawInput, error
 	`
 	result, err := s.Db.QueryxContext(ctx, query, LIMIT)
 	if err != nil {
-		slog.Error("Failed to execute query in FindAllInputs",
+		slog.ErrorContext(ctx, "Failed to execute query in FindAllInputs",
 			"query", query, "error", err)
 		return nil, err
 	}
@@ -268,13 +268,13 @@ func (s *RawRepository) FindAllRawInputs(ctx context.Context) ([]RawInput, error
 		var input RawInput
 		err := result.StructScan(&input)
 		if err != nil {
-			slog.Error("Failed to scan row into RawInput struct", "error", err)
+			slog.ErrorContext(ctx, "Failed to scan row into RawInput struct", "error", err)
 			return nil, err
 		}
 		// input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress[2:]))
 		inputs = append(inputs, input)
 	}
-	slog.Debug("FindAllRawInputs", "results", len(inputs))
+	slog.DebugContext(ctx, "FindAllRawInputs", "results", len(inputs))
 	return inputs, nil
 }
 
@@ -313,7 +313,7 @@ func (s *RawRepository) FindAllInputsGtRef(ctx context.Context, inputRef *reposi
 	LIMIT $4
 	`, inputRef.AppID, inputRef.InputIndex, inputRef.CreatedAt, LIMIT)
 	if err != nil {
-		slog.Error("Failed to execute query in FindAllInputsGtRef", "error", err)
+		slog.ErrorContext(ctx, "Failed to execute query in FindAllInputsGtRef", "error", err)
 		return nil, err
 	}
 	defer result.Close()
@@ -322,13 +322,13 @@ func (s *RawRepository) FindAllInputsGtRef(ctx context.Context, inputRef *reposi
 		var input RawInput
 		err := result.StructScan(&input)
 		if err != nil {
-			slog.Error("Failed to scan row into RawInput struct", "error", err)
+			slog.ErrorContext(ctx, "Failed to scan row into RawInput struct", "error", err)
 			return nil, err
 		}
 		// input.ApplicationAddress = common.Hex2Bytes(string(input.ApplicationAddress[2:]))
 		inputs = append(inputs, input)
 	}
-	slog.Debug("FindAllInputsGtRef", "results", len(inputs))
+	slog.DebugContext(ctx, "FindAllInputsGtRef", "results", len(inputs))
 	return inputs, nil
 }
 
@@ -368,7 +368,7 @@ func (s *RawRepository) FindAllReportsGt(ctx context.Context, ourReport *model.F
 	}
 	result, err := s.Db.QueryxContext(ctx, query, ourReport.Index, ourReport.AppID, LIMIT)
 	if err != nil {
-		slog.Error("Failed to execute query in FindAllReportsByFilter", "error", err)
+		slog.ErrorContext(ctx, "Failed to execute query in FindAllReportsByFilter", "error", err)
 		return nil, err
 	}
 	defer result.Close()
@@ -377,7 +377,7 @@ func (s *RawRepository) FindAllReportsGt(ctx context.Context, ourReport *model.F
 		var report RawReport
 		err := result.StructScan(&report)
 		if err != nil {
-			slog.Error("Failed to scan row into Report struct", "error", err)
+			slog.ErrorContext(ctx, "Failed to scan row into Report struct", "error", err)
 			return nil, err
 		}
 		reports = append(reports, report)
@@ -412,7 +412,7 @@ func (s *RawRepository) findAllOutputsLimited(ctx context.Context) ([]Output, er
 		LIMIT $1`
 	result, err := s.Db.QueryxContext(ctx, query, LIMIT)
 	if err != nil {
-		slog.Error("Failed to execute query in findAllOutputsLimited", "error", err)
+		slog.ErrorContext(ctx, "Failed to execute query in findAllOutputsLimited", "error", err)
 		return nil, err
 	}
 	defer result.Close()
@@ -421,7 +421,7 @@ func (s *RawRepository) findAllOutputsLimited(ctx context.Context) ([]Output, er
 		var output Output
 		err := result.StructScan(&output)
 		if err != nil {
-			slog.Error("Failed to scan row into Output struct", "error", err)
+			slog.ErrorContext(ctx, "Failed to scan row into Output struct", "error", err)
 			return nil, err
 		}
 		// output.AppContract = common.Hex2Bytes(string(output.AppContract[2:]))
@@ -464,7 +464,7 @@ func (s *RawRepository) FindAllOutputsGtRefLimited(ctx context.Context, outputRe
 			o.created_at ASC, o.index ASC, o.input_epoch_application_id ASC
 		LIMIT $4`, outputRef.OutputIndex, outputRef.CreatedAt, outputRef.AppID, LIMIT)
 	if err != nil {
-		slog.Error("Failed to execute query in FindAllOutputsGtRefLimited", "error", err)
+		slog.ErrorContext(ctx, "Failed to execute query in FindAllOutputsGtRefLimited", "error", err)
 		return nil, err
 	}
 	defer result.Close()
@@ -473,7 +473,7 @@ func (s *RawRepository) FindAllOutputsGtRefLimited(ctx context.Context, outputRe
 		var output Output
 		err := result.StructScan(&output)
 		if err != nil {
-			slog.Error("Failed to scan row into Output struct", "error", err)
+			slog.ErrorContext(ctx, "Failed to scan row into Output struct", "error", err)
 			return nil, err
 		}
 		// output.AppContract = common.Hex2Bytes(string(output.AppContract[2:]))
@@ -524,7 +524,7 @@ func (s *RawRepository) FindAllOutputsWithProofGte(ctx context.Context, filter *
 		LIMIT $3
 	`, filter.AppID, filter.OutputIndex, LIMIT)
 	if err != nil {
-		slog.Error("Failed to execute query in FindAllOutputsWithProof", "error", err)
+		slog.ErrorContext(ctx, "Failed to execute query in FindAllOutputsWithProof", "error", err)
 		return nil, err
 	}
 	defer result.Close()
@@ -533,7 +533,7 @@ func (s *RawRepository) FindAllOutputsWithProofGte(ctx context.Context, filter *
 		var output Output
 		err := result.StructScan(&output)
 		if err != nil {
-			slog.Error("Failed to scan row into Output struct", "error", err)
+			slog.ErrorContext(ctx, "Failed to scan row into Output struct", "error", err)
 			return nil, err
 		}
 		outputs = append(outputs, output)
@@ -580,7 +580,7 @@ func (s *RawRepository) FindAllOutputsExecutedAfter(ctx context.Context, outputR
 		LIMIT $4
 	`, outputRef.UpdatedAt, outputRef.AppID, outputRef.OutputIndex, LIMIT)
 	if err != nil {
-		slog.Error("Failed to execute query in FindAllOutputsExecuted", "error", err)
+		slog.ErrorContext(ctx, "Failed to execute query in FindAllOutputsExecuted", "error", err)
 		return nil, err
 	}
 	defer result.Close()
@@ -589,7 +589,7 @@ func (s *RawRepository) FindAllOutputsExecutedAfter(ctx context.Context, outputR
 		var output Output
 		err := result.StructScan(&output)
 		if err != nil {
-			slog.Error("Failed to scan row into Output struct", "error", err)
+			slog.ErrorContext(ctx, "Failed to scan row into Output struct", "error", err)
 			return nil, err
 		}
 		// output.AppContract = common.Hex2Bytes(string(output.AppContract[2:]))

@@ -29,40 +29,43 @@ type OutputDecoderSuite struct {
 	inputRepository       *repository.InputRepository
 	reportRepository      *repository.ReportRepository
 	applicationRepository *repository.ApplicationRepository
+	db                    *sqlx.DB
+	ctx                   context.Context
+	ctxCancel             context.CancelFunc
+}
+
+func (s *OutputDecoderSuite) TearDownTest() {
+	s.db.Close()
+	s.ctxCancel()
 }
 
 func (s *OutputDecoderSuite) SetupTest() {
-	db := sqlx.MustConnect("sqlite3", ":memory:")
+	s.ctx, s.ctxCancel = context.WithCancel(context.Background())
+	s.db = sqlx.MustConnect("sqlite3", ":memory:")
 	outputRepository := repository.OutputRepository{
-		Db: *db,
+		Db: s.db,
 	}
 	s.voucherRepository = &repository.VoucherRepository{
-		Db: *db, OutputRepository: outputRepository,
+		Db: s.db, OutputRepository: outputRepository,
 	}
-	err := s.voucherRepository.CreateTables()
-	if err != nil {
-		panic(err)
-	}
+	err := s.voucherRepository.CreateTables(s.ctx)
+	s.Require().NoError(err)
 
 	s.noticeRepository = &repository.NoticeRepository{
-		Db: *db, OutputRepository: outputRepository,
+		Db: s.db, OutputRepository: outputRepository,
 	}
-	err = s.noticeRepository.CreateTables()
-	if err != nil {
-		panic(err)
-	}
+	err = s.noticeRepository.CreateTables(s.ctx)
+	s.Require().NoError(err)
 
 	s.inputRepository = &repository.InputRepository{
-		Db: *db,
+		Db: s.db,
 	}
-	err = s.inputRepository.CreateTables()
+	err = s.inputRepository.CreateTables(s.ctx)
 
-	if err != nil {
-		panic(err)
-	}
+	s.Require().NoError(err)
 
 	s.applicationRepository = &repository.ApplicationRepository{
-		Db: *db,
+		Db: s.db,
 	}
 
 	s.decoder = &OutputDecoder{
@@ -83,13 +86,10 @@ func TestDecoderSuite(t *testing.T) {
 func (s *OutputDecoderSuite) TestHandleOutput() {
 	ctx := context.Background()
 	err := s.decoder.HandleOutput(ctx, Token, "0x237a816f11", 1, 3)
-	if err != nil {
-		panic(err)
-	}
+	s.Require().NoError(err)
 	voucher, err := s.voucherRepository.FindVoucherByInputAndOutputIndex(ctx, 1, 3)
-	if err != nil {
-		panic(err)
-	}
+	s.Require().NoError(err)
+
 	s.Equal(Token.String(), voucher.Destination.String())
 	s.Equal("0x11", voucher.Payload)
 }
@@ -110,28 +110,21 @@ func (s *OutputDecoderSuite) XTestCreateVoucherIdempotency() {
 	// we need a better way to check the Idempotency
 	ctx := context.Background()
 	err := s.decoder.HandleOutput(ctx, Token, "0x237a816f1122", 3, 4)
-	if err != nil {
-		panic(err)
-	}
+	s.Require().NoError(err)
+
 	voucherCount, err := s.voucherRepository.VoucherCount(ctx)
 
-	if err != nil {
-		panic(err)
-	}
+	s.Require().NoError(err)
 
 	s.Equal(1, int(voucherCount))
 
 	err = s.decoder.HandleOutput(ctx, Token, "0x237a816f1122", 3, 4)
 
-	if err != nil {
-		panic(err)
-	}
+	s.Require().NoError(err)
 
 	voucherCount, err = s.voucherRepository.VoucherCount(ctx)
 
-	if err != nil {
-		panic(err)
-	}
+	s.Require().NoError(err)
 
 	s.Equal(1, int(voucherCount))
 }
@@ -180,7 +173,7 @@ func (s *OutputDecoderSuite) TestGetConvertedInput() {
 			Blob:  blob,
 		},
 	}
-	cInput, err := s.decoder.GetConvertedInput(edge)
+	cInput, err := s.decoder.GetConvertedInput(s.ctx, edge)
 	s.NoError(err)
 	s.NotNil(cInput)
 }
@@ -196,14 +189,14 @@ func (s *OutputDecoderSuite) TestGetConvertedInputFromBytes() {
 			Blob:  blob,
 		},
 	}
-	cInput, err := s.decoder.GetConvertedInput(edge)
+	cInput, err := s.decoder.GetConvertedInput(s.ctx, edge)
 	s.NoError(err)
 	s.NotNil(cInput)
 }
 
 func (s *OutputDecoderSuite) TestParseBytesToInput() {
 	blob := GenerateInputBlob()
-	decodedInput, err := s.decoder.ParseBytesToInput(common.Hex2Bytes(blob[2:]))
+	decodedInput, err := s.decoder.ParseBytesToInput(s.ctx, common.Hex2Bytes(blob[2:]))
 	s.Require().NoError(err)
 	s.Equal(common.HexToAddress(ApplicationAddress), decodedInput.AppContract)
 }

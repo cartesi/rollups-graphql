@@ -8,18 +8,18 @@ import (
 )
 
 type OutputRepository struct {
-	Db sqlx.DB
+	Db *sqlx.DB
 }
 
 func (c *OutputRepository) CountProofs(ctx context.Context) (uint64, error) {
 	vouchers, err := c.CountVoucherProofs(ctx)
 	if err != nil {
-		slog.Error("query error")
+		slog.ErrorContext(ctx, "query error")
 		return 0, err
 	}
 	notices, err := c.CountNoticeProofs(ctx)
 	if err != nil {
-		slog.Error("query error")
+		slog.ErrorContext(ctx, "query error")
 		return 0, err
 	}
 	return vouchers + notices, nil
@@ -27,14 +27,14 @@ func (c *OutputRepository) CountProofs(ctx context.Context) (uint64, error) {
 
 func (c *OutputRepository) CountNoticeProofs(ctx context.Context) (uint64, error) {
 	query := `
-		SELECT COUNT(*) FROM convenience_notices 
-		WHERE 
-			output_hashes_siblings is not null 
+		SELECT COUNT(*) FROM convenience_notices
+		WHERE
+			output_hashes_siblings is not null
 			and output_hashes_siblings <> ''
 		`
 	stmt, err := c.Db.Preparex(query)
 	if err != nil {
-		slog.Error("query error")
+		slog.ErrorContext(ctx, "query error")
 		return 0, err
 	}
 	defer stmt.Close()
@@ -48,14 +48,14 @@ func (c *OutputRepository) CountNoticeProofs(ctx context.Context) (uint64, error
 
 func (c *OutputRepository) CountVoucherProofs(ctx context.Context) (uint64, error) {
 	query := `
-		SELECT COUNT(*) FROM convenience_vouchers 
-		WHERE 
-			output_hashes_siblings is not null 
+		SELECT COUNT(*) FROM convenience_vouchers
+		WHERE
+			output_hashes_siblings is not null
 			and output_hashes_siblings <> ''
 		`
 	stmt, err := c.Db.Preparex(query)
 	if err != nil {
-		slog.Error("query error")
+		slog.ErrorContext(ctx, "query error")
 		return 0, err
 	}
 	defer stmt.Close()
@@ -72,12 +72,12 @@ func (c *OutputRepository) CountAllOutputs(
 ) (uint64, error) {
 	vouchers, err := c.CountAllVouchers(ctx)
 	if err != nil {
-		slog.Error("query error")
+		slog.ErrorContext(ctx, "query error")
 		return 0, err
 	}
 	notices, err := c.CountAllNotices(ctx)
 	if err != nil {
-		slog.Error("query error")
+		slog.ErrorContext(ctx, "query error")
 		return 0, err
 	}
 	return vouchers + notices, nil
@@ -89,7 +89,7 @@ func (c *OutputRepository) CountAllVouchers(
 	query := `SELECT COUNT(*) FROM convenience_vouchers`
 	stmt, err := c.Db.Preparex(query)
 	if err != nil {
-		slog.Error("query error")
+		slog.ErrorContext(ctx, "query error")
 		return 0, err
 	}
 	defer stmt.Close()
@@ -107,7 +107,7 @@ func (c *OutputRepository) CountAllNotices(
 	query := `SELECT COUNT(*) FROM convenience_notices`
 	stmt, err := c.Db.Preparex(query)
 	if err != nil {
-		slog.Error("query error")
+		slog.ErrorContext(ctx, "query error")
 		return 0, err
 	}
 	defer stmt.Close()

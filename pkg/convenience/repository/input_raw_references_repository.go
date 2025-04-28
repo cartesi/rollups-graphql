@@ -14,7 +14,7 @@ import (
 )
 
 type RawInputRefRepository struct {
-	Db sqlx.DB
+	Db *sqlx.DB
 }
 
 type RawInputRef struct {
@@ -28,7 +28,7 @@ type RawInputRef struct {
 	CreatedAt   time.Time `db:"created_at"`
 }
 
-func (r *RawInputRefRepository) CreateTables() error {
+func (r *RawInputRefRepository) CreateTables(ctx context.Context) error {
 	schema := `CREATE TABLE IF NOT EXISTS convenience_input_raw_references (
 		id 				text NOT NULL,
 		app_id 			integer NOT NULL,
@@ -42,12 +42,12 @@ func (r *RawInputRefRepository) CreateTables() error {
 	CREATE INDEX IF NOT EXISTS idx_convenience_input_raw_references_status_raw_id ON convenience_input_raw_references(status, app_id);
 	CREATE INDEX IF NOT EXISTS idx_status ON convenience_input_raw_references(status);`
 
-	_, err := r.Db.Exec(schema)
+	_, err := r.Db.ExecContext(ctx, schema)
 	if err != nil {
-		slog.Error("Failed to create tables", "error", err)
+		slog.ErrorContext(ctx, "Failed to create tables", "error", err)
 		return err
 	}
-	slog.Debug("Raw Inputs table created successfully")
+	slog.DebugContext(ctx, "Raw Inputs table created successfully")
 	return nil
 }
 
@@ -55,7 +55,7 @@ func (r *RawInputRefRepository) UpdateStatus(ctx context.Context, rawInputsRefs 
 	if len(rawInputsRefs) == 0 {
 		return nil
 	}
-	exec := DBExecutor{&r.Db}
+	exec := DBExecutor{r.Db}
 	query := `UPDATE convenience_input_raw_references SET status = $1 WHERE `
 	whereClauses := make([]string, len(rawInputsRefs))
 	args := []interface{}{status}
@@ -71,7 +71,7 @@ func (r *RawInputRefRepository) UpdateStatus(ctx context.Context, rawInputsRefs 
 }
 
 func (r *RawInputRefRepository) Create(ctx context.Context, rawInput RawInputRef) error {
-	exec := DBExecutor{&r.Db}
+	exec := DBExecutor{r.Db}
 
 	appContract := common.HexToAddress(rawInput.AppContract)
 	exist, err := r.FindByInputIndexAndAppContract(ctx, rawInput.InputIndex, &appContract)
@@ -79,7 +79,7 @@ func (r *RawInputRefRepository) Create(ctx context.Context, rawInput RawInputRef
 		return err
 	}
 	if exist != nil {
-		slog.Debug("Raw input already exists. Skipping creation")
+		slog.DebugContext(ctx, "Raw input already exists. Skipping creation")
 		return nil
 	}
 
@@ -92,11 +92,11 @@ func (r *RawInputRefRepository) Create(ctx context.Context, rawInput RawInputRef
 	)
 
 	if err != nil {
-		slog.Error("Failed to insert raw input reference", "rawInput", rawInput, "error", err)
+		slog.ErrorContext(ctx, "Failed to insert raw input reference", "rawInput", rawInput, "error", err)
 		return err
 	}
 
-	// slog.Debug("Raw input reference created", "ID", rawInput.ID)
+	// slog.DebugContext(ctx, "Raw input reference created", "ID", rawInput.ID)
 	return nil
 }
 
@@ -111,14 +111,14 @@ func (r *RawInputRefRepository) GetLatestInputRef(ctx context.Context) (*RawInpu
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			slog.Warn("No raw input references found")
+			slog.WarnContext(ctx, "No raw input references found")
 			return nil, nil
 		}
-		slog.Error("Failed to get latest raw input ref", "err", err)
+		slog.ErrorContext(ctx, "Failed to get latest raw input ref", "err", err)
 		return nil, err
 	}
 
-	slog.Debug("Latest InputRef fetched",
+	slog.DebugContext(ctx, "Latest InputRef fetched",
 		"app_id", inputRef.AppID,
 		"input_index", inputRef.InputIndex,
 	)
@@ -132,7 +132,7 @@ func (r *RawInputRefRepository) FindFirstInputByStatusNone(ctx context.Context) 
 
 	stmt, err := r.Db.PreparexContext(ctx, query)
 	if err != nil {
-		slog.Error("Failed to prepare query for status NONE", "query", query, "error", err)
+		slog.ErrorContext(ctx, "Failed to prepare query for status NONE", "query", query, "error", err)
 		return nil, err
 	}
 	defer stmt.Close()
@@ -142,14 +142,14 @@ func (r *RawInputRefRepository) FindFirstInputByStatusNone(ctx context.Context) 
 	err = stmt.GetContext(ctx, &row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			slog.Debug("No input found with status NONE")
+			slog.DebugContext(ctx, "No input found with status NONE")
 			return nil, nil
 		}
-		slog.Error("Failed to execute query for status NONE", "error", err)
+		slog.ErrorContext(ctx, "Failed to execute query for status NONE", "error", err)
 		return nil, err
 	}
 
-	slog.Debug("First input with status NONE fetched",
+	slog.DebugContext(ctx, "First input with status NONE fetched",
 		"app_id", row.AppID, "input_index", row.InputIndex)
 	return &row, nil
 }
@@ -162,10 +162,10 @@ func (r *RawInputRefRepository) FindByInputIndexAndAppContract(ctx context.Conte
 		LIMIT 1`, inputIndex, appContract.Hex())
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// slog.Debug("Input reference not found", "input_index", inputIndex)
+			// slog.DebugContext(ctx, "Input reference not found", "input_index", inputIndex)
 			return nil, nil
 		}
-		slog.Error("Error finding input reference by input_index",
+		slog.ErrorContext(ctx, "Error finding input reference by input_index",
 			"error", err,
 			"input_index", inputIndex,
 			"app_contract", appContract.Hex(),

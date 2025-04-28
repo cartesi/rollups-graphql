@@ -11,6 +11,8 @@ import (
 	"log/slog"
 	"sync"
 	"time"
+
+	"github.com/cartesi/rollups-graphql/v2/pkg/commons"
 )
 
 // Timeout when waiting for workers to finish.
@@ -44,7 +46,8 @@ func (w SupervisorWorker) Start(ctx context.Context, ready chan<- struct{}) erro
 	var wg sync.WaitGroup
 Loop:
 	for _, worker := range w.Workers {
-		logger := slog.With("worker", worker)
+		ctx := commons.AddWorkerNameToContext(ctx, worker.String())
+
 		wg.Add(1)
 		innerReady := make(chan struct{})
 		go func() {
@@ -52,16 +55,16 @@ Loop:
 			defer cancel()
 			err := worker.Start(ctx, innerReady)
 			if err != nil && !errors.Is(err, context.Canceled) {
-				logger.Warn("supervisor: worker exitted with error", "error", err)
+				slog.WarnContext(ctx, "supervisor: worker exitted with error", "error", err)
 			} else {
-				logger.Debug("supervisor: worker exitted with success")
+				slog.DebugContext(ctx, "supervisor: worker exitted with success")
 			}
 		}()
 		select {
 		case <-innerReady:
-			logger.Debug("supervisor: worker is ready")
+			slog.DebugContext(ctx, "supervisor: worker is ready")
 		case <-time.After(timeout):
-			logger.Warn("supervisor: worker timed out")
+			slog.WarnContext(ctx, "supervisor: worker timed out")
 			cancel()
 			break Loop
 		case <-ctx.Done():
@@ -81,7 +84,7 @@ Loop:
 	}()
 	select {
 	case <-wait:
-		slog.Debug("supervisor: all workers exitted")
+		slog.DebugContext(ctx, "supervisor: all workers exitted")
 		return nil
 	case <-time.After(timeout):
 		return fmt.Errorf("supervisor: timed out waiting for workers")

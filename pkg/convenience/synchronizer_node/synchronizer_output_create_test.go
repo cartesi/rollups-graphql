@@ -48,7 +48,7 @@ func (s *SynchronizerOutputCreateSuite) SetupTest() {
 	sqliteFileName := filepath.Join(tempDir, "output.sqlite3")
 
 	db := sqlx.MustConnect("sqlite3", sqliteFileName)
-	s.container = convenience.NewContainer(*db, false)
+	s.container = convenience.NewContainer(db, false)
 
 	dbNodeV2 := sqlx.MustConnect("postgres", RAW_DB_URL)
 	s.rawNodeV2Repository = NewRawRepository(RAW_DB_URL, dbNodeV2)
@@ -59,10 +59,10 @@ func (s *SynchronizerOutputCreateSuite) SetupTest() {
 	}
 	abiDecoder := NewAbiDecoder(abi)
 	s.synchronizerOutputCreate = NewSynchronizerOutputCreate(
-		s.container.GetVoucherRepository(),
-		s.container.GetNoticeRepository(),
+		s.container.GetVoucherRepository(s.ctx),
+		s.container.GetNoticeRepository(s.ctx),
 		s.rawNodeV2Repository,
-		s.container.GetRawOutputRefRepository(),
+		s.container.GetRawOutputRefRepository(s.ctx),
 		abiDecoder,
 	)
 }

@@ -17,6 +17,9 @@ import (
 type SynchronizerReportSuite struct {
 	suite.Suite
 	ctx                        context.Context
+	ctxCancel                  context.CancelFunc
+	db                         *sqlx.DB
+	dbNodeV2                   *sqlx.DB
 	dockerComposeStartedByTest bool
 	tempDir                    string
 	container                  *convenience.Container
@@ -34,6 +37,7 @@ func (s *SynchronizerReportSuite) SetupSuite() {
 }
 
 func (s *SynchronizerReportSuite) SetupTest() {
+	s.ctx, s.ctxCancel = context.WithCancel(context.Background())
 	commons.ConfigureLog(slog.LevelDebug)
 
 	// Temp
@@ -44,13 +48,13 @@ func (s *SynchronizerReportSuite) SetupTest() {
 	// Database
 	sqliteFileName := filepath.Join(tempDir, "report.sqlite3")
 
-	db := sqlx.MustConnect("sqlite3", sqliteFileName)
-	s.container = convenience.NewContainer(*db, false)
+	s.db = sqlx.MustConnect("sqlite3", sqliteFileName)
+	s.container = convenience.NewContainer(s.db, false)
 
-	dbNodeV2 := sqlx.MustConnect("postgres", RAW_DB_URL)
-	s.rawNode = NewRawRepository(RAW_DB_URL, dbNodeV2)
+	s.dbNodeV2 = sqlx.MustConnect("postgres", RAW_DB_URL)
+	s.rawNode = NewRawRepository(RAW_DB_URL, s.dbNodeV2)
 	s.synchronizerReport = NewSynchronizerReport(
-		s.container.GetReportRepository(),
+		s.container.GetReportRepository(s.ctx),
 		s.rawNode,
 	)
 }
@@ -63,7 +67,12 @@ func (s *SynchronizerReportSuite) TearDownSuite() {
 }
 
 func (s *SynchronizerReportSuite) TearDownTest() {
-	defer os.RemoveAll(s.tempDir)
+	s.ctxCancel()
+	err := s.db.Close()
+	s.NoError(err)
+	err = s.dbNodeV2.Close()
+	s.NoError(err)
+	os.RemoveAll(s.tempDir)
 }
 
 func TestSynchronizerReportSuiteSuite(t *testing.T) {
@@ -73,25 +82,23 @@ func TestSynchronizerReportSuiteSuite(t *testing.T) {
 // Dear Programmer, I hope this message finds you well.
 // Keep coding, keep learning, and never forget—your work shapes the future.
 func (s *SynchronizerReportSuite) TestCreateAllReports() {
-	ctx := context.Background()
-
 	// check setup
-	startReportCount := s.countHLReports(ctx)
+	startReportCount := s.countHLReports(s.ctx)
 	s.Require().Equal(0, startReportCount)
 
 	// first call
-	err := s.synchronizerReport.SyncReports(ctx)
+	err := s.synchronizerReport.SyncReports(s.ctx)
 	s.Require().NoError(err)
 
 	// second call
-	err = s.synchronizerReport.SyncReports(ctx)
+	err = s.synchronizerReport.SyncReports(s.ctx)
 	s.Require().NoError(err)
-	second := s.countHLReports(ctx)
+	second := s.countHLReports(s.ctx)
 	s.Equal(TOTAL_INPUT_TEST, second)
 }
 
 func (s *SynchronizerReportSuite) countHLReports(ctx context.Context) int {
-	total, err := s.container.GetReportRepository().Count(ctx, nil)
+	total, err := s.container.GetReportRepository(ctx).Count(ctx, nil)
 	s.Require().NoError(err)
 	return int(total)
 }
