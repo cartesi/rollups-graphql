@@ -7,7 +7,6 @@
 - 43a5bc3: Update packages
 - afb94b4: Change database environment variables
 - e7e88d7: Add logger with "worker" context
-- 5172897: Added loggers and environment variables names has been updated
 
 ## 2.3.13
 
