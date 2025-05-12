@@ -1,15 +1,12 @@
 <!-- markdownlint-disable MD024 -->
 
-## 2.4.0
+## 2.3.14
 
-### Minor Changes
+### Patch Changes
 
 - 43a5bc3: Update packages
 - afb94b4: Change database environment variables
 - e7e88d7: Add logger with "worker" context
-
-### Patch Changes
-
 - 5172897: Added loggers and environment variables names has been updated
 
 ## 2.3.13
